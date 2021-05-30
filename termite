@@ -1,3 +1,5 @@
+#rename to config, this config is mostly copyed from
+# https://github.com/EndeavourOS-Community-Editions/bspwm
 [options]
 allow_bold = true
 #audible_bell = false
