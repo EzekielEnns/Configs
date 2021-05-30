@@ -1,3 +1,4 @@
+!my first ever config
 !use the command " xrdb -merge .Xresources " to color up xterm
 ! FONTS
 
