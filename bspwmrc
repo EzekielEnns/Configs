@@ -1,8 +1,9 @@
 #! /bin/sh
-
+# orginial can be found https://github.com/EndeavourOS-Community-Editions/bspwm
 pgrep -x sxhkd > /dev/null || sxhkd &
 
 bspc monitor -d I II III IV V VI VII VIII IX X
+#replace with proper component
 bspc monitor VGA1 -d 6 7 8 9 0
 
 bspc config border_width         2
