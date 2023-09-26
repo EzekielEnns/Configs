@@ -1,0 +1,28 @@
+layout {
+    default_tab_template {
+        pane size=1 borderless=true {
+            plugin location="zellij:compact-bar"
+        }
+        children
+        pane size=1 borderless=true {
+            plugin location="zellij:status-bar"
+        }
+        pane size=1 borderless=true {
+            plugin location="zellij:strider"
+        }
+    }
+    tab name="work" focus=true split_direction="horizontal" {
+        pane { 
+            command "nvim" 
+            focus true
+        }
+        pane {
+            size "10%"
+        }
+    }
+    tab name="git"{
+        pane { 
+            command "lazygit"
+        }
+    }
+}

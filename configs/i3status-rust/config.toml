@@ -1,0 +1,74 @@
+#TODO fix blocks sound
+#TODO add blue tooth block
+#TODO add usb block
+
+[icons]
+icons = "awesome5"
+
+#TODO cusome blue tooth
+#TODO custome USB/media/Files
+
+[[block]]
+block = "xrandr"
+icons_format = "\u0020{icon} \u0020"
+format = "$display"
+#TODO add arandr options
+
+[[block]]
+block = "disk_space"
+path = "/"
+info_type = "used"
+format = " $used"
+
+[[block]]
+block = "load"
+interval = 5
+icons_format = "{icon} \u0020"
+
+
+
+[[block]]
+block = "memory"
+format = " $icon  $mem_used_percents.eng(w:1) "
+format_alt = " $icon_swap $swap_free.eng(w:3,u:B,p:M)/$swap_total.eng(w:3,u:B,p:M)($swap_used_percents.eng(w:2)) "
+interval = 30
+warning_mem = 70
+critical_mem = 90
+
+[[block]]
+block = "temperature"
+format = " $icon $max max "
+format_alt = " $icon $min min, $max max, $average avg "
+interval = 10
+chip = "*-pci-*"
+
+[[block]]
+block = "battery"
+format = " $icon  $percentage "
+
+[[block]]
+block = "backlight"
+
+[[block]]
+block = "sound"
+step_width = 3
+format = " $icon  $volume|"
+
+[[block]]
+block = "music"
+format = " $icon {$combo.str(max_w:20,rot_interval:0.5) $play $next |}"
+interface_name_exclude = [".*kdeconnect.*", "mpd"]
+
+[[block]]
+block = "time"
+interval = 1
+format=" $icon  $timestamp.datetime(f:'%x %I:%M', l:fr_BE)  "
+timezone = "Canada/Atlantic"
+
+[[block]]
+format = " $text "
+block = "uptime"
+interval = 3600 # update every hour
+#https://docs.rs/i3status-rs/latest/i3status_rs/blocks/pomodoro/index.html
+
+#https://greshake.github.io/i3status-rust/i3status_rs/blocks/index.html

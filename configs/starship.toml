@@ -1,0 +1,12 @@
+add_newline = false
+command_timeout = 10000
+# Replace the "❯" symbol in the prompt with "➜"
+# ~/.config/starship.toml
+[character]
+format ="[>>](bold blue) "
+success_symbol ="[ >](bold green) "
+error_symbol ="[x >](bold red) "
+#vimcmd_symbol ="[n >](bold grey) "
+#vimcmd_replace_one_symbol ="[r ](bold orange) "
+#vimcmd_replace_symbol ="[r ](bold orange) "
+#vimcmd_visual_symbol ="[v ](bold blue) "
