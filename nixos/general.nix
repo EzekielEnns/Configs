@@ -10,6 +10,11 @@ let
   unstable = import unstableTarball { };
 in {
 
+  # flakes
+  nix.settings.experimental-features = [
+    "nix-command"
+    "flakes"
+  ];
   # virt 
   virtualisation.virtualbox.host.enable = true;
   users.extraGroups.vboxusers.members = [ "user-with-access-to-virtualbox" ];
@@ -57,6 +62,7 @@ in {
       unstable.w3m
       font-awesome_5
       #apps
+      lf
       i3-cycle-focus
       unclutter
       maim

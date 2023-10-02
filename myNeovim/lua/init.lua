@@ -183,6 +183,16 @@ require("lazy").setup({
         "vinnymeller/swagger-preview.nvim",
         opts = {port = 8000, host = "localhost"}
     }, {
+        "lmburns/lf.nvim",
+        lazy=false,
+        dependencies = "akinsho/toggleterm.nvim",
+        config = function()
+            -- This feature will not work if the plugin is lazy-loaded
+            vim.g.lf_netrw = 1
+
+            require("lf").setup({escape_quit = true, border = "rounded"})
+        end
+    }, {
         "nvim-neo-tree/neo-tree.nvim",
         lazy = false,
         dependencies = {"nvim-lua/plenary.nvim", "kyazdani42/nvim-web-devicons"},
@@ -228,7 +238,7 @@ require("lazy").setup({
                 -- reqiores pnpm i -D @astrojs/language-server typescript
                 cmd = {"pnpm", "astro-ls", "--stdio"}
             }
-            require'lspconfig'.clangd.setup{}
+            require'lspconfig'.clangd.setup {}
             require'lspconfig'.statix.setup {}
             require'lspconfig'.marksman.setup {}
             require'lspconfig'.tsserver.setup {}
@@ -297,8 +307,8 @@ require("lazy").setup({
                 ensure_installed = {
                     "c", "lua", "rust", "terraform", "nu", "dockerfile", "diff",
                     "git_rebase", "gitignore", "gitcommit", "go", "gomod",
-                    "json", "sql", "typescript", "tsx", "html", "css", "tsx","make",
-                    "astro"
+                    "json", "sql", "typescript", "tsx", "html", "css", "tsx",
+                    "make", "astro"
                 },
                 highlight = {enable = true},
                 with_sync = true
@@ -413,7 +423,7 @@ require("lazy").setup({
                 },
                 f = {
                     name = "Finder",
-                    b = {"<cmd>Telescope buffers<CR>","buffers"},
+                    b = {"<cmd>Telescope buffers<CR>", "buffers"},
                     w = {
                         "<cmd>lua require('telescope.builtin').live_grep({grep_open_files=true})<CR>",
                         "Word in buffers"

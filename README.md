@@ -71,3 +71,5 @@ sudo nixos-rebuild switch
 
 
 `ls | select name | input list --fuzzy | cd $in.name`
+`nvim --listen ./test.pipe` fyi pipe disapares when closed 
+` echo "REE" | xargs -I {} nvim --server test.pipe --remote-send ':lua print "{}"<CR>'`

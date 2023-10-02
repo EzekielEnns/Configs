@@ -32,6 +32,7 @@ pkgs.mkShell {
     kitty
     zellij
     lazygit
+    lf
     # lsps/lang tools
     vimPlugins.nvim-treesitter-parsers.astro
     statix
