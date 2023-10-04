@@ -1,6 +1,6 @@
 # https://github.com/gokcehan/lf/tree/master/etc
 # interpreter for shell commands
-set shell sh
+set shell bash
 
 # set '-eu' options for shell commands
 # These options are used to have safer shell commands. Option '-e' is used to
@@ -52,10 +52,15 @@ cmd open &{{
 # mkdir command. See wiki if you want it to select created dir
 map a :push %mkdir<space>
 
-# define a custom 'rename' command without prompt for overwrite
-# cmd rename %[ -e $1 ] && printf "file exists" || mv $f $1
-# map r push :rename<space>
-
+# $f is current file, $fx is space sperated list
+cmd wd %set -f; pwd | xargs -I {} nvim --server ~/edit.pipe --remote-send '<C-\><C-N>:cd {}<CR>' 
+cmd opv %echo $f | xargs -I {} nvim --server ~/edit.pipe --remote-send '<C-\><C-N>:vsplit {}<CR>'
+cmd ops %echo $f | xargs -I {} nvim --server ~/edit.pipe --remote-send '<C-\><C-N>:split {}<CR>'
+ 
+cmd op ${{
+    echo $f | xargs -I {} nvim --server ~/edit.pipe --remote-send '<C-\><C-N>:edit {}<CR>'
+    kitty @select-window |xargs -I{} kitty @focus-window --match 'id:{}'
+}}
 # make sure trash folder exists
 # %mkdir -p ~/.trash
 
