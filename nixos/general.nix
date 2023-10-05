@@ -5,7 +5,9 @@
 
 { config, pkgs, ... }:
 let
- #unstable = import <nixos-unstable> { config = { allowUnfree = true; }; };
+  unstableTarball = fetchTarball
+    "https://github.com/NixOS/nixpkgs/archive/nixos-unstable.tar.gz";
+  unstable = import unstableTarball { };
 in {
 
   # flakes
@@ -56,8 +58,8 @@ in {
     enable = true;
     extraPackages = with pkgs; [
       qbittorrent
-      #unstable.mpv
-      #unstable.w3m
+      unstable.mpv
+      unstable.w3m
       font-awesome_5
       #apps
       lf
@@ -250,7 +252,7 @@ in {
   # (/run/current-system/configuration.nix). This is useful in case you
   # accidentally delete configuration.nix.
   system.copySystemConfiguration = true;
-  #system.autoUpgrade.enable = true;
+  system.autoUpgrade.enable = true;
   #system.autoUpgrade.allowReboot = true;
   # Some programs need SUID wrappers, can be configured further or are
   # started in user sessions.
