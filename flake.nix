@@ -1,22 +1,23 @@
 {
   inputs = {
-    nixpkgs.url = "github:nixos/nixpkgs";
+    nixpkgs = { url = "github:NixOS/nixpkgs/release-23.05"; };
+
   };
-  outputs = { self, nixpkgs, flake-utils }:
-        nixosConfigurations.laptop = nixpkgs.lib.nixosSystem {
-            system = "x86_64-linux";
-            modules = [
-                 /etc/nixos/hardware-configuration.nix
-                ./laptop.nix
-                ./general.nix
-            ]
-        };
-        nixosConfigurations.desktop = nixpkgs.lib.nixosSystem {
-            system = "x86_64-linux";
-            modules = [
-              /etc/nixos/hardware-configuration.nix
-              ./desktop.nix
-              ./general.nix
-            ]
-        };
+  outputs = { self, nixpkgs, ... }: {
+
+    nixosConfigurations.laptop = nixpkgs.lib.nixosSystem {
+
+      system = "x86_64-linux";
+      #system = "x86_64-linux";
+      modules =
+        [ ./nixos/laptop-hw.nix ./nixos/laptop.nix ./nixos/general.nix ];
+    };
+    #     nixosConfigurations.desktop = nixpkgs.lib.nixosSystem {
+    #         #system = "x86_64-linux";
+    #         modules = [
+    #           ./nixos/desktop.nix
+    #           ./nixos/general.nix
+    #         ];
+    #     };
+  };
 }
