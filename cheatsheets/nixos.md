@@ -31,3 +31,6 @@ sudo nixos-rebuild switch
 
 ## ad this this setup
 `nixos-install --no-root-passwd --flake sourcehut:~sntx/flake#iovis`
+
+# using nvim flake
+`nix develop github:EzekielEnns/editor`
