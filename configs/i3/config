@@ -25,11 +25,10 @@ exec_always --no-startup-id picom
 exec_always  unclutter -idle 1
 exec --no-startup-id nm-applet
 exec --no-startup-id feh --bg-center --randomize ~/Documents/bkgs/*
-exec kitty -e sh /home/ezekiel/Documents/scripts/finder.sh
-
+exec kitty -e men_finder
 # Apps
 bindsym $mod+Return exec kitty
-bindsym $mod+Shift+Return exec kitty --class=float_term -e sh /home/ezekiel/Documents/scripts/finder.sh
+bindsym $mod+Shift+Return exec kitty --class=float_term -e men_finder
 ## screen shots
 bindsym $mod+v exec maim -s | xclip -selection clipboard -t image/png
 bindsym $mod+Shift+v exec maim -s --format=png /dev/stdout | feh -
@@ -39,8 +38,8 @@ bindsym $mod+a exec --no-startup-id i3-dmenu-desktop
 #i3-msg workspace $((i3-msg -t get_workspaces | tr ',' '\n' | grep "name" | cut -d '"' -f 4) | dmenu)
 
 # Custom kiddies
-bindsym $mod+Ctrl+p exec --no-startup-id sh /home/ezekiel/Documents/scripts/powermenu.sh
-bindsym $mod+Ctrl+b exec --no-startup-id sh /home/ezekiel/Documents/scripts/bluetooth.sh 
+bindsym $mod+Ctrl+p exec --no-startup-id men_power
+bindsym $mod+Ctrl+b exec --no-startup-id men_bluetooth
 
 bar {
     i3bar_command i3bar -t

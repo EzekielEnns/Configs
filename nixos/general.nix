@@ -8,13 +8,25 @@ let
   unstableTarball = fetchTarball
     "https://github.com/NixOS/nixpkgs/archive/nixos-unstable.tar.gz";
   unstable = import unstableTarball { };
+  men_finder = pkgs.writeShellApplication {
+    name = "men_finder";
+    runtimeInputs = [ pkgs.fzf ];
+    text = ./../scripts/finder.sh;
+  };
+  men_bluetooth = pkgs.writeShellApplication {
+    name = "men_bluetooth";
+    runtimeInputs = [ pkgs.dmenu pkgs.bluez ];
+    text = ./../scripts/bluetooth.sh;
+  };
+  men_power = pkgs.writeShellApplication {
+    name = "men_power";
+    runtimeInputs = [ pkgs.dmenu ];
+    text = ./../scripts/powermenu.sh;
+  };
 in {
 
   # flakes
-  nix.settings.experimental-features = [
-    "nix-command"
-    "flakes"
-  ];
+  nix.settings.experimental-features = [ "nix-command" "flakes" ];
   # virt 
   virtualisation.virtualbox.host.enable = true;
   users.extraGroups.vboxusers.members = [ "user-with-access-to-virtualbox" ];
@@ -58,6 +70,9 @@ in {
   services.xserver.windowManager.i3 = {
     enable = true;
     extraPackages = with pkgs; [
+      men_finder
+      men_bluetooth
+      men_power
       qbittorrent
       unstable.mpv
       unstable.w3m
