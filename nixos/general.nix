@@ -170,6 +170,9 @@ in {
   # List packages installed in system profile. To search, run:
   # $ nix search wget
   environment.systemPackages = with pkgs; [
+      men_finder
+      men_bluetooth
+      men_power
     carapace
     #others
     flatpak # authy
