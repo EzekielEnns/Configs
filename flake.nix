@@ -6,6 +6,11 @@
   outputs = { self, nixpkgs, ... }: {
 
     nixosConfigurations = {
+      bk = nixpkgs.lib.nixosSystem {
+        system = "x86_64-linux";
+        modules =
+          [ ./nixos/bk-hw.nix  ./nixos/general.nix ];
+      };
       laptop = nixpkgs.lib.nixosSystem {
         system = "x86_64-linux";
         modules =
