@@ -2,7 +2,7 @@
 
 {
 
-  networking.hostName = "desktop";
+  #networking.hostName = "desktop";
   networking.networkmanager.enable = true;
   services.xserver.videoDrivers = ["nvidia"];
   hardware.nvidia = {
