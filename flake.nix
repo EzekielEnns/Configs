@@ -18,7 +18,7 @@
       };
       desktop = nixpkgs.lib.nixosSystem {
         system = "x86_64-linux";
-        modules = [ ./nixos/desktop.nix ./nixos/general.nix ];
+        modules = [ ./nixos/desktop-hw.nix ./nixos/desktop.nix ./nixos/general.nix ];
       };
     };
   };
