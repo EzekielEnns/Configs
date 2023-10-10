@@ -2,6 +2,7 @@
 generate hardware `nixos-generate-config  --show-hardware-config >> nixos/laptop-hw.nix`
 build off flake: `sudo nixos-rebuild --flake '.#laptop' boot --impure`
 [watch your git](https://www.reddit.com/r/NixOS/comments/tge4uu/why_flake_compile_existing_packages_from_nixpkgs/)
+`nix --extra-experimental-features 'nix-command flakes' develop github:Ezekielenns/editor`
 
 delets old generations
 `sudo nix-collect-garbage --delete-older-than 1d`
