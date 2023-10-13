@@ -25,10 +25,10 @@ exec_always --no-startup-id picom
 exec_always  unclutter -idle 1
 exec --no-startup-id nm-applet
 exec --no-startup-id feh --bg-center --randomize ~/Documents/bkgs/*
-exec kitty -e men_finder
+exec kitty -e finder
 # Apps
 bindsym $mod+Return exec kitty
-bindsym $mod+Shift+Return exec kitty --class=float_term -e men_finder
+bindsym $mod+Shift+Return exec kitty --class=float_term -e finder
 ## screen shots
 bindsym $mod+v exec maim -s | xclip -selection clipboard -t image/png
 bindsym $mod+Shift+v exec maim -s --format=png /dev/stdout | feh -

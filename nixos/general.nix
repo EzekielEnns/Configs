@@ -8,8 +8,8 @@ let
   unstableTarball = fetchTarball
     "https://github.com/NixOS/nixpkgs/archive/nixos-unstable.tar.gz";
   unstable = import unstableTarball { };
-  men_finder = pkgs.writeShellApplication {
-    name = "men_finder";
+  finder = pkgs.writeShellApplication {
+    name = "finder";
     runtimeInputs = [ pkgs.fzf ];
     text = ./../scripts/finder.sh;
   };
@@ -70,7 +70,7 @@ in {
   services.xserver.windowManager.i3 = {
     enable = true;
     extraPackages = with pkgs; [
-      men_finder
+      finder
       men_bluetooth
       men_power
       qbittorrent
@@ -170,9 +170,8 @@ in {
   # List packages installed in system profile. To search, run:
   # $ nix search wget
   environment.systemPackages = with pkgs; [
-      men_finder
-      men_bluetooth
-      men_power
+    finder
+    men_power
     carapace
     #others
     flatpak # authy
