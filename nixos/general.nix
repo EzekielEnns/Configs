@@ -18,11 +18,7 @@ let
     runtimeInputs = [ pkgs.dmenu pkgs.bluez ];
     text = ./../scripts/bluetooth.sh;
   };
-  men_power = pkgs.writeShellApplication {
-    name = "men_power";
-    runtimeInputs = [ pkgs.dmenu ];
-    text = ./../scripts/powermenu.sh;
-  };
+  men_power = pkgs.writeShellScriptBin "men_power" (builtins.readFile ./../scripts/powermenu.sh);
 in {
 
   # flakes
