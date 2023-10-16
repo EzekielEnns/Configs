@@ -1,4 +1,5 @@
 # big notes
+use `--refresh` on any flake commands to repull from git
 generate hardware `nixos-generate-config  --show-hardware-config >> nixos/laptop-hw.nix`
 build off flake: `sudo nixos-rebuild --flake '.#laptop' boot --impure`
 [watch your git](https://www.reddit.com/r/NixOS/comments/tge4uu/why_flake_compile_existing_packages_from_nixpkgs/)
@@ -34,4 +35,4 @@ sudo nixos-rebuild switch
 `nixos-install --no-root-passwd --flake sourcehut:~sntx/flake#iovis`
 
 # using nvim flake
-`nix develop github:EzekielEnns/editor`
+`nix develop github:EzekielEnns/editor
