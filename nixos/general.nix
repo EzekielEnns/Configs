@@ -18,7 +18,20 @@ let
     runtimeInputs = [ pkgs.dmenu pkgs.bluez ];
     text = ./../scripts/bluetooth.sh;
   };
-  men_power = pkgs.writeShellScriptBin "men_power" (builtins.readFile ./../scripts/powermenu.sh);
+#  waybar-custom-cpu = pkgs.writeTextFile {
+#    name = "waybar-custom-cpu";
+#    destination = "/bin/waybar-custom-cpu";
+#    executable = true;
+#    text = ./waybar-custom-cpu.sh;
+#  };
+  #simlink?
+  #men_power = pkgs.writeShellScriptBin "men_power" (builtins.readFile ./../scripts/powermenu.sh);
+  men_power = pkgs.writeTextFile {
+    name = "men_power";
+    destination = "/bin/men_power";
+    executable = true;
+    text = ./../scripts/powermenu.sh;
+  };
 in {
 
   # flakes
