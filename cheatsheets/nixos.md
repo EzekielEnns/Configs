@@ -1,4 +1,5 @@
 # big notes
+use `nix flake update` and then commit lock file to upgrade system
 use `--refresh` on any flake commands to repull from git
 generate hardware `nixos-generate-config  --show-hardware-config >> nixos/laptop-hw.nix`
 build off flake: `sudo nixos-rebuild --flake '.#laptop' boot --impure`
