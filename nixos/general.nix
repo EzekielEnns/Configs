@@ -279,7 +279,7 @@ in {
   # (/run/current-system/configuration.nix). This is useful in case you
   # accidentally delete configuration.nix.
   system.copySystemConfiguration = true;
-  system.autoUpgrade.enable = true;
+  #system.autoUpgrade.enable = true;
   #system.autoUpgrade.allowReboot = true;
   # Some programs need SUID wrappers, can be configured further or are
   # started in user sessions.
