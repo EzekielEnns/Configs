@@ -30,7 +30,7 @@ exec kitty -e finder
 bindsym $mod+Return exec kitty
 bindsym $mod+Shift+Return exec kitty --class=float_term -e finder
 ## screen shots
-bindsym $mod+v exec maim -s | xclip -selection clipboard -t image/png
+bindsym $mod+Ctrl+v exec maim -s | xclip -selection clipboard -t image/png
 bindsym $mod+Shift+v exec maim -s --format=png /dev/stdout | feh -
 bindsym $mod+Ctrl+f exec --no-startup-id  find-cursor --color fuchsia --repeat 3
 bindsym $mod+a exec --no-startup-id i3-dmenu-desktop
@@ -184,3 +184,6 @@ mode "move" {
 ## config reloading 
 bindsym $mod+Ctrl+c reload
 bindsym $mod+Ctrl+r restart
+
+bindsym $mod+v split horizontal
+bindsym $mod+s split vertical
