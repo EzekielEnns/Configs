@@ -80,6 +80,7 @@ in {
     enable = true;
     extraPackages = with pkgs; [
       veikk-linux-driver-gui
+      xournalpp
       gromit-mpx
       finder
       men_bluetooth
