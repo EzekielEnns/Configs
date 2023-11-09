@@ -79,6 +79,8 @@ in {
   services.xserver.windowManager.i3 = {
     enable = true;
     extraPackages = with pkgs; [
+      veikk-linux-driver-gui
+      gromit-mpx
       finder
       men_bluetooth
       men_power
