@@ -32,6 +32,8 @@ let
     executable = true;
     text = ./../scripts/powermenu.sh;
   };
+
+  veikk_driver = (pkgs.callPackage ./veikk_driver.nix {});
 in {
 
   # flakes
@@ -182,6 +184,8 @@ in {
   # List packages installed in system profile. To search, run:
   # $ nix search wget
   environment.systemPackages = with pkgs; [
+    jmtpfs
+    veikk_driver
     finder
     men_power
     carapace
@@ -230,6 +234,7 @@ in {
   virtualisation.libvirtd.enable = true;
   services.flatpak.enable = true;
   services.dbus.enable = true;
+  services.udev.packages = [ veikk_driver ];
   xdg.portal = {
     enable = true;
     extraPortals = [ pkgs.xdg-desktop-portal-gtk ];
