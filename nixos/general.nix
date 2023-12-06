@@ -43,6 +43,7 @@ in {
   users.extraGroups.vboxusers.members = [ "user-with-access-to-virtualbox" ];
 
   networking.hostName = "nixos";
+  systemd.services.NetworkManager-wait-online.enable = false;
   # Bootloader.
   boot.loader.systemd-boot.enable = true;
   boot.loader.efi.canTouchEfiVariables = true;
@@ -235,10 +236,14 @@ in {
   services.flatpak.enable = true;
   services.dbus.enable = true;
   services.udev.packages = [ veikk_driver ];
+ #https://github.com/flatpak/xdg-desktop-portal/blob/1.18.1/doc/portals.conf.rst.in
   xdg.portal = {
     enable = true;
+    config.common.default = "*";
     extraPortals = [ pkgs.xdg-desktop-portal-gtk ];
   };
+
+  #xdg.portal.config.common.default = "*";
 
   security.polkit.enable = true;
   systemd = {
@@ -263,10 +268,10 @@ in {
 
   # Fonts
   fonts = {
-    fonts = with pkgs; [
+    packages = with pkgs; [
       noto-fonts
-      noto-fonts-cjk
-      noto-fonts-emoji
+      #noto-onts-cjk
+      #noto-fonts-emoji
       font-awesome
       source-han-sans
       source-han-sans-japanese
