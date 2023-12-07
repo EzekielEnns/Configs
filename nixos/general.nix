@@ -185,8 +185,6 @@ in {
   # List packages installed in system profile. To search, run:
   # $ nix search wget
   environment.systemPackages = with pkgs; [
-    #TODO move libresprite
-    komikku
     jmtpfs
     veikk_driver
     finder
