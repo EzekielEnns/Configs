@@ -1,0 +1,16 @@
+theme = "amberwood"
+
+[editor]
+line-number = "relative"
+mouse = false
+color-modes = true
+idle-timeout = 0
+completion-trigger-len = 1
+
+
+#[editor.cursor-shape]
+#insert = "bar"
+#normal = "block"
+#select = "underline"
+
+            
