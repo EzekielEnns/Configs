@@ -10,4 +10,4 @@ fi
 eval "$(starship init bash)"
 export EDITOR=vim
 export VISUAL=vim
-
+export NIXPKGS_ALLOW_UNFREE=1

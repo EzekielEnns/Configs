@@ -26,6 +26,10 @@ sudo nixos-rebuild switch -I nixos-config=/etc/nixos/configuration.nix
 sudo nixos-rebuild switch
 
 ```
+```
+sudo nixos-rebuild switch --upgrade --impure --flake github:ezekielenns/configs#desktop  
+sudo nix-channel --add https://channels.nixos.org/nixos-23.11 nixos
+```
 
 
 `ls | select name | input list --fuzzy | cd $in.name`
