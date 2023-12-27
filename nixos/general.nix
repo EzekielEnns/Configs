@@ -2,7 +2,9 @@
 # your system.  Help is available in the configuration.nix(5) man page
 # and in the NixOS manual (accessible by running ‘nixos-help’).
 #sudo cp nixos/desktop/configuration.nix nixos/general.nix /etc/nixos/
-
+#TODO get configs: kitty, i3status-rust. i3, starship, mpv, lf
+# in a state where packages with app maybe home manager?
+#TODO setup windows vm
 { config, pkgs, ... }:
 let
   unstableTarball = fetchTarball
@@ -36,6 +38,7 @@ let
   veikk_driver = (pkgs.callPackage ./veikk_driver.nix {});
 in {
 
+  nixpkgs.config.allowUnfree = true;
   # flakes
   nix.settings.experimental-features = [ "nix-command" "flakes" ];
   # virt 
@@ -78,7 +81,9 @@ in {
   services.xserver.enable = true;
   services.xserver.desktopManager = { xterm.enable = false; };
   services.xserver.displayManager = { defaultSession = "none+i3"; };
-
+  nixpkgs.config.permittedInsecurePackages = [
+    "electron-25.9.0"
+  ];
   services.xserver.windowManager.i3 = {
     enable = true;
     extraPackages = with pkgs; [
@@ -170,9 +175,6 @@ in {
     packages = with pkgs; [ firefox xfce.thunar vial ];
   };
 
-  # Packages
-  # Allow unfree packages
-  nixpkgs.config.allowUnfree = true;
   # steam
   nixpkgs.config.allowUnfreePredicate =
     (pkg: builtins.elem (builtins.parseDrvName pkg.name).name [ "steam" ]);

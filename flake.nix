@@ -1,9 +1,11 @@
 {
+#https://nix-community.github.io/home-manager/index.xhtml#sec-flakes-nixos-module
   inputs = {
-    nixpkgs = { url = "github:NixOS/nixpkgs/nixos-23.11"; };
-
+    nixpkgs.url = "github:NixOS/nixpkgs/nixos-23.11";
+    home-manager.url = "github:nix-community/home-manager";
+    home-manager.inputs.nixpkgs.follows = "nixpkgs";
   };
-  outputs = { self, nixpkgs, ... }: {
+  outputs = { self, nixpkgs, home-manager, ... }: {
 
     nixosConfigurations = {
       bk = nixpkgs.lib.nixosSystem {
