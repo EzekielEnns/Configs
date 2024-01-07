@@ -1,7 +1,8 @@
 { config, pkgs, ... }:
 
 {
-
+  #no locking 
+  services.xserver.xautolock.enable = false;
   #networking.hostName = "desktop";
   networking.networkmanager.enable = true;
   services.xserver.videoDrivers = ["nvidia"];
