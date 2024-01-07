@@ -1,0 +1,13 @@
+) start of next line
+0 start of line
+P before cursor
+p after curos
+c is to chagne
+/ search forward
+? search backwards
+:s/ substatute command you also use flags like g or easy things
+    #,# line to line 
+    % whole file 
+<C-g> cursor state
+TODO:
+# Lesson 5.1: HOW TO EXECUTE AN EXTERNAL COMMAND
