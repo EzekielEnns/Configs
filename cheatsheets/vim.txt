@@ -9,5 +9,37 @@ c is to chagne
     #,# line to line 
     % whole file 
 <C-g> cursor state
-TODO:
-# Lesson 5.1: HOW TO EXECUTE AN EXTERNAL COMMAND
+:w can be used to save things in visual or command out put via !
+:r revies output, i.e. :r !ls will retive the command
+o open a new line bellow or above O
+R opens in replace mode 
+y can be combined with w or b to get a word
+<C-r> redo
+:x save and quit 
+:help with any command gives you info
+
+. repeat last change i.e. dd then . will delete a line again
+
+-- goto
+gg shortcut for 1G
+G goto last line
+% goto matching ( { [
+* goto next occurance of word under cursor
+
+-- line movment
+- start line upwards 
+^ begging char
+g_ end char
+0 column 0 $ end column
+
+-- selection
+vi inside 
+va around
+
+*WORD* → consists of a sequence of letters A-z, digits 0-9 and underscores _,
+
+TODO read these 
+https://github.com/mhinz/vim-galore#marks
+https://github.com/mhinz/vim-galore#motions-operators-text-objects
+https://github.com/mhinz/vim-galore#changelist-jumplist
+https://github.com/mhinz/vim-galore#registers
