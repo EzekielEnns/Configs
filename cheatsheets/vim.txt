@@ -38,6 +38,11 @@ va around
 
 *WORD* → consists of a sequence of letters A-z, digits 0-9 and underscores _,
 
+-- jumps
+' gives you a list of jumps
+<C-o> goto older jump
+<C-i> goto newer jump
+
 TODO read these 
 https://github.com/mhinz/vim-galore#marks
 https://github.com/mhinz/vim-galore#motions-operators-text-objects
