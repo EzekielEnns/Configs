@@ -84,6 +84,13 @@ in {
   nixpkgs.config.permittedInsecurePackages = [
     "electron-25.9.0"
   ];
+  services.xserver.displayManager.setupCommands = ''
+    /run/current-system/sw/bin/xset -dpms
+    /run/current-system/sw/bin/xset s off
+  '';
+  # services.xserver.extraConfig = ''
+  #       xset s off -dpms
+  # '';
   services.xserver.windowManager.i3 = {
     enable = true;
     extraPackages = with pkgs; [
