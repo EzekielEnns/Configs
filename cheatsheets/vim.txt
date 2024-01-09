@@ -40,8 +40,15 @@ va around
 
 -- jumps
 ' gives you a list of jumps
+{} paragraph, () sentence 
+[[ ]] next 
 <C-o> goto older jump
 <C-i> goto newer jump
+
+Sentence is defined as ending at a '.', '!' or '?' followed by either the
+end of a line, or by a space or tab.
+
+
 
 TODO read these 
 https://github.com/mhinz/vim-galore#marks
