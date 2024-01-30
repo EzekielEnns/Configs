@@ -11,7 +11,13 @@
       bk = nixpkgs.lib.nixosSystem {
         system = "x86_64-linux";
         modules =
-          [ ./nixos/bk-hw.nix ./nixos/bk.nix  ./nixos/general.nix ];
+          [ ./nixos/bk-hw.nix ./nixos/bk.nix  ./nixos/general.nix 
+            home-manager.nixosModules.home-manager {
+                home-manager.useGlobalPkgs = true;
+                home-manager.useUserPackages = true;
+                home-manager.users.ezekiel = import ./modules/home.nix;
+            }
+          ];
       };
       laptop = nixpkgs.lib.nixosSystem {
         system = "x86_64-linux";
