@@ -9,9 +9,11 @@
             settings = {
                 add_newline = false;
                 command_timeout = 10000;
-                format ="[>>](bold blue) ";
-                success_symbol ="[ >](bold green) ";
-                error_symbol ="[x >](bold red) ";
+                format ="$all$line_break[>>](bold blue) ";
+                character = {
+                    success_symbol ="";
+                    error_symbol = "[x](bold red) ";
+                };
             };
         };
 
