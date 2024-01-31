@@ -21,11 +21,11 @@
                             info_type = "used";
                             format = " $used";
                         }
-                        {
-                            block = "load";
-                            interval = 5;
-                            icons_format = "{icon} $m";
-                        }
+                        # {
+                        #     block = "load";
+                        #     interval = 5;
+                        #     icons_format = "{icon} ";
+                        # }
                         {
                             block = "memory";
                             format = " $icon  $mem_used_percents ";
