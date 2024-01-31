@@ -4,6 +4,8 @@
     imports = [
         ./i3status-rust.nix
         ./i3.nix
+        ./kitty.nix
+        ./starship.nix
     ];
     options = {};
     config = {

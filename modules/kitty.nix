@@ -6,7 +6,9 @@
         programs.kitty = {
             enable = true;
             font = {
-                #TODO
+                package = (pkgs.nerdfonts.override { fonts = [ "Monofur" ]; });
+                name = "Monofur Nerd Font";
+                size = 13;
             };
             settings = {
                 "enabled_layouts"= "*";
