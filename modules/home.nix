@@ -5,8 +5,5 @@
     home.homeDirectory = "/home/ezekiel";
     programs.home-manager.enable =true;
     home.stateVersion = "23.11";
-
-    home.package = [
-
-    ];
+    #TODO import i3 config 
 }

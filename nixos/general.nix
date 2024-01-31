@@ -1,4 +1,4 @@
-# Edit this configuration file to define what should be installed on
+# Edit this configuration file to define what should be installed ongener
 # your system.  Help is available in the configuration.nix(5) man page
 # and in the NixOS manual (accessible by running ‘nixos-help’).
 #sudo cp nixos/desktop/configuration.nix nixos/general.nix /etc/nixos/
@@ -7,9 +7,6 @@
 #TODO setup windows vm
 { config, pkgs, ... }:
 let
-  unstableTarball = fetchTarball
-    "https://github.com/NixOS/nixpkgs/archive/nixos-unstable.tar.gz";
-  unstable = import unstableTarball { };
   finder = pkgs.writeShellApplication {
     name = "finder";
     runtimeInputs = [ pkgs.fzf ];
@@ -101,8 +98,7 @@ in {
       men_bluetooth
       men_power
       qbittorrent
-      unstable.mpv
-      unstable.w3m
+      mpv
       font-awesome_5
       #apps
       lf
@@ -301,7 +297,7 @@ in {
   # Copy the NixOS configuration file and link it from the resulting system
   # (/run/current-system/configuration.nix). This is useful in case you
   # accidentally delete configuration.nix.
-  system.copySystemConfiguration = true;
+  #system.copySystemConfiguration = true;
   #system.autoUpgrade.enable = true;
   #system.autoUpgrade.channel = "https://channels.nixos.org/nixos-23.11";
   #system.autoUpgrade.allowReboot = true;
