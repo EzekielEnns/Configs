@@ -34,7 +34,13 @@
       };
       desktop = nixpkgs.lib.nixosSystem {
         system = "x86_64-linux";
-        modules = [ ./nixos/desktop-hw.nix ./nixos/desktop.nix ./nixos/general.nix ];
+        modules = [ ./nixos/desktop-hw.nix ./nixos/desktop.nix ./nixos/general.nix 
+            home-manager.nixosModules.home-manager {
+                home-manager.useGlobalPkgs = true;
+                home-manager.useUserPackages = true;
+                home-manager.users.ezekiel = import ./modules/home.nix;
+            }
+        ];
       };
     };
   };

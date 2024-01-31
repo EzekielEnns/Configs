@@ -1,8 +1,11 @@
 {config,pkgs,...}:
 {
   environment.systemPackages = with pkgs; [
-    git
-    nodejs_latest
+    libreoffice-qt
+    yt-dlp
+    zoom-us
+    #git
+    #nodejs_latest
     helix
     jmtpfs
     carapace
