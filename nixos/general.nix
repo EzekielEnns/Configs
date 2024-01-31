@@ -12,6 +12,7 @@
         ./pks.nix
         ./wm.nix
         ../modules/scripts.nix
+        ../modules/bash.nix
     ];
     options = {};
     config = {
