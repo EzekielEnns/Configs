@@ -24,7 +24,13 @@
       laptop = nixpkgs.lib.nixosSystem {
         system = "x86_64-linux";
         modules =
-          [ ./nixos/laptop-hw.nix ./nixos/laptop.nix ./nixos/general.nix ];
+          [ ./nixos/laptop-hw.nix ./nixos/laptop.nix ./nixos/general.nix 
+            home-manager.nixosModules.home-manager {
+                home-manager.useGlobalPkgs = true;
+                home-manager.useUserPackages = true;
+                home-manager.users.ezekiel = import ./modules/home.nix;
+            }
+          ];
       };
       desktop = nixpkgs.lib.nixosSystem {
         system = "x86_64-linux";

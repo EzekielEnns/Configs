@@ -12,16 +12,7 @@
             launch 
           '';
       };
-      finder = pkgs.writeShellApplication {
-        name = "finder";
-        runtimeInputs = [ pkgs.fzf ];
-        text = '' 
-                set -x
-                wp=`find ~/Documents/ -maxdepth 3 -type f -name 'default.nix' |  fzf` || exit
-                ( cd $(dirname $wp) ; NIXPKGS_ALLOW_UNFREE=1 nix-shell \
-                    --command 'kitty --detach --session ${work}' )
-        '';
-      };
+      #finder = ;
       men_bluetooth = pkgs.writeShellApplication {
         name = "men_bluetooth";
         runtimeInputs = [ pkgs.dmenu pkgs.bluez ];
@@ -38,7 +29,15 @@
      environment.systemPackages = [
         men_power
         men_bluetooth
-        finder
+        (pkgs.writeShellApplication {
+        name = "finder";
+        runtimeInputs = [ pkgs.fzf ];
+        text = '' 
+                set -x
+                wp=$(find ~/Documents/ -maxdepth 3 -type f -name 'default.nix' |  fzf) || exit
+                ( cd "$(dirname "$wp")" ; NIXPKGS_ALLOW_UNFREE=1 nix-shell --command 'kitty --detach --session "${work}"' )
+        '';
+      })
      ];
     };
     #TODO import i3 config 
