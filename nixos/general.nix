@@ -7,6 +7,7 @@
 #TODO setup windows vm
 { config, pkgs, ... }:
 let
+    #TODO use writeTextFile for kitty workspace config
   finder = pkgs.writeShellApplication {
     name = "finder";
     runtimeInputs = [ pkgs.fzf ];
