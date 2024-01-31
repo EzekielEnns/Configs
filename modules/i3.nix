@@ -18,8 +18,70 @@
             mvw = "move container to workspace ";
         in with pkgs.lib; {
             enable = true;
-            modifier= mod;
             config = with pkgs;{
+                window = {
+                    commands = [
+                        {
+                            command = "floating enable, move absolute position center,resize set 640 480"; 
+                            criteria = {
+                                class="float_term";
+                            };
+                        }
+                        {
+                            command = "floating enable"; 
+                            criteria = {
+                                class="sticky enable";
+                            };
+                        }
+                    ];
+                    border=1;
+                    hideEdgeBorders = "smart";
+                };
+                focus.followMouse = false;
+                floating.border = 1;
+                fonts = {
+                    names = ["pango:Monofur Nerd Font"];
+                    size = 12.0;
+                };
+                startup = [
+                    {
+                        command = "${unclutter}/bin/unclutter -idle 1";
+                        always = true;
+                        notification = false;
+                    }
+                    {
+                        command = "--no-startup-id ${xss-lock}/bin/xss-lock --transfer-sleep-lock -- ${i3lock}/bin/i3lock --nofork";
+                    }
+                    {
+                        command = "--no-startup-id ${networkmanagerapplet}/bin/nm-applet";
+                    }
+                    {
+                        command = "--no-startup-id ${feh}/bin/feh --bg-center --randomize ~/Documents/bkgs/*";
+                    }
+                    {
+                        command = "${kitty}/bin/kitty finder";
+                    }
+                ];
+                modifier = mod;
+                bars = [
+                    {
+                      position = "top";
+                      statusCommand = "${i3status-rust}/bin/i3status-rs ~/.config/i3status-rust/config-top.toml";
+                      fonts = {
+                        names = ["pango:Monofur Nerd Font"];
+                        size = 12.0;
+                      };
+                      colors = {
+                        separator= "#666666";
+                        background= "#000000";
+                        statusline= "#dddddd";
+                        focusedWorkspace = {background= "#0088CC"; border= "#0088CC"; text="#ffffff";};
+                        activeWorkspace= {background= "#333333"; border= "#333333"; text="#ffffff";};
+                        inactiveWorkspace= {background= "#333333"; border= "#333333"; text="#888888";};
+                        urgentWorkspace= {background= "#2f343a"; border= "#900000"; text="#ffffff";};
+                      };
+                    }
+                ];
                 # modes = {
                 #     resize = {
                 #         "h" = "resize ....";
@@ -40,7 +102,7 @@
                    "${mod}+Ctrl+v" = "exec ${maim}/bin/maim -s | ${xclip}/bin/xclip -selection clipboard -t image/png";
                    "${mod}+Shift+v" = "exec ${maim}/bin/maim -s --format=png /dev/stdout | feh -";
                    "${mod}+Ctrl+f" = "exec --no-startup-id ${find-cursor}/bin/find-cursor --color fuchsia --repeat 3";
-                   "${mod}+a" = "--no-startup-id ${i3-dmenu-desktop}/bin/i3-dmenu-desktop";
+                   "${mod}+a" = "--no-startup-id i3-dmenu-desktop";
                    "${mod}+Ctrl+p" = "exec --no-startup-id men_power"; #TODO check
                    "${mod}+Ctrl+b" = "exec --no-startup-id men_bluetooth";
 
@@ -72,8 +134,8 @@
 
                    "${mod}+Ctrl+c" = "reload";
                    "${mod}+Ctrl+r" = "restart";
-                   "${mod}+Ctrl+v" = "split horizontal";
-                   "${mod}+Ctrl+s" = "split vertical";
+                   "${mod}+v" = "split horizontal";
+                   "${mod}+s" = "split vertical";
                 };
             };
         };
