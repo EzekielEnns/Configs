@@ -41,3 +41,6 @@ sudo nix-channel --add https://channels.nixos.org/nixos-23.11 nixos
 
 # using nvim flake
 `nix develop github:EzekielEnns/editor
+
+`nix flake check`
+`systemctl status "home-manager-$USER.service"`
