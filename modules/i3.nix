@@ -16,7 +16,7 @@
             #TODO make sure this is using kitty that is configed 
             term="${pkgs.kitty}/bin/kitty";
             mvw = "move container to workspace ";
-        in with pkgs.lib; {
+        in with pkgs.lib;  {
             enable = true;
             config = with pkgs;{
                 defaultWorkspace = "workspace Editor";
@@ -107,7 +107,7 @@
                             "Escape"="mode default";
                      };
                  };
-                keybindings = lib.mkOptionDefault {
+                keybindings = {
                    "${mod}+Return" = "exec ${kitty}/bin/kitty";
                    "${mod}+Shift+Return" = "exec ${kitty}/bin/kitty --class=float_term -e finder";
                    "${mod}+Ctrl+v" = "exec ${maim}/bin/maim -s | ${xclip}/bin/xclip -selection clipboard -t image/png";
@@ -118,15 +118,15 @@
                    "${mod}+Ctrl+b" = "exec --no-startup-id men_bluetooth";
 
                    "${mod}+q" = "workspace Editor";
-                   "${mod}+q+Shift" = mvw+"Editor";
+                   "${mod}+Shift+q" = "move container to workspace Editor";
                    "${mod}+e" = "workspace Dev";
-                   "${mod}+e+Shift" = mvw+"Dev";
+                   "${mod}+Shift+e" = mvw+"Dev";
                    "${mod}+m" = "workspace Music; exec [ $( i3-msg -t get_tree | grep \"YouTube Music\" | wc -L) = 0 ] &&  youtube-music ";
-                   "${mod}+m+Shift" = mvw+"Music";
+                   "${mod}+Shift+m" = mvw+"Music";
                    "${mod}+w" = "workspace Web; exec [ $(i3-msg -t get_tree | grep \\\".title.:.Mozilla Firefox.\\\" | wc -L) = 0 ] && firefox ";
-                   "${mod}+w+Shift" = mvw+"Web";
+                   "${mod}+Shift+w" = mvw+"Web";
                    "${mod}+r" = "workspace Comm";
-                   "${mod}+r+Shift" = mvw+"Comm";
+                   "${mod}+Shift+r" = mvw+"Comm";
                    "${mod}+o" = "mode resize";
                    "${mod}+d" = "kill";
                    "${mod}+h" = "focus left";
