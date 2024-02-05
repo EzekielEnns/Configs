@@ -29,9 +29,15 @@
                             };
                         }
                         {
+                            command = "sticky enable"; 
+                            criteria = {
+                                floating=true;
+                            };
+                        }
+                        {
                             command = "floating enable"; 
                             criteria = {
-                                class="sticky enable";
+                                title="feh";
                             };
                         }
                     ];

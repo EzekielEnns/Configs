@@ -7,7 +7,20 @@
         inputs.nixpkgs.follows = "nixpkgs";
     };
   };
-  outputs = { self, nixpkgs, home-manager, ... }: {
+  outputs = { self, nixpkgs, home-manager, ... }: 
+  let 
+    params = ({config,lib,pkgs,...}:{
+       options = {
+            isLaptop = lib.mkOption {
+                type = lib.types.bool;
+                default = false;
+            };
+       };
+    });
+    isLaptop = ({config,lib,pkgs,...}:{
+        config.isLaptop=true;
+    });
+  in {
 
     nixosConfigurations = {
       bk = nixpkgs.lib.nixosSystem {
@@ -34,7 +47,7 @@
       };
       desktop = nixpkgs.lib.nixosSystem {
         system = "x86_64-linux";
-        modules = [ ./nixos/desktop-hw.nix ./nixos/desktop.nix ./nixos/general.nix 
+        modules = [./nixos/desktop-hw.nix ./nixos/desktop.nix ./nixos/general.nix 
             home-manager.nixosModules.home-manager {
                 home-manager.useGlobalPkgs = true;
                 home-manager.useUserPackages = true;
