@@ -1,6 +1,7 @@
 {config,pkgs,...}:
 {
   environment.systemPackages = with pkgs; [
+    slack
     libreoffice-qt
     yt-dlp
     zoom-us
