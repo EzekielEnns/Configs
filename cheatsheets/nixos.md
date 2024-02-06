@@ -44,3 +44,6 @@ sudo nix-channel --add https://channels.nixos.org/nixos-23.11 nixos
 
 `nix flake check`
 `systemctl status "home-manager-$USER.service"`
+
+use this to get hash info
+` nix-prefetch fetchFromGitHub --url https://github.com/chrisgrieser/nvim-scissors --rev main --owner chrisgrieser --repo nvim-scissors`
