@@ -50,3 +50,8 @@ use this to get hash info
 
 setting up private flakes
 `nix build ssh+git://git@github.com:username/private-repo`
+
+
+to update flakes you need to do two things
+- in the repo run `nix flake update` and then push that to your repo
+- on your os you need to run `nix flake flake-repo` to update it locally
