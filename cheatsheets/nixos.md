@@ -47,3 +47,6 @@ sudo nix-channel --add https://channels.nixos.org/nixos-23.11 nixos
 
 use this to get hash info
 ` nix-prefetch fetchFromGitHub --url https://github.com/chrisgrieser/nvim-scissors --rev main --owner chrisgrieser --repo nvim-scissors`
+
+setting up private flakes
+`nix build ssh+git://git@github.com:username/private-repo`

@@ -34,8 +34,11 @@
         runtimeInputs = [ pkgs.fzf ];
         text = '' 
                 set -x
-                wp=$(find ~/Documents/ -maxdepth 3 -type f -name 'default.nix' |  fzf) || exit
-                ( cd "$(dirname "$wp")" ; NIXPKGS_ALLOW_UNFREE=1 nix-shell --command 'kitty --detach --session "${work}"' )
+                wp=$(find ~/Documents/repos/* -maxdepth 0 -type d -printf "%f\n" | fzf --prompt="Select a repo: ") || exit
+                (cd ~/Documents/repos/"$wp" ; NIXPKGS_ALLOW_UNFREE=1 \
+                    nix develop git+ssh://git@github.com/ezekielenns/devenvs#"$wp" \
+                    --command bash -c 'kitty --detach --session "${work}"' )
+
         '';
       })
      ];
