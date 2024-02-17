@@ -55,3 +55,7 @@ https://github.com/mhinz/vim-galore#marks
 https://github.com/mhinz/vim-galore#motions-operators-text-objects
 https://github.com/mhinz/vim-galore#changelist-jumplist
 https://github.com/mhinz/vim-galore#registers
+
+
+<C-l> dose noh
+TODO set hls

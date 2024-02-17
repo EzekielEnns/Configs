@@ -1,3 +1,5 @@
+# for searching 
+https://discourse.nixos.org/t/what-is-the-best-way-to-search-for-packages-in-the-command-line/14908
 # big notes
 use `nix flake update` and then commit lock file to upgrade system
 use `--refresh` on any flake commands to repull from git

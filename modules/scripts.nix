@@ -8,7 +8,7 @@
           name = "work.conf";
           text = '' 
             enabled_layouts fat:bias=80;full_size=1;mirrored=false,tall:bias=60;full_size=1;mirrored=false
-            launch nix develop github:EzekielEnns/editor --command nvim 
+            launch nix develop github:EzekielEnns/editor --refresh --command nvim 
             launch 
           '';
       };
