@@ -1,10 +1,9 @@
 {config, pkgs, ...}: 
 {
     imports = [
-        ../configs/i3status-rust.nix
-        ../configs/i3.nix
-        ../configs/kitty.nix
-        ../configs/starship.nix
+        ./i3.nix
+        ./kitty.nix
+        ./starship.nix
     ];
     options = {};
     config = {

@@ -16,13 +16,13 @@
       men_bluetooth = pkgs.writeShellApplication {
         name = "men_bluetooth";
         runtimeInputs = [ pkgs.dmenu pkgs.bluez ];
-        text = ./../scripts/bluetooth.sh;
+        text = ../misc/bluetooth.sh;
       };
       men_power = pkgs.writeTextFile {
         name = "men_power";
         destination = "/bin/men_power";
         executable = true;
-        text = ./../scripts/powermenu.sh;
+        text = ../misc/powermenu.sh;
       };
     in{
      #note merges auto matically on deploument

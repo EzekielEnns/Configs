@@ -7,51 +7,54 @@
         inputs.nixpkgs.follows = "nixpkgs";
     };
   };
-  outputs = { self, nixpkgs, home-manager, ... }: 
-  let 
-    params = ({config,lib,pkgs,...}:{
-       options = {
-            isLaptop = lib.mkOption {
-                type = lib.types.bool;
-                default = false;
-            };
-       };
-    });
-    isLaptop = ({config,lib,pkgs,...}:{
-        config.isLaptop=true;
-    });
-  in {
-
+  outputs = { nixpkgs, home-manager, ... }: 
+    {
     nixosConfigurations = {
       bk = nixpkgs.lib.nixosSystem {
         system = "x86_64-linux";
         modules =
-          [ ./nixos/bk-hw.nix ./nixos/bk.nix  ./nixos/general.nix 
+          [ ./nixos/hardware/bk.nix ./nixos/bk.nix  ./modules/general.nix 
             home-manager.nixosModules.home-manager {
                 home-manager.useGlobalPkgs = true;
                 home-manager.useUserPackages = true;
-                home-manager.users.ezekiel = import ./modules/home.nix;
+                home-manager.users.ezekiel = {
+                    imports= [
+                        ./configs/users.nix
+                        ./configs/i3status-rust.nix
+                    ];
+                };
             }
           ];
       };
       laptop = nixpkgs.lib.nixosSystem {
         system = "x86_64-linux";
         modules =
-          [ ./nixos/laptop-hw.nix ./nixos/laptop.nix ./nixos/general.nix 
+          [ ./nixos/hardware/lp.nix ./nixos/lp.nix  ./modules/general.nix 
             home-manager.nixosModules.home-manager {
                 home-manager.useGlobalPkgs = true;
                 home-manager.useUserPackages = true;
-                home-manager.users.ezekiel = import ./modules/home.nix;
+                home-manager.users.ezekiel = {
+                    imports= [
+                        ./configs/users.nix
+                        ./configs/i3status-rust.nix
+                    ];
+                };
             }
           ];
       };
       desktop = nixpkgs.lib.nixosSystem {
         system = "x86_64-linux";
-        modules = [./nixos/desktop-hw.nix ./nixos/desktop.nix ./nixos/general.nix 
+        modules = 
+          [ ./nixos/hardware/dk.nix ./nixos/dk.nix  ./modules/general.nix 
             home-manager.nixosModules.home-manager {
                 home-manager.useGlobalPkgs = true;
                 home-manager.useUserPackages = true;
-                home-manager.users.ezekiel = import ./modules/home.nix;
+                home-manager.users.ezekiel = {
+                    imports= [
+                        ./configs/users.nix
+                        ./configs/i3status-rust-dk.nix
+                    ];
+                };
             }
         ];
       };

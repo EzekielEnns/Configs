@@ -11,8 +11,8 @@
     imports =[
         ./pks.nix
         ./wm.nix
-        ../modules/scripts.nix
-        ../modules/bash.nix
+        ../configs/scripts.nix
+        ../configs/bash.nix
     ];
     options = {};
     config = {
