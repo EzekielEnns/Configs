@@ -1,4 +1,6 @@
 {
+#TODO add ytermusic to flake
+#https://discourse.nixos.org/t/how-to-add-a-flake-package-to-system-configuration/14460/2
 #https://nix-community.github.io/home-manager/index.xhtml#sec-flakes-nixos-module
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-23.11";
