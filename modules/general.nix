@@ -11,6 +11,7 @@
     imports =[
         ./pks.nix
         ./wm.nix
+        ./virtualization.nix
         ../configs/scripts.nix
         ../configs/bash.nix
     ];
@@ -70,7 +71,6 @@
         packages = with pkgs; [ firefox xfce.thunar vial ];
       };
 
-      virtualisation.libvirtd.enable = true;
       services.flatpak.enable = true;
       services.dbus.enable = true;
       #https://github.com/flatpak/xdg-desktop-portal/blob/1.18.1/doc/portals.conf.rst.in
