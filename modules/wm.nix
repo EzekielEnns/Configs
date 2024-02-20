@@ -28,7 +28,7 @@ in {
   services.xserver.windowManager.i3 = {
     enable = true;
     extraPackages = with pkgs; [
-      inputs.ytermusic
+      #inputs.ytermusic
       veikk_driver
       xournalpp
       gromit-mpx

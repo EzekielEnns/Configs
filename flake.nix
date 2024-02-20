@@ -4,7 +4,7 @@
 #https://nix-community.github.io/home-manager/index.xhtml#sec-flakes-nixos-module
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-23.11";
-    ytermusic.url = "github:ezekielenns/ytermusic";
+    #ytermusic.url = "github:ezekielenns/ytermusic";
     home-manager= {
         url = "github:nix-community/home-manager/release-23.11";
         inputs.nixpkgs.follows = "nixpkgs";
