@@ -1,4 +1,4 @@
-{config,pkgs,...}:
+{config,pkgs,inputs,...}:
 let
   veikk_driver = (pkgs.callPackage ./veikk_driver.nix {});
 in {
@@ -28,6 +28,7 @@ in {
   services.xserver.windowManager.i3 = {
     enable = true;
     extraPackages = with pkgs; [
+      inputs.ytermusic
       veikk_driver
       xournalpp
       gromit-mpx

@@ -127,8 +127,11 @@
                    "${mod}+Shift+q" = "move container to workspace Editor";
                    "${mod}+e" = "workspace Dev";
                    "${mod}+Shift+e" = mvw+"Dev";
+                    #TODO some how make these checks better
+                    #TODO add ytermusic
                    "${mod}+m" = "workspace Music; exec [ $( i3-msg -t get_tree | grep \"YouTube Music\" | wc -L) = 0 ] &&  youtube-music ";
                    "${mod}+Shift+m" = mvw+"Music";
+                    #TODO add a media worksapce
                    "${mod}+w" = "workspace Web; exec [ $(i3-msg -t get_tree | grep \\\".title.:.Mozilla Firefox.\\\" | wc -L) = 0 ] && firefox ";
                    "${mod}+Shift+w" = mvw+"Web";
                    "${mod}+r" = "workspace Comm";
