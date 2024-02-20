@@ -53,6 +53,11 @@
                 };
                 startup = [
                     {
+                        command = "--no-startup-id ${autorandr}/bin/autorandr -c main 2>/dev/null";
+                        always = true;
+                        notification = false;
+                    }
+                    {
                         command = "${unclutter}/bin/unclutter -idle 1";
                         always = true;
                         notification = false;
