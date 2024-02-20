@@ -37,45 +37,10 @@
         "type": "github"
       }
     },
-    "nixpkgs_2": {
-      "locked": {
-        "lastModified": 1708118438,
-        "narHash": "sha256-kk9/0nuVgA220FcqH/D2xaN6uGyHp/zoxPNUmPCMmEE=",
-        "owner": "nixos",
-        "repo": "nixpkgs",
-        "rev": "5863c27340ba4de8f83e7e3c023b9599c3cb3c80",
-        "type": "github"
-      },
-      "original": {
-        "owner": "nixos",
-        "ref": "nixos-unstable",
-        "repo": "nixpkgs",
-        "type": "github"
-      }
-    },
     "root": {
       "inputs": {
         "home-manager": "home-manager",
-        "nixpkgs": "nixpkgs",
-        "ytermusic": "ytermusic"
-      }
-    },
-    "ytermusic": {
-      "inputs": {
-        "nixpkgs": "nixpkgs_2"
-      },
-      "locked": {
-        "lastModified": 1708310899,
-        "narHash": "sha256-HCFZ9XxZlMdGomqGC7XvN81wDHwJ6tTuQyytvPD38lg=",
-        "owner": "ezekielenns",
-        "repo": "ytermusic",
-        "rev": "b6621c1b439027163d351e4db574fd1925413a49",
-        "type": "github"
-      },
-      "original": {
-        "owner": "ezekielenns",
-        "repo": "ytermusic",
-        "type": "github"
+        "nixpkgs": "nixpkgs"
       }
     }
   },

@@ -1,6 +1,7 @@
 {config,pkgs,...}:
 {
   environment.systemPackages = with pkgs; [
+    autorandr
     slack
     libreoffice-qt
     yt-dlp

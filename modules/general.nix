@@ -22,8 +22,6 @@
       # flakes
       nix.settings.experimental-features = [ "nix-command" "flakes" ];
       # virt 
-      virtualisation.virtualbox.host.enable = true;
-      users.extraGroups.vboxusers.members = [ "user-with-access-to-virtualbox" ];
       networking.hostName = "nixos";
       systemd.services.NetworkManager-wait-online.enable = false;
       # Bootloader.
@@ -67,7 +65,7 @@
       users.users.ezekiel = {
         isNormalUser = true;
         description = "ezekiel";
-        extraGroups = [ "networkmanager" "wheel" ];
+        extraGroups = [ "networkmanager" "wheel" "docker" ];
         packages = with pkgs; [ firefox xfce.thunar vial ];
       };
 
