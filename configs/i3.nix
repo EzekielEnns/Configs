@@ -23,6 +23,12 @@
                 window = {
                     commands = [
                         {
+                            command = "floating enable";
+                            criteria = {
+                                class="zoom";
+                            };
+                        }
+                        {
                             command = "floating enable, move absolute position center,resize set 640 480"; 
                             criteria = {
                                 class="float_term";
