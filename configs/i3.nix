@@ -55,7 +55,7 @@
                 floating.border = 0;
                 fonts = {
                     names = ["pango:Monofur Nerd Font"];
-                    size = 11.0;
+                    size = 0.0;
                 };
                 startup = [
                     {
