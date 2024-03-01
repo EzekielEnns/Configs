@@ -1,6 +1,7 @@
 {config,pkgs,...}:
 {
   environment.systemPackages = with pkgs; [
+    termdown
     autorandr
     slack
     libreoffice-qt
