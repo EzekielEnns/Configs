@@ -4,6 +4,7 @@
         ./i3.nix
         ./kitty.nix
         ./starship.nix
+        ./git.nix
     ];
     options = {};
     config = {
