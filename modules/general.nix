@@ -66,7 +66,7 @@
         isNormalUser = true;
         description = "ezekiel";
         extraGroups = [ "networkmanager" "wheel" "docker" ];
-        packages = with pkgs; [ firefox xfce.thunar vial ];
+        packages = with pkgs; [ firefox xfce.thunar vial opera ];
       };
 
       services.flatpak.enable = true;
