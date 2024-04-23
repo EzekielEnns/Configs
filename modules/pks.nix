@@ -5,6 +5,7 @@
     jetbrains.rider
     dotnet-sdk_8 
     msbuild
+    mono
     slack
     libreoffice-qt
     zoom-us
