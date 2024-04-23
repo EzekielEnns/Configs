@@ -1,3 +1,5 @@
+# to update 
+nix flake update git+ssh://git@github.com/ezekielenns/devenvs
 # for searching 
 https://discourse.nixos.org/t/what-is-the-best-way-to-search-for-packages-in-the-command-line/14908
 # big notes
