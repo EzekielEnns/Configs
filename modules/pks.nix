@@ -1,21 +1,19 @@
 {config,pkgs,...}:
 {
   environment.systemPackages = with pkgs; [
-    termdown
-    autorandr
+    #work
+    jetbrains.rider
     slack
     libreoffice-qt
-    yt-dlp
     zoom-us
-    #git
-    #nodejs_latest
-    helix
-    jmtpfs
-    carapace
-    #others
-    flatpak # authy
-    celluloid # gui mpv
     #utils
+    jmtpfs
+    autorandr
+    #others
+    flatpak 
+    #terminal
+    yt-dlp
+    termdown
     git
     vim
     wget
@@ -24,16 +22,17 @@
     pavucontrol
     udisks
     ripgrep
-    #gaming 
-    protonup-ng
-    steam
-    steam-run
-    #terminal
     terminus-nerdfont
     tldr
     trash-cli
     unzip
     xclip
+    carapace #completation
+    #gaming 
+    protonup-ng
+    steam
+    steam-run
+    #vertiaulization
     virt-manager
     virtualbox
     #desktop goodies
@@ -48,6 +47,7 @@
 
   ];
 
+  # TODO fix this https://nixos.wiki/wiki/Steam
   # steam
   nixpkgs.config.allowUnfreePredicate =
     (pkg: builtins.elem (builtins.parseDrvName pkg.name).name [ "steam" ]);

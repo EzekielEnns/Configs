@@ -14,6 +14,7 @@
         ./virtualization.nix
         ../configs/scripts.nix
         ../configs/bash.nix
+        ./nvim.nix
     ];
     options = {};
     config = {
@@ -66,7 +67,7 @@
         isNormalUser = true;
         description = "ezekiel";
         extraGroups = [ "networkmanager" "wheel" "docker" ];
-        packages = with pkgs; [ firefox xfce.thunar vial opera ];
+        packages = with pkgs; [ firefox xfce.thunar vial ];
       };
 
       services.flatpak.enable = true;
@@ -128,6 +129,7 @@
         options = "--delete-older-than 30d";
       };
       nix.optimise.automatic = true;
+
       # Copy the NixOS configuration file and link it from the resulting system
       # (/run/current-system/configuration.nix). This is useful in case you
       # accidentally delete configuration.nix.

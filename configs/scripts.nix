@@ -6,9 +6,10 @@
     config = let 
       work = pkgs.writeTextFile {
           name = "work.conf";
+          #TODO move / grab from real file
           text = '' 
-            enabled_layouts fat:bias=80;full_size=1;mirrored=false,tall:bias=60;full_size=1;mirrored=false
-            launch nix develop github:EzekielEnns/editor --refresh --command nvim 
+            enabled_layouts fat:bias=90;full_size=1;mirrored=false,tall:bias=60;full_size=1;mirrored=false
+            launch nvim 
             launch 
           '';
       };
