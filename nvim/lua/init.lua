@@ -1,4 +1,6 @@
 vim.cmd([[
+        set autoread                                                                                                                                                                                    
+        au CursorHold * checktime
     "colors and cursor
         set encoding=UTF-8
         set background=dark
@@ -178,16 +180,6 @@ require 'lspconfig'.ruff_lsp.setup {}
 require 'lspconfig'.terraformls.setup {}
 require 'lspconfig'.lua_ls.setup {}
 require 'lspconfig'.lemminx.setup {}
-require 'lspconfig'.csharp_ls.setup {}
-require 'lspconfig'.omnisharp.setup {
-    --https://github.com/neovim/nvim-lspconfig/blob/master/doc/server_configurations.md#omnisharp
-    cmd = { '@@dotnet/dotnet', '@@omnisharp/lib/omnisharp-roslyn/OmniSharp.dll' },
-    enable_roslyn_analyzers = true,
-    enable_editorconfig_support = true,
-    handlers = {
-        ["textDocument/definition"] = require('omnisharp_extended').handler,
-    },
-}
 require "lsp_signature".setup({
     bind = true, -- This is mandatory, otherwise border config won't get registered.
     hint_enable = true,

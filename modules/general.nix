@@ -19,6 +19,9 @@
     options = {};
     config = {
 
+      # hardrives
+      services.gvfs.enable = true;
+      services.devmon.enable = true;
       nixpkgs.config.allowUnfree = true;
       # flakes
       nix.settings.experimental-features = [ "nix-command" "flakes" ];

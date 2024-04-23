@@ -85,7 +85,6 @@ in {
 
         #python311Packages.ruff-lsp
         #dotnet
-        #dotnet-sdk_8 
         #omnisharp-roslyn
         #upkgs.csharp-ls
 

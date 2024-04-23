@@ -3,6 +3,8 @@
   environment.systemPackages = with pkgs; [
     #work
     jetbrains.rider
+    dotnet-sdk_8 
+    msbuild
     slack
     libreoffice-qt
     zoom-us
