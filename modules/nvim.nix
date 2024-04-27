@@ -1,4 +1,4 @@
-{config,pkgs,...}:
+{config,pkgs,lib,...}:
 let
 myConfig = pkgs.vimUtils.buildVimPlugin {
   name = "my-config";
@@ -17,6 +17,15 @@ myNeovim = pkgs.neovim.override {
     '';
     packages.myPlugins = with pkgs.vimPlugins; {
       start = [ 
+        (pkgs.vimUtils.buildVimPlugin {
+            name = "workspace-diagnostics.nvim";
+            src = pkgs.fetchFromGitHub {
+                repo = "workspace-diagnostics.nvim";
+                owner = "artemave";
+                rev = "main";
+                sha256 = "sha256-3Rj4XCieQCcHxg+3/k0AfxtQZWeNm7aX23l3A+y5YUE=";
+            };
+         })
         (pkgs.vimUtils.buildVimPlugin {
             name = "winresizer";
             src = pkgs.fetchFromGitHub {

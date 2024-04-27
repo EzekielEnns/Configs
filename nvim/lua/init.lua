@@ -169,7 +169,11 @@ require 'lspconfig'.texlab.setup {}
 require 'lspconfig'.clangd.setup {}
 require 'lspconfig'.nil_ls.setup {}
 require 'lspconfig'.marksman.setup {}
-require 'lspconfig'.tsserver.setup {}
+require 'lspconfig'.tsserver.setup {
+ on_attach = function(client, bufnr)
+                require("workspace-diagnostics").populate_workspace_diagnostics(client, bufnr)
+              end
+}
 require 'lspconfig'.quick_lint_js.setup {}
 require 'lspconfig'.kotlin_language_server.setup {}
 require 'lspconfig'.eslint.setup {}
@@ -263,6 +267,8 @@ local leader_binds = {
     ["b"] = { "<cmd>Telescope buffers<CR>", "find buffers" },
     ["/"] = { "<cmd>Telescope live_grep<CR>", "find text" },
     ["d"] = { "<cmd>Telescope diagnostics<CR>", "look through diag" },
+    ["n"] = { "<cmd>Telescope diagnostics<CR>", "look through diag" },
+    ["N"] = { "<cmd>lua vim.diagnostic.goto_prev()<cr>", "prev" },
     ["s"] = { "<cmd>Telescope lsp_document_symbols<CR>", "find symbol" },
     ["w"] = { "<cmd>Telescope lsp_workspace_symbols<CR>", "find symbol workspace" },
     ["cd"] = { "<cmd>:lua folder_finder()<cr>", "find Directory" },
