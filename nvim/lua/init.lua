@@ -170,9 +170,9 @@ require 'lspconfig'.clangd.setup {}
 require 'lspconfig'.nil_ls.setup {}
 require 'lspconfig'.marksman.setup {}
 require 'lspconfig'.tsserver.setup {
- on_attach = function(client, bufnr)
-                require("workspace-diagnostics").populate_workspace_diagnostics(client, bufnr)
-              end
+ -- on_attach = function(client, bufnr)
+ --                require("workspace-diagnostics").populate_workspace_diagnostics(client, bufnr)
+ --              end
 }
 require 'lspconfig'.quick_lint_js.setup {}
 require 'lspconfig'.kotlin_language_server.setup {}
