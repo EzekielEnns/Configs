@@ -5,7 +5,7 @@
 #TODO get configs: kitty, i3status-rust. i3, starship, mpv, lf
 # in a state where packages with app maybe home manager?
 #TODO setup windows vm
-{ config, pkgs, ... }:
+{ config, pkgs,inputs, ... }:
 {
 
     imports =[
@@ -132,6 +132,18 @@
         options = "--delete-older-than 30d";
       };
       nix.optimise.automatic = true;
+    system.autoUpgrade = {
+        enable = true;
+        flake = inputs.self.outPath;
+        flags = [
+          "--update-input"
+          "nixpkgs"
+          "--no-write-lock-file"
+          "-L" # print build logs
+        ];
+        dates = "8:00";
+        randomizedDelaySec = "45min";
+      };
 
       # Copy the NixOS configuration file and link it from the resulting system
       # (/run/current-system/configuration.nix). This is useful in case you
