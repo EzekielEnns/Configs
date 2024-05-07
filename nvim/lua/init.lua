@@ -7,7 +7,6 @@ vim.cmd([[
         set termguicolors
         set guicursor=
         set cmdheight=1
-
     "utils and special features
         set autoread
         set splitbelow
@@ -52,6 +51,7 @@ vim.cmd([[
         let g:winresizer_enable = 1
     "make WinSeparator invisible
         highlight WinSeparator ctermbg=none guifg=bg   
+        highlight LineNr guifg=white
 ]])
 require("nvim-web-devicons").setup({})
 require 'nvim-treesitter.configs'.setup {

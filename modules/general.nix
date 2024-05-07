@@ -132,18 +132,18 @@
         options = "--delete-older-than 30d";
       };
       nix.optimise.automatic = true;
-    system.autoUpgrade = {
-        enable = true;
-        flake = inputs.self.outPath;
-        flags = [
-          "--update-input"
-          "nixpkgs"
-          "--no-write-lock-file"
-          "-L" # print build logs
-        ];
-        dates = "8:00";
-        randomizedDelaySec = "45min";
-      };
+    # system.autoUpgrade = {
+    #     enable = true;
+    #     flake = inputs.self.outPath;
+    #     flags = [
+    #       "--update-input"
+    #       "nixpkgs"
+    #       "--no-write-lock-file"
+    #       "-L" # print build logs
+    #     ];
+    #     dates = "8:00";
+    #     randomizedDelaySec = "45min";
+    #   };
 
       # Copy the NixOS configuration file and link it from the resulting system
       # (/run/current-system/configuration.nix). This is useful in case you
@@ -166,6 +166,10 @@
       # this value at the release version of the first install of this system.
       # Before changing this value read the documentation for this option
       # (e.g. man configuration.nix or on https://nixos.org/nixos/options.html).
+      # security.pki.certificateFiles = [
+      #   /usr/local/share/ca-certificates/aspnet/https.crt
+      #   /home/ezekiel/Documents/repos/cksoftware/frontier.maindb.be/certs/server.csr
+      #   ];
       system.stateVersion = "23.05"; # Did you read the comment?
     };
 }
