@@ -73,44 +73,42 @@
         packages = with pkgs; [ firefox xfce.thunar vial ];
       };
 
-      services.flatpak.enable = true;
-      services.dbus.enable = true;
-      #https://github.com/flatpak/xdg-desktop-portal/blob/1.18.1/doc/portals.conf.rst.in
-      xdg.portal = {
-        enable = true;
-        config.common.default = "*";
-        extraPortals = [ pkgs.xdg-desktop-portal-gtk ];
-      };
+      # services.flatpak.enable = true;
+      # services.dbus.enable = true;
+      # #https://github.com/flatpak/xdg-desktop-portal/blob/1.18.1/doc/portals.conf.rst.in
+      # xdg.portal = {
+      #   enable = true;
+      #   config.common.default = "*";
+      #   extraPortals = [ pkgs.xdg-desktop-portal-gtk ];
+      # };
 
-      #xdg.portal.config.common.default = "*";
+      # xdg.portal.config.common.default = "*";
 
-      security.polkit.enable = true;
-      systemd = {
-        user.services.polkit-gnome-authentication-agent-1 = {
-          description = "polkit-gnome-authentication-agent-1";
-          wantedBy = [ "graphical-session.target" ];
-          wants = [ "graphical-session.target" ];
-          after = [ "graphical-session.target" ];
-          serviceConfig = {
-            Type = "simple";
-            ExecStart =
-              "${pkgs.polkit_gnome}/libexec/polkit-gnome-authentication-agent-1";
-            Restart = "on-failure";
-            RestartSec = 1;
-            TimeoutStopSec = 10;
-          };
-        };
-        extraConfig = ''
-          DefaultTimeoutStopSec=10s
-        '';
-      };
+      # security.polkit.enable = true;
+      # systemd = {
+      #   user.services.polkit-gnome-authentication-agent-1 = {
+      #     description = "polkit-gnome-authentication-agent-1";
+      #     wantedBy = [ "graphical-session.target" ];
+      #     wants = [ "graphical-session.target" ];
+      #     after = [ "graphical-session.target" ];
+      #     serviceConfig = {
+      #       Type = "simple";
+      #       ExecStart =
+      #         "${pkgs.polkit_gnome}/libexec/polkit-gnome-authentication-agent-1";
+      #       Restart = "on-failure";
+      #       RestartSec = 1;
+      #       TimeoutStopSec = 10;
+      #     };
+      #   };
+      #   extraConfig = ''
+      #     DefaultTimeoutStopSec=10s
+      #   '';
+      # };
 
       # Fonts
       fonts = {
         packages = with pkgs; [
           noto-fonts
-          #noto-onts-cjk
-          #noto-fonts-emoji
           font-awesome
           source-han-sans
           source-han-sans-japanese
@@ -132,6 +130,11 @@
         options = "--delete-older-than 30d";
       };
       nix.optimise.automatic = true;
+      nix.settings.auto-optimise-store = true;
+      nix.extraOptions = ''
+         min-free = ${toString (100 * 1024 * 1024)}
+         max-free = ${toString (1024 * 1024 * 1024)}
+      '';
     # system.autoUpgrade = {
     #     enable = true;
     #     flake = inputs.self.outPath;

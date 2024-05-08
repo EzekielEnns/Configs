@@ -2,6 +2,7 @@
 {
   environment.systemPackages = with pkgs; [
     #work
+    du-dust
     jetbrains.rider
     dotnet-sdk_8 
     msbuild
@@ -13,7 +14,7 @@
     jmtpfs
     autorandr
     #others
-    flatpak 
+    #flatpak 
     #terminal
     yt-dlp
     termdown
@@ -32,9 +33,9 @@
     xclip
     carapace #completation
     #gaming 
-    protonup-ng
-    steam
-    steam-run
+    # protonup-ng
+    # steam
+    # steam-run
     #vertiaulization
     virt-manager
     virtualbox
@@ -50,9 +51,9 @@
 
   ];
 
-  programs.steam = {
-    enable = true;
-    remotePlay.openFirewall = true; 
-    dedicatedServer.openFirewall = true; 
-  };
+  # programs.steam = {
+  #   enable = true;
+  #   remotePlay.openFirewall = true; 
+  #   dedicatedServer.openFirewall = true; 
+  # };
 }
