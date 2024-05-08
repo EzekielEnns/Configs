@@ -5,7 +5,7 @@
 #TODO get configs: kitty, i3status-rust. i3, starship, mpv, lf
 # in a state where packages with app maybe home manager?
 #TODO setup windows vm
-{ config, pkgs,inputs, ... }:
+{ config, pkgs,lib,inputs, ... }:
 {
 
     imports =[
@@ -170,9 +170,10 @@
       # Before changing this value read the documentation for this option
       # (e.g. man configuration.nix or on https://nixos.org/nixos/options.html).
       # security.pki.certificateFiles = [
-      #   /usr/local/share/ca-certificates/aspnet/https.crt
-      #   /home/ezekiel/Documents/repos/cksoftware/frontier.maindb.be/certs/server.csr
+      #     /usr/local/share/ca-certificates/aspnet/https.crt
       #   ];
+      #TODO this is for dev envs-- find way to make this more secure
+      security.pki.certificates= [ ];
       system.stateVersion = "23.05"; # Did you read the comment?
     };
 }
