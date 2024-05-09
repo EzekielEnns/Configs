@@ -54,7 +54,7 @@
                             block = "time";
                             interval = 1;
                             format=" $icon  $timestamp.datetime(f:'%x    %I:%M', l:fr_BE)  ";
-                            timezone = "Canada/Atlantic";
+                            timezone = "Canada/Mountain";
                         }
                         {
                             format = " $text ";

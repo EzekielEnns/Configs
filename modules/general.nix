@@ -46,7 +46,7 @@
       networking.firewall.enable = false;
       networking.enableIPv6 = false;
       #time
-      time.timeZone = "America/Halifax";
+      time.timeZone = "Canada/Mountain";
       i18n.defaultLocale = "en_CA.UTF-8";
 
       # Enable sound with pipewire.
