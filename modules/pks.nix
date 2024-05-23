@@ -1,9 +1,11 @@
-{config,pkgs,...}:
+{config,pkgs,pkgs-unstable,inputs,...}:
 {
   environment.systemPackages = with pkgs; [
+
+    chromium
     #work
     du-dust
-    jetbrains.rider
+    pkgs-unstable.jetbrains.rider
     dotnet-sdk_8 
     msbuild
     mono

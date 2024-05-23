@@ -173,7 +173,6 @@
       #     /usr/local/share/ca-certificates/aspnet/https.crt
       #   ];
       #TODO this is for dev envs-- find way to make this more secure
-      security.pki.certificates= [ ];
       system.stateVersion = "23.05"; # Did you read the comment?
     };
 }

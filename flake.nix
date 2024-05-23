@@ -4,18 +4,23 @@
 #https://nix-community.github.io/home-manager/index.xhtml#sec-flakes-nixos-module
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-23.11";
+    nixpkgs-unstable.url = "github:nixos/nixpkgs/nixos-unstable";
     #ytermusic.url = "github:ezekielenns/ytermusic";
     home-manager= {
         url = "github:nix-community/home-manager/release-23.11";
         inputs.nixpkgs.follows = "nixpkgs";
     };
   };
-  outputs = { nixpkgs, home-manager, ... }@inputs: 
+  outputs = { nixpkgs, home-manager,nixpkgs-unstable, ... }@inputs: 
     {
     nixosConfigurations = {
       bk = nixpkgs.lib.nixosSystem {
         specialArgs.inputs = inputs;
         system = "x86_64-linux";
+        specialArgs.pkgs-unstable= import nixpkgs-unstable {
+            system = "x86_64-linux";
+            config.allowUnfree = true;
+        };
         modules = 
           [ ./nixos/hardware/bk.nix ./nixos/bk.nix  ./modules/general.nix 
             home-manager.nixosModules.home-manager {
@@ -33,6 +38,10 @@
       laptop = nixpkgs.lib.nixosSystem {
         specialArgs.inputs = inputs;
         system = "x86_64-linux";
+        specialArgs.pkgs-unstable= import nixpkgs-unstable {
+            system = "x86_64-linux";
+            config.allowUnfree = true;
+        };
         modules =
           [ ./nixos/hardware/lp.nix ./nixos/lp.nix ./modules/general.nix 
             home-manager.nixosModules.home-manager {
@@ -50,6 +59,10 @@
       desktop = nixpkgs.lib.nixosSystem {
         specialArgs.inputs = inputs;
         system = "x86_64-linux";
+        specialArgs.pkgs-unstable= import nixpkgs-unstable {
+            system = "x86_64-linux";
+            config.allowUnfree = true;
+        };
         modules = 
           [ ./nixos/hardware/dk.nix ./nixos/dk.nix  ./modules/general.nix 
             home-manager.nixosModules.home-manager {

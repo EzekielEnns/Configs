@@ -8,7 +8,7 @@
             font = {
                 package = (pkgs.nerdfonts.override { fonts = [ "Monofur" ]; });
                 name = "Monofur Nerd Font";
-                size = 13;
+                size = 15;
             };
             settings = {
                 "enabled_layouts"= "*";
