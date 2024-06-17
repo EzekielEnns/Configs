@@ -1,4 +1,4 @@
-{config,pkgs,inputs,...}:
+{config,pkgs,pkgs-unstable,inputs,...}:
 let
   veikk_driver = (pkgs.callPackage ./veikkDriver.nix {});
 in {
@@ -56,13 +56,12 @@ in {
       lightdm
       starship
       kitty
-      lazygit
       fzf
       #for i3 status
       pipecontrol
       lm_sensors
       #mapped to workspaces or key binds
-      youtube-music
+      pkgs-unstable.youtube-music
       discord
       firefox
       #pdf files
