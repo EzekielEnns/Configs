@@ -1,6 +1,6 @@
 {config,pkgs,inputs,...}:
 let
-  veikk_driver = (pkgs.callPackage ./veikk_driver.nix {});
+  veikk_driver = (pkgs.callPackage ./veikkDriver.nix {});
 in {
   # Desktop
   services.xserver.enable = true;

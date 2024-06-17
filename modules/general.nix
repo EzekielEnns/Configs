@@ -9,9 +9,9 @@
 {
 
     imports =[
-        ./pks.nix
+        ./packages.nix
         ./devCerts.nix
-        ./wm.nix
+        ./windowManager.nix
         ./virtualization.nix
         ./nvim.nix
         ../configs/scripts.nix
