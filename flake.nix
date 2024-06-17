@@ -3,11 +3,10 @@
 #https://discourse.nixos.org/t/how-to-add-a-flake-package-to-system-configuration/14460/2
 #https://nix-community.github.io/home-manager/index.xhtml#sec-flakes-nixos-module
   inputs = {
-    nixpkgs.url = "github:NixOS/nixpkgs/nixos-23.11";
+    nixpkgs.url = "github:NixOS/nixpkgs/nixos-24.05";
     nixpkgs-unstable.url = "github:nixos/nixpkgs/nixos-unstable";
-    #ytermusic.url = "github:ezekielenns/ytermusic";
     home-manager= {
-        url = "github:nix-community/home-manager/release-23.11";
+        url = "github:nix-community/home-manager/release-24.05";
         inputs.nixpkgs.follows = "nixpkgs";
     };
   };

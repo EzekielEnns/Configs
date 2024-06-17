@@ -3,6 +3,7 @@
   environment.systemPackages = with pkgs; [
 
     chromium
+    yazi
     #work
     du-dust
     pkgs-unstable.jetbrains.rider
@@ -15,8 +16,6 @@
     #utils
     jmtpfs
     autorandr
-    #others
-    #flatpak 
     #terminal
     yt-dlp
     termdown
@@ -33,14 +32,10 @@
     trash-cli
     unzip
     xclip
-    carapace #completation
+    carapace #complication
     #gaming 
-    # protonup-ng
-    # steam
-    # steam-run
-    #vertiaulization
-    virt-manager
-    virtualbox
+    steam
+    #steam-run
     #desktop goodies
     xdg-desktop-portal-gtk
     xorg.libX11
@@ -53,9 +48,9 @@
 
   ];
 
-  # programs.steam = {
-  #   enable = true;
-  #   remotePlay.openFirewall = true; 
-  #   dedicatedServer.openFirewall = true; 
-  # };
+  programs.steam = {
+    enable = true;
+    remotePlay.openFirewall = true; 
+    dedicatedServer.openFirewall = true; 
+  };
 }

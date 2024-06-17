@@ -5,7 +5,7 @@ in {
   # Desktop
   services.xserver.enable = true;
   services.xserver.desktopManager = { xterm.enable = false; };
-  services.xserver.displayManager = { defaultSession = "none+i3"; };
+  services.displayManager = { defaultSession = "none+i3"; };
   nixpkgs.config.permittedInsecurePackages = [
     "electron-25.9.0"
   ];
@@ -15,16 +15,20 @@ in {
   '';
   programs.dconf.enable = true;
   services.xserver = {
-    layout = "us";
-    xkbVariant = "";
+    xkb.layout = "us";
+    xkb.variant = "";
   };
   services.xserver.displayManager = {
     lightdm.enable = true;
+  };
+
+  services.displayManager = {
     autoLogin = {
       enable = true;
       user = "ezekiel";
     };
   };
+
   services.xserver.windowManager.i3 = {
     enable = true;
     extraPackages = with pkgs; [

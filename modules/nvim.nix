@@ -4,11 +4,6 @@ myConfig = pkgs.vimUtils.buildVimPlugin {
   name = "my-config";
   src = ../nvim;
   recursive = true;
-  # patchPhase = ''
-  #   substituteInPlace lua/init.lua \
-  #       --replace '@@omnisharp' '${pkgs.omnisharp-roslyn}' \
-  #       --replace '@@dotnet' '${pkgs.dotnet-sdk_8}'
-  # '';
 };
 myNeovim = pkgs.neovim.override {
   configure = {
@@ -18,12 +13,12 @@ myNeovim = pkgs.neovim.override {
     packages.myPlugins = with pkgs.vimPlugins; {
       start = [ 
         (pkgs.vimUtils.buildVimPlugin {
-            name = "workspace-diagnostics.nvim";
+            name = "Spelunker.vim";
             src = pkgs.fetchFromGitHub {
-                repo = "workspace-diagnostics.nvim";
-                owner = "artemave";
-                rev = "main";
-                sha256 = "sha256-3Rj4XCieQCcHxg+3/k0AfxtQZWeNm7aX23l3A+y5YUE=";
+                repo = "spelunker.vim";
+                owner = "kamykn";
+                rev = "master";
+                sha256 = "sha256-/1MN2KU5+rJhjt7FALvvwmTKRk3n29tU/XQdt1Q5OTE=";
             };
          })
         (pkgs.vimUtils.buildVimPlugin {
@@ -39,25 +34,6 @@ myNeovim = pkgs.neovim.override {
         vim-prettier
         nvim-treesitter.withAllGrammars
         nvim-treesitter-textobjects
-        (nvim-treesitter.withPlugins (
-           plugins: with plugins; [
-            wgsl
-            nix
-            tsx
-            toml
-            python
-            astro
-            rust
-            html
-            typescript
-            c
-            go
-            sql
-            markdown
-            xml
-            kotlin
-           ]
-        ))
         nvim-lspconfig 
         trouble-nvim
         telescope-nvim
@@ -89,15 +65,6 @@ myNeovim = pkgs.neovim.override {
 in {
     environment.systemPackages = with pkgs; [
         tree-sitter
-        #python311
-        #geckodriver
-
-        #python311Packages.ruff-lsp
-        #dotnet
-        #omnisharp-roslyn
-        #upkgs.csharp-ls
-
-        #kotlin-language-server
         lemminx
         vscode-langservers-extracted
         quick-lint-js
@@ -108,14 +75,12 @@ in {
         nodePackages_latest.eslint
         nodePackages_latest.typescript-language-server
 
-        #weird deps
         cargo
         rust-analyzer
         lua-language-server
         nodePackages_latest.pnpm
 
 
-        # lang servers 
         ltex-ls
         texlab
         marksman

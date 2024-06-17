@@ -52,14 +52,18 @@ vim.cmd([[
     "make WinSeparator invisible
         highlight WinSeparator ctermbg=none guifg=bg   
         highlight LineNr guifg=white
+
+        set spell spelllang=en_ca spo=camel
+        set syntax=ON   
 ]])
 require("nvim-web-devicons").setup({})
 require 'nvim-treesitter.configs'.setup {
     highlight = {
         enable = true,
-        additional_vim_regex_highlighting = true,
+        --additional_vim_regex_highlighting = true,
     },
 }
+
 --resiser rules
 vim.keymap.set('n', '<c-w>r', '<cmd>WinResizerStartResize<cr>', {});
 vim.keymap.set('n', '<c-w>f', '<cmd>WinResizerStartFocus<cr>', {});

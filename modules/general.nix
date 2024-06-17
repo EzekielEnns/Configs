@@ -10,16 +10,18 @@
 
     imports =[
         ./pks.nix
+        ./devCerts.nix
         ./wm.nix
         ./virtualization.nix
+        ./nvim.nix
         ../configs/scripts.nix
         ../configs/bash.nix
-        ./nvim.nix
     ];
     options = {};
     config = {
+      system.stateVersion = "23.05"; # Did you read the comment?
 
-      # hardrives
+      # hard drives
       services.gvfs.enable = true;
       services.devmon.enable = true;
       nixpkgs.config.allowUnfree = true;
@@ -28,12 +30,12 @@
       # virt 
       networking.hostName = "nixos";
       systemd.services.NetworkManager-wait-online.enable = false;
-      # Bootloader.
+      # Boot loader.
       boot.loader.systemd-boot.enable = true;
       boot.loader.efi.canTouchEfiVariables = true;
       boot.supportedFilesystems = [ "ntfs" ];
       services.udisks2.enable = true;
-      # man pagaes
+      # man pages
       documentation.enable = true;
       documentation.man.enable = true;
       documentation.dev.enable = true;
@@ -49,7 +51,7 @@
       time.timeZone = "Canada/Mountain";
       i18n.defaultLocale = "en_CA.UTF-8";
 
-      # Enable sound with pipewire.
+      # Enable sound with pipe wire.
       services.blueman.enable = true;
       sound.enable = true;
       hardware.pulseaudio.enable = false;
@@ -62,9 +64,8 @@
       };
       
       services.printing.enable = true;
-      services.xserver.libinput.enable = true;
+      services.libinput.enable = true;
       services.openssh.enable = true;
-
       # Define a user account. Don't forget to set a password with ‘passwd’.
       users.users.ezekiel = {
         isNormalUser = true;
@@ -72,38 +73,6 @@
         extraGroups = [ "networkmanager" "wheel" "docker" ];
         packages = with pkgs; [ firefox xfce.thunar vial ];
       };
-
-      # services.flatpak.enable = true;
-      # services.dbus.enable = true;
-      # #https://github.com/flatpak/xdg-desktop-portal/blob/1.18.1/doc/portals.conf.rst.in
-      # xdg.portal = {
-      #   enable = true;
-      #   config.common.default = "*";
-      #   extraPortals = [ pkgs.xdg-desktop-portal-gtk ];
-      # };
-
-      # xdg.portal.config.common.default = "*";
-
-      # security.polkit.enable = true;
-      # systemd = {
-      #   user.services.polkit-gnome-authentication-agent-1 = {
-      #     description = "polkit-gnome-authentication-agent-1";
-      #     wantedBy = [ "graphical-session.target" ];
-      #     wants = [ "graphical-session.target" ];
-      #     after = [ "graphical-session.target" ];
-      #     serviceConfig = {
-      #       Type = "simple";
-      #       ExecStart =
-      #         "${pkgs.polkit_gnome}/libexec/polkit-gnome-authentication-agent-1";
-      #       Restart = "on-failure";
-      #       RestartSec = 1;
-      #       TimeoutStopSec = 10;
-      #     };
-      #   };
-      #   extraConfig = ''
-      #     DefaultTimeoutStopSec=10s
-      #   '';
-      # };
 
       # Fonts
       fonts = {
@@ -135,6 +104,29 @@
          min-free = ${toString (100 * 1024 * 1024)}
          max-free = ${toString (1024 * 1024 * 1024)}
       '';
+
+      #xdg.portal.config.common.default = "*";
+
+      # security.polkit.enable = true;
+      # systemd = {
+      #   user.services.polkit-gnome-authentication-agent-1 = {
+      #     description = "polkit-gnome-authentication-agent-1";
+      #     wantedBy = [ "graphical-session.target" ];
+      #     wants = [ "graphical-session.target" ];
+      #     after = [ "graphical-session.target" ];
+      #     serviceConfig = {
+      #       Type = "simple";
+      #       ExecStart =
+      #         "${pkgs.polkit_gnome}/libexec/polkit-gnome-authentication-agent-1";
+      #       Restart = "on-failure";
+      #       RestartSec = 1;
+      #       TimeoutStopSec = 10;
+      #     };
+      #   };
+      #   extraConfig = ''
+      #     DefaultTimeoutStopSec=10s
+      #   '';
+      # };
     # system.autoUpgrade = {
     #     enable = true;
     #     flake = inputs.self.outPath;
@@ -169,10 +161,5 @@
       # this value at the release version of the first install of this system.
       # Before changing this value read the documentation for this option
       # (e.g. man configuration.nix or on https://nixos.org/nixos/options.html).
-      # security.pki.certificateFiles = [
-      #     /usr/local/share/ca-certificates/aspnet/https.crt
-      #   ];
-      #TODO this is for dev envs-- find way to make this more secure
-      system.stateVersion = "23.05"; # Did you read the comment?
     };
 }
