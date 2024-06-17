@@ -59,14 +59,12 @@ in {
       fzf
       #for i3 status
       pipecontrol
+      ncpamixer
       lm_sensors
       #mapped to workspaces or key binds
       pkgs-unstable.youtube-music
       discord
       firefox
-      #pdf files
-      termpdfpy
-      ncpamixer
     ];
 
   };
