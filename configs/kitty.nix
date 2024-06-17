@@ -21,6 +21,7 @@
             };
             keybindings = {
                 "ctrl+shift+equal"="change_font_size all +2.0";
+                "ctrl+shift+minus"="change_font_size all -2.0";
                 "cmd+minus"="change_font_size all -2.0 ";
                 "ctrl+shift+v"="paste_from_clipboard";
                 "ctrl+b>c"="new_tab_with_cwd";
