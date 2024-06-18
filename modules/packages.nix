@@ -45,7 +45,8 @@
     xorg.libXinerama
     xorg.xinit
     xorg.xinput
-
+    screenkey
+    simplescreenrecorder
   ];
 
   programs.steam = {
