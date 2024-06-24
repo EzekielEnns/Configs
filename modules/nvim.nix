@@ -54,6 +54,9 @@ myNeovim = pkgs.neovim.override {
         vim-gitgutter
         which-key-nvim
         nvim-autopairs
+        git-blame-nvim
+        plenary-nvim
+        typescript-tools-nvim
 
         comment-nvim
         myConfig 
@@ -74,6 +77,7 @@ in {
         nodePackages_latest.typescript-language-server
         nodePackages_latest.eslint
         nodePackages_latest.typescript-language-server
+        typescript
 
         cargo
         rust-analyzer

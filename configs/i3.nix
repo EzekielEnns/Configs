@@ -147,6 +147,8 @@
                    "${mod}+Shift+w" = mvw+"Web";
                    "${mod}+r" = "workspace Comm";
                    "${mod}+Shift+r" = mvw+"Comm";
+                   "${mod}+u" = "workspace Utils";
+                   "${mod}+Shift+u" = mvw+"Utils";
                    "${mod}+o" = "mode resize";
                    "${mod}+d" = "kill";
                    "${mod}+h" = "focus left";

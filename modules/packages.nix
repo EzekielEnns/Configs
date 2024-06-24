@@ -3,6 +3,7 @@
   environment.systemPackages = with pkgs; [
 
     chromium
+    tokei
     yazi
     #work
     du-dust
