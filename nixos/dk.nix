@@ -40,6 +40,8 @@
       locations = {
          "/" = {
            proxyPass = "https://localhost:5001";
+           #websocket support should work even if not websocket
+           proxyWebsockets = true;
         };
       };
     };
@@ -47,6 +49,10 @@
       locations = {
          "/" = {
            proxyPass = "https://localhost:3000";
+        };
+         "/hubs" = {
+           proxyPass = "https://localhost:5001/hubs";
+           proxyWebsockets = true;
         };
       };
     };

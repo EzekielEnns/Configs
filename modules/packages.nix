@@ -1,14 +1,15 @@
 {config,pkgs,pkgs-unstable,inputs,...}:
 {
   environment.systemPackages = with pkgs; [
-
+    busybox
     chromium
     tokei
     yazi
     du-dust
     #work
-    pkgs-unstable.jetbrains.rider
-    pkgs-unstable.jetbrains.gateway
+    pkgs.jetbrains.jdk
+    pkgs.jetbrains.rider
+    pkgs.jetbrains.gateway
     dotnet-sdk_8 
     msbuild
     mono
