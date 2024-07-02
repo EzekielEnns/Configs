@@ -56,6 +56,7 @@ vim.cmd([[
         set spell spelllang=en_ca spo=camel
         set syntax=ON   
         let g:gitblame_enabled = 0
+        let g:choosewin_overlay_enable = 1
 ]])
 require("nvim-web-devicons").setup({})
 require 'nvim-treesitter.configs'.setup {
@@ -72,6 +73,7 @@ require('gitblame').setup {
 vim.keymap.set('n', '<c-w>r', '<cmd>WinResizerStartResize<cr>', {});
 vim.keymap.set('n', '<c-w>f', '<cmd>WinResizerStartFocus<cr>', {});
 vim.keymap.set('n', '<c-w>m', '<cmd>WinResizerStartMove<cr>', {});
+vim.keymap.set('n', '<c-w>c', '<Plug>(choosewin)', {});
 
 --https://nuxsh.is-a.dev/blog/custom-nvim-statusline.html
 local cmp = require('cmp')
@@ -215,7 +217,7 @@ require("typescript-tools").setup {
     -- CodeLens
     -- WARNING: Experimental feature also in VSCode, because it might hit performance of server.
     -- possible values: ("off"|"all"|"implementations_only"|"references_only")
-    code_lens = "all",
+    code_lens = "off",
     -- by default code lenses are displayed on all referencable values and for some of you it can
     -- be too much this option reduce count of them by removing member references from lenses
     disable_member_code_lens = false,
@@ -228,7 +230,7 @@ require("typescript-tools").setup {
     }
   },
 }
-require 'lspconfig'.quick_lint_js.setup {}
+--require 'lspconfig'.quick_lint_js.setup {}
 require 'lspconfig'.kotlin_language_server.setup {}
 require 'lspconfig'.eslint.setup {}
 require 'lspconfig'.gopls.setup {}

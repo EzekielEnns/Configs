@@ -30,11 +30,11 @@
                 "ctrl+b>"="next_layout";
                 "ctrl+b>s"="swap_with_window";
                 "ctrl+b>r"="set_tab_title";
-                "ctrl+b>space"="focus_visible_window";
+                #"ctrl+b>space"="focus_visible_window";
                 "ctrl+b>n"="start_resizing_window";
-                "ctrl+tab"="next_tab";
+                "alt+tab"="next_tab";
                 "ctrl+shift+tab"="previous_tab";
-                "alt+tab"="next_window";
+                "ctrl+tab"="focus_visible_window";
                 "alt+shift+tab"="previous_window";
             };
         };

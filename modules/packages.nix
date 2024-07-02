@@ -5,9 +5,10 @@
     chromium
     tokei
     yazi
-    #work
     du-dust
+    #work
     pkgs-unstable.jetbrains.rider
+    pkgs-unstable.jetbrains.gateway
     dotnet-sdk_8 
     msbuild
     mono

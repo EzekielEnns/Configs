@@ -13,6 +13,7 @@
         ./devCerts.nix
         ./windowManager.nix
         ./virtualization.nix
+        ./networking.nix
         ./nvim.nix
         ../configs/scripts.nix
         ../configs/bash.nix
@@ -27,9 +28,6 @@
       nixpkgs.config.allowUnfree = true;
       # flakes
       nix.settings.experimental-features = [ "nix-command" "flakes" ];
-      # virt 
-      networking.hostName = "nixos";
-      systemd.services.NetworkManager-wait-online.enable = false;
       # Boot loader.
       boot.loader.systemd-boot.enable = true;
       boot.loader.efi.canTouchEfiVariables = true;
@@ -42,11 +40,6 @@
       # Hardware
       hardware.keyboard.qmk.enable = true;
       hardware.bluetooth.enable = true;
-      # networking
-      networking.networkmanager.enable = true;
-      networking.wireless.userControlled.enable = true;
-      networking.firewall.enable = false;
-      networking.enableIPv6 = false;
       #time
       time.timeZone = "Canada/Mountain";
       i18n.defaultLocale = "en_CA.UTF-8";
@@ -65,7 +58,6 @@
       
       services.printing.enable = true;
       services.libinput.enable = true;
-      services.openssh.enable = true;
       # Define a user account. Don't forget to set a password with ‘passwd’.
       users.users.ezekiel = {
         isNormalUser = true;

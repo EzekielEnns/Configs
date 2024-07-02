@@ -1,7 +1,9 @@
 { config, pkgs, ... }:
 
 {
-  #networking.hostName = "desktop";
+  networking.interfaces.enp6s0.wakeOnLan = {
+    enable = true;
+  };
   networking.networkmanager.enable = true;
   services.xserver.videoDrivers = ["nvidia"];
   hardware.nvidia = {
@@ -27,5 +29,28 @@
     # Optionally, you may need to select the appropriate driver version for your specific GPU.
     package = config.boot.kernelPackages.nvidiaPackages.stable;
   };
+
+  services.nginx = {
+    enable = true;
+    recommendedGzipSettings = true;
+    recommendedOptimisation = true;
+    recommendedProxySettings = true;
+    recommendedTlsSettings = true;
+    virtualHosts."192.168.0.105:5001" = {
+      locations = {
+         "/" = {
+           proxyPass = "https://localhost:5001";
+        };
+      };
+    };
+    virtualHosts."192.168.0.105" = {
+      locations = {
+         "/" = {
+           proxyPass = "https://localhost:3000";
+        };
+      };
+    };
+  };
+
 }
 

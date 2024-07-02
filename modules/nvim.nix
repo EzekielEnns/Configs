@@ -30,6 +30,7 @@ myNeovim = pkgs.neovim.override {
                 sha256 = "sha256-5LR9A23BvpCBY9QVSF9PadRuDSBjv+knHSmdQn/3mH0=";
             };
          })
+        vim-choosewin
         nvim-treesitter
         vim-prettier
         nvim-treesitter.withAllGrammars
