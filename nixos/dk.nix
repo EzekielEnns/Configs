@@ -4,7 +4,11 @@
   networking.interfaces.enp6s0.wakeOnLan = {
     enable = true;
   };
+
   networking.networkmanager.enable = true;
+  # disables etho in network manager
+  networking.networkmanager.unmanaged = ["enp6s0"];
+
   services.xserver.videoDrivers = ["nvidia"];
   hardware.nvidia = {
 
