@@ -13,6 +13,7 @@
           settings = {
               PasswordAuthentication = true;
               PermitRootLogin = "yes";
+              X11Forwarding = true;
           };
       };
       networking.firewall.enable = false;

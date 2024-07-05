@@ -1,6 +1,7 @@
 {config,pkgs,pkgs-unstable,inputs,...}:
 {
   environment.systemPackages = with pkgs; [
+    openvpn3
     busybox
     chromium
     tokei
