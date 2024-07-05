@@ -7,7 +7,6 @@
     tokei
     yazi
     du-dust
-    tmux
     #work
     pkgs.jetbrains.jdk
     pkgs.jetbrains.rider
@@ -52,6 +51,7 @@
     xorg.xinput
     screenkey
     simplescreenrecorder
+    nix-prefetch-github
   ];
 
   programs.steam = {

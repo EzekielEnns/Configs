@@ -59,3 +59,7 @@ setting up private flakes
 to update flakes you need to do two things
 - in the repo run `nix flake update` and then push that to your repo
 - on your os you need to run `nix flake flake-repo` to update it locally
+
+
+# how to get any repo you need
+`nix-prefetch-github {owner} {repo}`

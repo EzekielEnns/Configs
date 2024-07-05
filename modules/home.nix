@@ -1,3 +1,4 @@
+#wtf is this i dont think it works
 {config, pkgs, ...}: 
 {
     imports = [
@@ -5,6 +6,7 @@
         ../configs/i3.nix
         ../configs/kitty.nix
         ../configs/starship.nix
+        ../configs/tmux.nix
     ];
     options = {};
     config = {

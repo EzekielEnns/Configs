@@ -5,6 +5,7 @@
         ./kitty.nix
         ./starship.nix
         ./git.nix
+        ./tmux.nix
     ];
     options = {};
     config = {

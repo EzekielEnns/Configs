@@ -143,7 +143,7 @@
                    "${mod}+m" = "workspace Music; exec [ $( i3-msg -t get_tree | grep \"YouTube Music\" | wc -L) = 0 ] &&  youtube-music ";
                    "${mod}+Shift+m" = mvw+"Music";
                     #TODO add a media worksapce
-                   "${mod}+w" = "workspace Web; exec [ $(i3-msg -t get_tree | grep \\\".title.:.Mozilla Firefox.\\\" | wc -L) = 0 ] && firefox ";
+                   "${mod}+w" = "workspace Web"; #; exec [ $(i3-msg -t get_tree | grep \\\".title.:.Mozilla Firefox.\\\" | wc -L) = 0 ] && firefox 
                    "${mod}+Shift+w" = mvw+"Web";
                    "${mod}+r" = "workspace Comm";
                    "${mod}+Shift+r" = mvw+"Comm";
