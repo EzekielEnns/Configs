@@ -6,6 +6,7 @@
     tokei
     yazi
     du-dust
+    tmux
     #work
     pkgs.jetbrains.jdk
     pkgs.jetbrains.rider
