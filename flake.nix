@@ -50,6 +50,7 @@
                     imports= [
                         ./configs/users.nix
                         ./configs/i3status-rust.nix
+                        ./configs/kitty-lp.nix
                     ];
                 };
             }
