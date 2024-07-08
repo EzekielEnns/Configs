@@ -14,7 +14,7 @@
             enable = true;
             settings = {
                 global = {
-                    timeout = 0;
+                    #timeout = 0;
                     origin = "top-left";
                 };
             };
