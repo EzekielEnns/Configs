@@ -1,6 +1,6 @@
 vim.cmd([[
         set autoread                                                                                                                                                                                    
-        au CursorHold * checktime
+        au CursorHold * silent! checktime
     "colors and cursor
         set encoding=UTF-8
         set background=dark
@@ -57,12 +57,22 @@ vim.cmd([[
         set syntax=ON   
         let g:gitblame_enabled = 0
         let g:choosewin_overlay_enable = 1
+        "status 
+        function Gitbranch()
+            return trim(system("git -C " . expand("%:h") . " branch --show-current 2>/dev/null"))
+            endfunction
+
+            augroup Gitget
+            autocmd!
+            autocmd BufEnter * let b:git_branch = Gitbranch()
+        augroup END
+
+        set statusline+=\ %t%y\~(%{b:git_branch})
 ]])
 require("nvim-web-devicons").setup({})
 require 'nvim-treesitter.configs'.setup {
     highlight = {
         enable = false,
-        --additional_vim_regex_highlighting = true,
     },
 }
 require('gitblame').setup {
@@ -360,8 +370,15 @@ require('nvim-autopairs').setup({
     disable_filetype = { "TelescopePrompt", "vim" },
 })
 
+--used to have highlighting spell check
 vim.api.nvim_create_autocmd("VimEnter", {
 	callback = function()
         vim.cmd('TSEnable highlight')
 	end,
 })
+
+vim.api.nvim_set_keymap('n', '<c-h>', '<cmd>TmuxNavigateLeft<cr>', { noremap = true, silent = true })
+vim.api.nvim_set_keymap('n', '<c-j>', '<cmd>TmuxNavigateDown<cr>', { noremap = true, silent = true })
+vim.api.nvim_set_keymap('n', '<c-k>', '<cmd>TmuxNavigateUp<cr>', { noremap = true, silent = true })
+vim.api.nvim_set_keymap('n', '<c-l>', '<cmd>TmuxNavigateRight<cr>', { noremap = true, silent = true })
+vim.api.nvim_set_keymap('n', '<c-\\>', '<cmd>TmuxNavigatePrevious<cr>', { noremap = true, silent = true })

@@ -44,7 +44,7 @@ myNeovim = pkgs.neovim.override {
         cmp-buffer
         cmp-cmdline 
         cmp-path
-
+        vim-tmux-navigator
         luasnip
         cmp_luasnip
         lsp_signature-nvim

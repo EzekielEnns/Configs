@@ -10,6 +10,15 @@
     imports = [];
     options = {};
     config = {
+        services.dunst = {
+            enable = true;
+            settings = {
+                global = {
+                    timeout = 0;
+                    origin = "bottom-left";
+                };
+            };
+        };
         # https://nixos.org/manual/nix/stable/language/constructs#with-expressions 
         xsession.windowManager.i3 =  
         let mod="Mod4"; 

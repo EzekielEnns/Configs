@@ -12,34 +12,38 @@ let
   };
 in
 {
+
+         # set -ag terminal-overrides ",xterm-256color:RGB"
+         # set  -g default-terminal "tmux-256color"
  programs.tmux = {
      enable = true;
-     plugins = [test];
-     # extraConfig =  ''
-     #     set -g mouse on
-     #     set -ag terminal-overrides ",xterm-256color:RGB"
-     #     set  -g default-terminal "tmux-256color"
-     #     set-option -g status-style bg=default
-     #
-     #     set-option -g detach-on-destroy off
-     #
-     #     #Vim "beliver"
-     #     unbind % # Split vertically
-     #     unbind '"' # Split horizontally
-     #     unbind s 
-     #     bind e choose-session
-     #     unbind l 
-     #     bind 6 last-window
-     #     bind v split-window -h -c "#{pane_current_path}"
-     #     bind s split-window -v -c "#{pane_current_path}"
-     #     bind h select-pane -L
-     #     bind j select-pane -D
-     #     bind k select-pane -U
-     #     bind l select-pane -R
-     #
-     #
-     #     set-window-option -g mode-keys vi
-     #     bind -T copy-mode-vi y send-keys -X copy-pipe-and-cancel 'xclip -in -selection clipboard'
-     #     '';
+     plugins = with pkgs.tmuxPlugins; [
+         vim-tmux-navigator
+     ];
+     extraConfig =  ''
+         set -g prefix C-s
+         set -g mouse on
+         set-option -g status-style bg=default
+
+         # unbind s 
+         # bind e choose-session
+         # unbind l 
+         bind-key h select-pane -L
+         bind-key j select-pane -D
+         bind-key k select-pane -U
+         bind-key l select-pane -R
+
+
+         setw -g mode-keys vi
+         bind -T copy-mode-vi y send-keys -X copy-pipe-and-cancel 'xclip -in -selection clipboard'
+         set -g @plugin 'christoomey/vim-tmux-navigator'
+         run '~/.tmux/plugins/tpm/tpm'
+
+         is_vim="ps -o state= -o comm= -t '#{pane_tty}' \
+         | grep -iqE '^[^TXZ ]+ +(\\S+\\/)?g?(view|n?vim?x?)(diff)?$'"
+         bind-key '"' if-shell "$is_vim" "split-window -h -p 20"
+         bind-key % if-shell "$is_vim" "split-window -v -p 20"
+
+         '';
  };
 }
