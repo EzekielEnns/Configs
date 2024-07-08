@@ -15,7 +15,7 @@
             settings = {
                 global = {
                     timeout = 0;
-                    origin = "bottom-left";
+                    origin = "top-left";
                 };
             };
         };
