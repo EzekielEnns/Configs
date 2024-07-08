@@ -22,7 +22,7 @@ in
          sensible
      ];
      extraConfig =  ''
-         set -g prefix C-s
+         #set -g prefix C-s
          #set -g mouse on
          set-option -g status-style bg=default
 
