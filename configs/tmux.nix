@@ -19,10 +19,11 @@ in
      enable = true;
      plugins = with pkgs.tmuxPlugins; [
          vim-tmux-navigator
+         sensible
      ];
      extraConfig =  ''
          set -g prefix C-s
-         set -g mouse on
+         #set -g mouse on
          set-option -g status-style bg=default
 
          # unbind s 
@@ -31,18 +32,19 @@ in
          bind-key h select-pane -L
          bind-key j select-pane -D
          bind-key k select-pane -U
-         bind-key l select-pane -R
+         bind-key \; select-pane -R
 
 
          setw -g mode-keys vi
          bind -T copy-mode-vi y send-keys -X copy-pipe-and-cancel 'xclip -in -selection clipboard'
          set -g @plugin 'christoomey/vim-tmux-navigator'
+         bind C-l send-keys 'C-l'
          run '~/.tmux/plugins/tpm/tpm'
 
          is_vim="ps -o state= -o comm= -t '#{pane_tty}' \
          | grep -iqE '^[^TXZ ]+ +(\\S+\\/)?g?(view|n?vim?x?)(diff)?$'"
-         bind-key '"' if-shell "$is_vim" "split-window -h -p 20"
-         bind-key % if-shell "$is_vim" "split-window -v -p 20"
+         bind-key '"' if-shell "$is_vim" "split-window -h -p 20" "split-window -h"
+         bind-key % if-shell "$is_vim" "split-window -v -p 10" "split-window -v"
 
          '';
  };
