@@ -63,3 +63,6 @@ to update flakes you need to do two things
 
 # how to get any repo you need
 `nix-prefetch-github {owner} {repo}`
+
+
+fun fact as of v24.05 nix develop envs go to all tmux sessions/ it dose some funky stuff
