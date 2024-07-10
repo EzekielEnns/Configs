@@ -84,6 +84,7 @@ in {
         rust-analyzer
         lua-language-server
         nodePackages_latest.pnpm
+        nodePackages.svelte-language-server
 
 
         ltex-ls

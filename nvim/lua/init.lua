@@ -250,6 +250,7 @@ require 'lspconfig'.ruff_lsp.setup {}
 require 'lspconfig'.terraformls.setup {}
 require 'lspconfig'.lua_ls.setup {}
 require 'lspconfig'.lemminx.setup {}
+require 'lspconfig'.svelte.setup {}
 require "lsp_signature".setup({
     bind = true, -- This is mandatory, otherwise border config won't get registered.
     hint_enable = true,
