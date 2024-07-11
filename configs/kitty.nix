@@ -16,8 +16,11 @@
                 "clear_all_shortcuts"= "yes";
                 "show_hyperlink_targets"="yes";
                 "copy_on_select"="clipboard";
-                "enable_audio_bell"="no";
+                "enable_audio_bell"="yes";
                 "tab_bar_style"="hidden";
+                "window_alert_on_bell" = "yes";
+                #todo add a sound
+                #"bell_path none" 
             };
             keybindings = {
                 "ctrl+shift+equal"="change_font_size all +2.0";
