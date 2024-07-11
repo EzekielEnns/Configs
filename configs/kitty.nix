@@ -21,6 +21,7 @@
                 "window_alert_on_bell" = "yes";
                 #todo add a sound
                 #"bell_path none" 
+                #https://sw.kovidgoyal.net/kitty/conf/#terminal-bell
             };
             keybindings = {
                 "ctrl+shift+equal"="change_font_size all +2.0";
