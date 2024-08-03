@@ -186,6 +186,7 @@ require 'lspconfig'.tailwindcss.setup {
     cmd = { "pnpm", "tailwindcss-language-server", "--stdio" }
 }
 require 'lspconfig'.ltex.setup {}
+require 'lspconfig'.hls.setup {}
 require 'lspconfig'.texlab.setup {}
 require 'lspconfig'.clangd.setup {}
 require 'lspconfig'.nil_ls.setup {}
@@ -337,6 +338,10 @@ local leader_binds = {
     ["s"] = { "<cmd>Telescope lsp_document_symbols<CR>", "find symbol" },
     ["w"] = { "<cmd>Telescope lsp_workspace_symbols<CR>", "find symbol workspace" },
     ["cd"] = { "<cmd>:lua folder_finder()<cr>", "find Directory" },
+    ["ev"] = { "<cmd>:Vex!<cr>", "Explorer" },
+    ["es"] = { "<cmd>:Sex!<cr>", "Explorer" },
+    ["ee"] = { "<cmd>:Exp!<cr>", "Explorer" },
+    ["el"] = { "<cmd>:Lexplore!<cr>", "Explorer" },
 
     ["h"] = { "<cmd>lua vim.lsp.buf.signature_help()<cr>", "lsp sig help" },
     ["lh"] = { "<cmd>lua vim.lsp.buf.hover()<cr>", "hover" },

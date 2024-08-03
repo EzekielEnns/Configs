@@ -1,6 +1,7 @@
 {config,pkgs,pkgs-unstable,inputs,...}:
 {
   environment.systemPackages = with pkgs; [
+    p7zip
     openvpn
     busybox
     chromium

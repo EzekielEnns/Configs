@@ -80,6 +80,10 @@ in {
         nodePackages_latest.typescript-language-server
         typescript
 
+        cabal-install
+        ghc
+        haskell-language-server
+
         cargo
         rust-analyzer
         lua-language-server
