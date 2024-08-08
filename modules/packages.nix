@@ -1,6 +1,8 @@
 {config,pkgs,pkgs-unstable,inputs,...}:
 {
   environment.systemPackages = with pkgs; [
+    pulseaudio #for volumn
+    playerctl
     p7zip
     openvpn
     busybox
