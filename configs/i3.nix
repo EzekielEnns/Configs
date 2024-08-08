@@ -36,6 +36,8 @@
 # Sreen brightness controls
                 bindsym XF86MonBrightnessUp exec xbacklight -inc 20 # increase screen brightness
                 bindsym XF86MonBrightnessDown exec xbacklight -dec 20 # decrease screen brightness
+# Mic
+                bindsym XF86AudioMicMute exec --no-startup-id pactl set-source-mute 1 toggle
 
 # Media player controls
                 bindsym XF86AudioPlay exec playerctl play-pause
