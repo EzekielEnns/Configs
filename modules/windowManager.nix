@@ -3,36 +3,30 @@ let
   veikk_driver = (pkgs.callPackage ./veikkDriver.nix {});
 in {
   # Desktop
-  services.xserver.enable = true;
-  services.xserver.desktopManager = { xterm.enable = false; };
-  services.displayManager = { defaultSession = "none+i3"; };
   nixpkgs.config.permittedInsecurePackages = [
     "electron-25.9.0"
   ];
-  services.xserver.displayManager.setupCommands = ''
-    /run/current-system/sw/bin/xset -dpms
-    /run/current-system/sw/bin/xset s off
-  '';
   programs.dconf.enable = true;
-  services.xserver = {
-    xkb.layout = "us";
-    xkb.variant = "";
-  };
-  services.xserver.displayManager = {
-    lightdm.enable = true;
-  };
 
-  services.displayManager = {
-    autoLogin = {
-      enable = true;
-      user = "ezekiel";
-    };
-  };
+ environment.sessionVariables.NIXOS_OZONE_WL = "1";
+programs.sway.enable=true;
+  # services.xserver.displayManager.gdm= {
+  #     enable = true;
+  #     wayland = true;
+  # };
+  # services.displayManager = {
+  #   autoLogin = {
+  #     enable = true;
+  #     user = "ezekiel";
+  #   };
+  # };
 
-  services.xserver.windowManager.i3 = {
-    enable = true;
-    extraPackages = with pkgs; [
-      #inputs.ytermusic
+  environment.systemPackages = with pkgs; [
+      grim # screenshot functionality
+      # slurp # screenshot functionality
+      wl-clipboard # wl-copy and wl-paste for copy/paste from stdin / stdout
+      # mako # notification system developed by swaywm maintainer
+
       veikk_driver
       xournalpp
       gromit-mpx
@@ -41,19 +35,16 @@ in {
       font-awesome_5
       #apps
       lf
-      i3-cycle-focus
       unclutter
-      maim
       feh
       i3status-rust
-      i3lock
+      swaylock
       networkmanagerapplet
       arandr
       find-cursor
       dmenu
       picom
       xss-lock
-      lightdm
       starship
       kitty
       fzf
@@ -66,7 +57,5 @@ in {
       discord
       firefox
     ];
-
-  };
   services.udev.packages = [ veikk_driver ];
 }

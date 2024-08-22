@@ -66,3 +66,7 @@ to update flakes you need to do two things
 
 
 fun fact as of v24.05 nix develop envs go to all tmux sessions/ it dose some funky stuff
+
+TODO
+https://www.reddit.com/r/NixOS/comments/17ia1g8/comment/k6xcsr9/?utm_source=share&utm_medium=web3x&utm_name=web3xcss&utm_term=1&utm_content=share_button
+https://github.com/NixOS/nix/issues/8823

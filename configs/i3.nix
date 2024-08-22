@@ -10,17 +10,12 @@
     imports = [];
     options = {};
     config = {
-        services.dunst = {
+        services.mako = {
             enable = true;
-            settings = {
-                global = {
-                    #timeout = 0;
-                    origin = "top-left";
-                };
-            };
+                anchor =  "top-left";
         };
         # https://nixos.org/manual/nix/stable/language/constructs#with-expressions 
-        xsession.windowManager.i3 =  
+        wayland.windowManager.sway =  
         let mod="Mod4"; 
             #TODO make sure this is using kitty that is configed 
             term="${pkgs.kitty}/bin/kitty";
@@ -28,6 +23,11 @@
         in with pkgs.lib;  {
             enable = true;
             extraConfig = "
+
+# Disable screen blanking and power saving
+output * dpms off
+exec_always swayidle -w timeout 0
+
 # Pulse Audio controls
                 bindsym XF86AudioRaiseVolume exec --no-startup-id pactl set-sink-volume 0 +1% #increase sound volume
                 bindsym XF86AudioLowerVolume exec --no-startup-id pactl set-sink-volume 0 -1% #decrease sound volume
@@ -88,16 +88,14 @@
                     {
                         command = "--no-startup-id ${autorandr}/bin/autorandr -c main 2>/dev/null";
                         always = true;
-                        notification = false;
                     }
                     {
                         command = "${unclutter}/bin/unclutter -idle 1";
                         always = true;
-                        notification = false;
                     }
-                    {
-                        command = "--no-startup-id ${xss-lock}/bin/xss-lock --transfer-sleep-lock -- ${i3lock}/bin/i3lock --nofork";
-                    }
+                    #{
+                    #    command = "--no-startup-id ${xss-lock}/bin/xss-lock --transfer-sleep-lock -- ${swaylock}/bin/swaylock --nofork";
+                    #}
                     {
                         command = "--no-startup-id ${networkmanagerapplet}/bin/nm-applet";
                     }
@@ -154,8 +152,8 @@
                 keybindings = {
                    "${mod}+Return" = "exec ${kitty}/bin/kitty";
                    "${mod}+Shift+Return" = "exec ${kitty}/bin/kitty --class=float_term -e finder";
-                   "${mod}+Ctrl+v" = "exec ${maim}/bin/maim -s | ${xclip}/bin/xclip -selection clipboard -t image/png";
-                   "${mod}+Shift+v" = "exec ${maim}/bin/maim -s --format=png /dev/stdout | feh -";
+                   #"${mod}+Ctrl+v" = "exec ${maim}/bin/maim -s | ${xclip}/bin/xclip -selection clipboard -t image/png";
+                   #"${mod}+Shift+v" = "exec ${maim}/bin/maim -s --format=png /dev/stdout | feh -";
                    "${mod}+Ctrl+f" = "exec --no-startup-id ${find-cursor}/bin/find-cursor --color fuchsia --repeat 3";
                    "${mod}+a" = "exec --no-startup-id i3-dmenu-desktop";
                    "${mod}+Ctrl+p" = "exec --no-startup-id men_power"; #TODO check
@@ -167,7 +165,7 @@
                    "${mod}+Shift+e" = mvw+"Dev";
                     #TODO some how make these checks better
                     #TODO add ytermusic
-                   "${mod}+m" = "workspace Music; exec [ $( i3-msg -t get_tree | grep \"YouTube Music\" | wc -L) = 0 ] &&  youtube-music ";
+                   "${mod}+m" = "workspace Music; exec [ $( swaymsg -t get_tree | grep \"YouTube Music\" | wc -L) = 0 ] &&  youtube-music ";
                    "${mod}+Shift+m" = mvw+"Music";
                     #TODO add a media worksapce
                    "${mod}+w" = "workspace Web"; #; exec [ $(i3-msg -t get_tree | grep \\\".title.:.Mozilla Firefox.\\\" | wc -L) = 0 ] && firefox 
