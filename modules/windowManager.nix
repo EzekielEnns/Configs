@@ -31,6 +31,7 @@ in {
         extraPackages = with pkgs; [
 swaylock
 wdisplays
+wl-mirror
       grim # screenshot functionality
       # slurp # screenshot functionality
       wl-clipboard # wl-copy and wl-paste for copy/paste from stdin / stdout
