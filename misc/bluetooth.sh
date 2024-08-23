@@ -1,1 +1,1 @@
-bluetoothctl connect `bluetoothctl devices | dmenu | while read a b c; do echo $b; done`
+bluetoothctl connect `bluetoothctl devices | bemenu | while read a b c; do echo $b; done`

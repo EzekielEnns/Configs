@@ -1,4 +1,4 @@
-chosen="$( echo -e "\nshutdown\nlock\nreboot\nsleep" | dmenu)"
+chosen="$( echo -e "\nshutdown\nlock\nreboot\nsleep" | bemenu)"
 COMMAND="";
 case ${chosen} in
     shutdown)

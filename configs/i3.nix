@@ -23,10 +23,9 @@
         in with pkgs.lib;  {
             enable = true;
             extraConfig = "
-
 # Disable screen blanking and power saving
-output * dpms off
-exec_always swayidle -w timeout 0
+#output * dpms off
+#exec_always swayidle -w timeout 0
 
 # Pulse Audio controls
                 bindsym XF86AudioRaiseVolume exec --no-startup-id pactl set-sink-volume 0 +1% #increase sound volume
@@ -82,13 +81,12 @@ exec_always swayidle -w timeout 0
                 floating.border = 0;
                 fonts = {
                     names = ["pango:Monofur Nerd Font"];
-                    size = 0.0;
                 };
                 startup = [
-                    {
-                        command = "--no-startup-id ${autorandr}/bin/autorandr -c main 2>/dev/null";
-                        always = true;
-                    }
+                    # {
+                    #     command = "--no-startup-id ${autorandr}/bin/autorandr -c main 2>/dev/null";
+                    #     always = true;
+                    # }
                     {
                         command = "${unclutter}/bin/unclutter -idle 1";
                         always = true;
@@ -99,9 +97,9 @@ exec_always swayidle -w timeout 0
                     {
                         command = "--no-startup-id ${networkmanagerapplet}/bin/nm-applet";
                     }
-                    {
-                        command = "--no-startup-id ${feh}/bin/feh --bg-center --randomize ~/Documents/bkgs/*";
-                    }
+                    # {
+                    #     command = "--no-startup-id ${feh}/bin/feh --bg-center --randomize ~/Documents/bkgs/*";
+                    # }
                     {
                         command = "${kitty}/bin/kitty finder";
                     }
@@ -139,7 +137,7 @@ exec_always swayidle -w timeout 0
                         "${mod}+o" ="mode default";
                      };
                      move = {
-                            "$mod+Tab"="focus right";
+                            "${mod}+Tab"="focus right";
                             "h"="move left";
                             "j"="move down";
                             "k"="move up";
@@ -155,7 +153,7 @@ exec_always swayidle -w timeout 0
                    #"${mod}+Ctrl+v" = "exec ${maim}/bin/maim -s | ${xclip}/bin/xclip -selection clipboard -t image/png";
                    #"${mod}+Shift+v" = "exec ${maim}/bin/maim -s --format=png /dev/stdout | feh -";
                    "${mod}+Ctrl+f" = "exec --no-startup-id ${find-cursor}/bin/find-cursor --color fuchsia --repeat 3";
-                   "${mod}+a" = "exec --no-startup-id i3-dmenu-desktop";
+                   "${mod}+a" = "exec --no-startup-id bemenu-run";
                    "${mod}+Ctrl+p" = "exec --no-startup-id men_power"; #TODO check
                    "${mod}+Ctrl+b" = "exec --no-startup-id men_bluetooth";
 
