@@ -11,11 +11,6 @@
                     theme = "plain";
                     blocks = [
                         {
-                            block = "xrandr";
-                            icons_format = "{icon}";
-                            format = "$display";
-                        }
-                        {
                             block = "disk_space";
                             path = "/";
                             info_type = "used";

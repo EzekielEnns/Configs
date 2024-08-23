@@ -3,6 +3,38 @@
     imports = [];
     options = {};
     config = {
+
+        programs.waybar = {
+            enable = true;
+            settings = 
+{
+  mainBar = {
+    layer = "top";
+    position = "top";
+    height = 30;
+    output = [
+      "eDP-1"
+      "HDMI-A-1"
+    ];
+    modules-left = [ "sway/workspaces" "sway/mode" "wlr/taskbar" ];
+    modules-center = [ "sway/window" "custom/hello-from-waybar" ];
+    modules-right = [ "mpd" "battery" "tray" ];
+
+    "sway/workspaces" = {
+      disable-scroll = true;
+      all-outputs = true;
+    };
+    "custom/hello-from-waybar" = {
+      format = "hello {}";
+      max-length = 40;
+      interval = "once";
+      exec = pkgs.writeShellScript "hello-from-waybar" ''
+        echo "from within waybar"
+      '';
+    };
+  };
+};
+        };
         programs.i3status-rust= {
             enable = true;
             bars = {
@@ -11,21 +43,11 @@
                     theme = "plain";
                     blocks = [
                         {
-                            block = "xrandr";
-                            icons_format = "{icon}";
-                            format = "$display";
-                        }
-                        {
                             block = "disk_space";
                             path = "/";
                             info_type = "used";
                             format = " $used";
                         }
-                        # {
-                        #     block = "load";
-                        #     interval = 5;
-                        #     icons_format = "{icon} ";
-                        # }
                         {
                             block = "memory";
                             format = " $icon  $mem_used_percents ";

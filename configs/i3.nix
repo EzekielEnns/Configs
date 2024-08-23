@@ -23,6 +23,9 @@
         in with pkgs.lib;  {
             enable = true;
             extraConfig = "
+titlebar_padding 1
+titlebar_border_thickness 0
+
 # Disable screen blanking and power saving
 #output * dpms off
 #exec_always swayidle -w timeout 0
@@ -106,24 +109,25 @@
                 ];
                 modifier = mod;
                 bars = [
-                    {
-                      position = "top";
-                      statusCommand = "${i3status-rust}/bin/i3status-rs ~/.config/i3status-rust/config-top.toml";
-                      fonts = {
-                        names = ["pango:Monofur Nerd Font"];
-                        size = 10.0;
-                        #style = "regulare";
-                      };
-                      colors = {
-                        separator= "#666666";
-                        background= "#000000";
-                        statusline= "#dddddd";
-                        focusedWorkspace = {background= "#0088CC"; border= "#0088CC"; text="#ffffff";};
-                        activeWorkspace= {background= "#333333"; border= "#333333"; text="#ffffff";};
-                        inactiveWorkspace= {background= "#333333"; border= "#333333"; text="#888888";};
-                        urgentWorkspace= {background= "#2f343a"; border= "#900000"; text="#ffffff";};
-                      };
-                    }
+                    {command = "${waybar}/bin/waybar";}
+                    # {
+                    #   position = "top";
+                    #   statusCommand = "${i3status-rust}/bin/i3status-rs ~/.config/i3status-rust/config-top.toml";
+                    #   fonts = {
+                    #     names = ["pango:Monofur Nerd Font"];
+                    #     size = 10.0;
+                    #     #style = "regulare";
+                    #   };
+                    #   colors = {
+                    #     separator= "#666666";
+                    #     background= "#000000";
+                    #     statusline= "#dddddd";
+                    #     focusedWorkspace = {background= "#0088CC"; border= "#0088CC"; text="#ffffff";};
+                    #     activeWorkspace= {background= "#333333"; border= "#333333"; text="#ffffff";};
+                    #     inactiveWorkspace= {background= "#333333"; border= "#333333"; text="#888888";};
+                    #     urgentWorkspace= {background= "#2f343a"; border= "#900000"; text="#ffffff";};
+                    #   };
+                    # }
                 ];
                  modes = {
                      resize = {
@@ -150,8 +154,8 @@
                 keybindings = {
                    "${mod}+Return" = "exec ${kitty}/bin/kitty";
                    "${mod}+Shift+Return" = "exec ${kitty}/bin/kitty --class=float_term -e finder";
-                   #"${mod}+Ctrl+v" = "exec ${maim}/bin/maim -s | ${xclip}/bin/xclip -selection clipboard -t image/png";
-                   #"${mod}+Shift+v" = "exec ${maim}/bin/maim -s --format=png /dev/stdout | feh -";
+                   "${mod}+Ctrl+v" = "exec ${grim}/bin/sh -g \"$(slurp - d)\" - | wl-copy --type image/png";
+                   "${mod}+Shift+v" = " exec grim -g \"$(slurp)\" - | swayimg - ";
                    "${mod}+Ctrl+f" = "exec --no-startup-id ${find-cursor}/bin/find-cursor --color fuchsia --repeat 3";
                    "${mod}+a" = "exec --no-startup-id bemenu-run";
                    "${mod}+Ctrl+p" = "exec --no-startup-id men_power"; #TODO check
@@ -161,12 +165,11 @@
                    "${mod}+Shift+q" = "move container to workspace Editor";
                    "${mod}+e" = "workspace Dev";
                    "${mod}+Shift+e" = mvw+"Dev";
-                    #TODO some how make these checks better
-                    #TODO add ytermusic
+                    #TODO make work
                    "${mod}+m" = "workspace Music; exec [ $( swaymsg -t get_tree | grep \"YouTube Music\" | wc -L) = 0 ] &&  youtube-music ";
                    "${mod}+Shift+m" = mvw+"Music";
                     #TODO add a media worksapce
-                   "${mod}+w" = "workspace Web"; #; exec [ $(i3-msg -t get_tree | grep \\\".title.:.Mozilla Firefox.\\\" | wc -L) = 0 ] && firefox 
+                   "${mod}+w" = "workspace Web"; 
                    "${mod}+Shift+w" = mvw+"Web";
                    "${mod}+r" = "workspace Comm";
                    "${mod}+Shift+r" = mvw+"Comm";

@@ -33,8 +33,10 @@ swaylock
 wdisplays
 wl-mirror
       grim # screenshot functionality
-      # slurp # screenshot functionality
+      slurp # screenshot functionality
       wl-clipboard # wl-copy and wl-paste for copy/paste from stdin / stdout
+      waybar
+      swayimg
       # mako # notification system developed by swaywm maintainer
       bemenu
       veikk_driver
