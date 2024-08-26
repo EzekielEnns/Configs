@@ -30,6 +30,8 @@ myNeovim = pkgs.neovim.override {
                 sha256 = "sha256-5LR9A23BvpCBY9QVSF9PadRuDSBjv+knHSmdQn/3mH0=";
             };
          })
+        rustaceanvim
+        fidget-nvim
         vim-choosewin
         nvim-treesitter
         vim-prettier
@@ -104,5 +106,6 @@ in {
         #need
         git
         myNeovim
+        go
     ];
 }

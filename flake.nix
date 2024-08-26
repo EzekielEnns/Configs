@@ -28,7 +28,7 @@
                 home-manager.users.ezekiel = {
                     imports= [
                         ./configs/users.nix
-                        ./configs/i3status-rust.nix
+                        ./configs/waybar.nix
                     ];
                 };
             }
@@ -49,7 +49,7 @@
                 home-manager.users.ezekiel = {
                     imports= [
                         ./configs/users.nix
-                        ./configs/i3status-rust.nix
+                        ./configs/waybar.nix
                         ./configs/kitty-lp.nix
                     ];
                 };

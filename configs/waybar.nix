@@ -4,7 +4,6 @@
     options = {};
     config = {
         programs.waybar = {
-            #TODO move
             enable = true;
             systemd.enable = true;
             systemd.target = "sway-session.target";
@@ -20,7 +19,7 @@
                     ];
                     modules-left = [ "sway/workspaces"  ];
                     modules-center = [ "clock" "date" ];
-                    modules-right = ["pulseaudio" "disk" "cpu" "memory" "tray"];
+                    modules-right = ["pulseaudio" "disk" "cpu" "memory" "battery" "tray"];
 
                     "sway/workspaces" = {
                         disable-scroll = true;

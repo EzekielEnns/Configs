@@ -48,6 +48,13 @@
       services.blueman.enable = true;
       sound.enable = true;
       hardware.pulseaudio.enable = false;
+services.mpd.enable = true;
+services.mpd.extraConfig = ''
+  audio_output {
+    type "pulse"
+    name "My PulseAudio" # this can be whatever you want
+  }
+'';
       security.rtkit.enable = true;
       services.pipewire = {
         enable = true;

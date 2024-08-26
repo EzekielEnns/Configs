@@ -17,6 +17,7 @@ in {
   ];
   programs.dconf.enable = true;
 
+  services.pipewire.enable = true;
   environment.sessionVariables.NIXOS_OZONE_WL = "1";
   # services.displayManager = {
   #     autoLogin = {
@@ -25,7 +26,7 @@ in {
   #     };
   # };
 
-    programs.sway = {
+  programs.sway = {
   enable = true;
     wrapperFeatures.gtk = true; # so that gtk works properly
         extraPackages = with pkgs; [

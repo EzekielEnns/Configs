@@ -1,7 +1,7 @@
 {config, pkgs, ...}: 
 {
     imports = [
-        ./i3.nix
+        ./sway.nix
         ./kitty.nix
         ./starship.nix
         ./git.nix

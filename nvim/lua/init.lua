@@ -185,6 +185,7 @@ require 'lspconfig'.tailwindcss.setup {
     -- requires pnpm i -D @astrojs/language-server typescript
     cmd = { "pnpm", "tailwindcss-language-server", "--stdio" }
 }
+require'lspconfig'.gopls.setup{}
 require 'lspconfig'.ltex.setup {}
 require 'lspconfig'.hls.setup {}
 require 'lspconfig'.texlab.setup {}
