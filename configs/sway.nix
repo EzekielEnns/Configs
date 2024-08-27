@@ -14,6 +14,98 @@
             enable = true;
                 anchor =  "top-left";
         };
+wayland.windowManager.hyprland = with pkgs; {
+    enable = true;
+    extraConfig = ''
+# General Settings
+        monitor=,preferred,auto, 1
+        exec-once = ${waybar}/bin/waybar
+        decoration:blur:enabled = false
+        decoration:drop_shadow = false
+        misc:vfr = true
+        dwindle:permanent_direction_override = true
+        dwindle:preserve_split = true
+# Keybindings
+        bind=SUPER, Return, exec, ${kitty}/bin/kitty
+        bind=SUPER SHIFT, Return, exec, ${kitty}/bin/kitty --class=float_term -e finder
+        bind=SUPER CTRL, v,exec, ${grim}/bin/sh -g \"$(slurp - d)\" - | wl-copy --type image/png
+        bind=SUPER SHIFT, v, exec, grim -g \"$(slurp)\" - | swayimg - "
+        bind=SUPER CTRL, f,exec,find-cursor --color fuchsia --repeat 3
+        bind=SUPER, a,exec, bemenu-run
+        bind=SUPER, d, killactive
+        bind=SUPER CTRL, p,exec, men_power 
+        bind=SUPER CTRL ,b,exec, men_bluetooth
+        bind=SUPER, q,workspace,name:Editor
+        bind=SUPER, e,workspace,name:Dev
+        bind=SUPER, m,workspace,name:Music,exec,[ $(hyprctl clients | grep "YouTube Music" | wc -l) = 0 ] && youtube-music
+        bind=SUPER, w,workspace,name:Web
+        bind=SUPER, r,workspace,name:Comm
+        bind=SUPER SHIFT, e,movetoworkspacesilent,name:Dev
+        bind=SUPER SHIFT, q,movetoworkspacesilent,name:Editor
+        bind=SUPER SHIFT, w,movetoworkspacesilent,name:Web
+        bind=SUPER SHIFT, m,movetoworkspacesilent,name:Music
+        bind=SUPER SHIFT, r,movetoworkspacesilent,name:Comm
+
+# Resize Mode
+        # bind=SUPER+o,exec,hyprctl dispatch changelayout resize
+        # bind=Resize,h,resize,-10,0
+        # bind=Resize,j,resize,0,10
+        # bind=Resize,k,resize,0,-10
+        # bind=Resize,l,resize,10,0
+        # bind=Resize,Return,exec,hyprctl dispatch changelayout default
+        # bind=Resize,Escape,exec,hyprctl dispatch changelayout default
+
+# System Controls
+        bind= , XF86AudioRaiseVolume,exec,pactl set-sink-volume @DEFAULT_SINK@ +10%
+        bind= , XF86AudioLowerVolume,exec,pactl set-sink-volume @DEFAULT_SINK@ -10%
+        bind= , XF86AudioMute,exec,pactl set-sink-mute @DEFAULT_SINK@ toggle
+        bind= , XF86AudioMicMute,exec,pactl set-source-mute @DEFAULT_SOURCE@ toggle
+        bind= , XF86MonBrightnessUp,exec,light -A 5
+        bind= , XF86MonBrightnessDown,exec,light -U 5
+
+# Focus and Movement
+        bind=SUPER, s, layoutmsg, preselect d
+        bind=SUPER, v, layoutmsg, preselect r
+        bind=SUPER,h,movefocus, l
+        bind=SUPER,j,movefocus, d
+        bind=SUPER,k,movefocus, u
+        bind=SUPER,l,movefocus, r
+        bind=SUPER SHIFT,h,movewindow, l
+        bind=SUPER SHIFT,j,movewindow, d
+        bind=SUPER SHIFT,k,movewindow, u
+        bind=SUPER SHIFT,l,movewindow, r
+
+# Floating Windows
+         bind=SUPER SHIFT, space, togglefloating
+        # bind=SUPER+space,togglefocusmode
+
+# Fullscreen
+        bind=SUPER,f,fullscreen
+
+# Config Reload and Restart
+        # bind=SUPER+CTRL ,c,exec,hyprctl reload
+        # bind=SUPER+CTRL ,r,exec,hyprctl restart
+
+# Floating Rules
+        # rule=class=float_term,move,center,resize,640,480
+        # rule=title=feh,move,center,floating,enabled
+        # rule=windowrole=toolbox,move,center,floating,enabled
+
+# Autostart Applications
+        exec-once=nm-applet
+        exec-once=kitty -e finder
+
+# Bar Configuration
+# TODO: Hyprland doesn’t have an i3-style bar by default; you might want to use an external bar like Waybar or Polybar for similar functionality.
+
+# Workspace Names
+workspace=name:Editor
+workspace=name:Dev
+workspace=name:Comm
+workspace=name:Web
+workspace=name:Music
+    '';
+};
         # https://nixos.org/manual/nix/stable/language/constructs#with-expressions 
         wayland.windowManager.sway =  
         let mod="Mod4"; 

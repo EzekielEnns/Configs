@@ -17,19 +17,20 @@
                         #"eDP-1"
                         "*"
                     ];
-                    modules-left = [ "sway/workspaces"  ];
+                    modules-left = [ "hyprland/workspaces"  ];
                     modules-center = [ "clock" "date" ];
-                    modules-right = ["pulseaudio" "disk" "cpu" "memory" "battery" "tray"];
+                    modules-right = ["pulseaudio" "temperature" "disk" "cpu" "memory" "battery" "tray"];
 
-                    "sway/workspaces" = {
+                    "hyprland/workspaces" = {
                         disable-scroll = true;
                         all-outputs = true;
                     };
+
                     tray= {
                         spacing= 10;
                     };
                     clock= {
-                        format= "{:%H:%M :: %Y-%m-%d}";
+                        format= "{:%I:%M %p :: %Y-%m-%d}";
                     };
                     cpu= {
                         format= "{usage}  ";
