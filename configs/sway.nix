@@ -99,11 +99,13 @@ wayland.windowManager.hyprland = with pkgs; {
 # TODO: Hyprland doesn’t have an i3-style bar by default; you might want to use an external bar like Waybar or Polybar for similar functionality.
 
 # Workspace Names
-workspace=name:Editor, default:true
+workspace=name:Editor, default:HDMI-A-2
 workspace=name:Dev
 workspace=name:Comm
 workspace=name:Web
 workspace=name:Music
+
+#
     '';
 };
         # https://nixos.org/manual/nix/stable/language/constructs#with-expressions 

@@ -45,6 +45,7 @@
     #steam-run
     #desktop goodies
     xdg-desktop-portal-gtk
+    xdg-desktop-portal-wlr 
     xorg.libX11
     xorg.libX11.dev
     xorg.libxcb

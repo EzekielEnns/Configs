@@ -4,7 +4,6 @@
     options = {};
     config = {
         programs.waybar = {
-            #TODO move
             enable = true;
             systemd.enable = true;
             systemd.target = "sway-session.target";
@@ -18,19 +17,24 @@
                         #"eDP-1"
                         "*"
                     ];
-                    modules-left = [ "sway/workspaces"  ];
+                    modules-left = [ "hyprland/workspaces"  ];
                     modules-center = [ "clock" "date" ];
-                    modules-right = ["pulseaudio" "disk" "cpu" "memory" "tray"];
+                    modules-right = ["pulseaudio" "temperature" "disk" "cpu" "memory" "battery" "tray"];
 
-                    "sway/workspaces" = {
+                    "hyprland/workspaces" = {
                         disable-scroll = true;
                         all-outputs = true;
+                    };
+
+                    temperature= {
+                        format = "{temperatureC}°C  ";
+                        hwmon-path = "/sys/class/hwmon/hwmon4/temp1_input ";
                     };
                     tray= {
                         spacing= 10;
                     };
                     clock= {
-                        format= "{:%H:%M :: %Y-%m-%d}";
+                        format= "{:%I:%M %p :: %Y-%m-%d}";
                     };
                     cpu= {
                         format= "{usage}  ";
@@ -74,7 +78,7 @@
                     border: none;
                     border-radius: 0;
                     font-family: "Ubuntu Nerd Font";
-                    font-size: 13px;
+                    font-size: 20px;
                     min-height: 0;
                     background: transparent;
                     color: white;

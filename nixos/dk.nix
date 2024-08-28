@@ -34,33 +34,33 @@
     package = config.boot.kernelPackages.nvidiaPackages.stable;
   };
 
-  services.nginx = {
-    enable = true;
-    recommendedGzipSettings = true;
-    recommendedOptimisation = true;
-    recommendedProxySettings = true;
-    recommendedTlsSettings = true;
-    virtualHosts."192.168.0.105:5001" = {
-      locations = {
-         "/" = {
-           proxyPass = "https://localhost:5001";
-           #websocket support should work even if not websocket
-           proxyWebsockets = true;
-        };
-      };
-    };
-    virtualHosts."192.168.0.105" = {
-      locations = {
-         "/" = {
-           proxyPass = "https://localhost:3000";
-        };
-         "/hubs" = {
-           proxyPass = "https://localhost:5001/hubs";
-           proxyWebsockets = true;
-        };
-      };
-    };
-  };
+  # services.nginx = {
+  #   enable = true;
+  #   recommendedGzipSettings = true;
+  #   recommendedOptimisation = true;
+  #   recommendedProxySettings = true;
+  #   recommendedTlsSettings = true;
+  #   virtualHosts."192.168.0.105:5001" = {
+  #     locations = {
+  #        "/" = {
+  #          proxyPass = "https://localhost:5001";
+  #          #websocket support should work even if not websocket
+  #          proxyWebsockets = true;
+  #       };
+  #     };
+  #   };
+  #   virtualHosts."192.168.0.105" = {
+  #     locations = {
+  #        "/" = {
+  #          proxyPass = "https://localhost:3000";
+  #       };
+  #        "/hubs" = {
+  #          proxyPass = "https://localhost:5001/hubs";
+  #          proxyWebsockets = true;
+  #       };
+  #     };
+  #   };
+  # };
 
 }
 
