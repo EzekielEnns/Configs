@@ -26,6 +26,10 @@
                         all-outputs = true;
                     };
 
+                    temperature= {
+                        format = "{temperatureC}°C  ";
+                        hwmon-path = "/sys/class/hwmon/hwmon4/temp1_input ";
+                    };
                     tray= {
                         spacing= 10;
                     };

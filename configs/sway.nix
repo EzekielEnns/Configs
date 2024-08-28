@@ -48,10 +48,10 @@ wayland.windowManager.hyprland = with pkgs; {
 
 # Resize Mode
         # bind=SUPER+o,exec,hyprctl dispatch changelayout resize
-        # bind=Resize,h,resize,-10,0
-        # bind=Resize,j,resize,0,10
-        # bind=Resize,k,resize,0,-10
-        # bind=Resize,l,resize,10,0
+        # bind=Resize,h,resizeactive,-10,0
+        # bind=Resize,j,resizeactive,0,10
+        # bind=Resize,k,resizeactive,0,-10
+        # bind=Resize,l,resizeactive,10,0
         # bind=Resize,Return,exec,hyprctl dispatch changelayout default
         # bind=Resize,Escape,exec,hyprctl dispatch changelayout default
 
@@ -99,7 +99,7 @@ wayland.windowManager.hyprland = with pkgs; {
 # TODO: Hyprland doesn’t have an i3-style bar by default; you might want to use an external bar like Waybar or Polybar for similar functionality.
 
 # Workspace Names
-workspace=name:Editor
+workspace=name:Editor, default:true
 workspace=name:Dev
 workspace=name:Comm
 workspace=name:Web
