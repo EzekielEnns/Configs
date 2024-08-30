@@ -30,6 +30,8 @@ myNeovim = pkgs.neovim.override {
                 sha256 = "sha256-5LR9A23BvpCBY9QVSF9PadRuDSBjv+knHSmdQn/3mH0=";
             };
          })
+        rustaceanvim
+        fidget-nvim
         vim-choosewin
         nvim-treesitter
         vim-prettier
@@ -73,7 +75,7 @@ in {
         vscode-langservers-extracted
         quick-lint-js
         nil
-
+        rustc
         nodejs_latest
         nodePackages_latest.typescript-language-server
         nodePackages_latest.eslint
@@ -90,7 +92,6 @@ in {
         nodePackages_latest.pnpm
         nodePackages.svelte-language-server
 
-
         ltex-ls
         texlab
         marksman
@@ -104,5 +105,6 @@ in {
         #need
         git
         myNeovim
+        go
     ];
 }
