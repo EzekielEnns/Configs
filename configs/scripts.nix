@@ -33,7 +33,7 @@
                 set -x
                 wp=$(find ~/Documents/repos/* -maxdepth 0 -type d -printf "%f\n" | fzf --prompt="Select a repo: ") || exit
                 (cd ~/Documents/repos/"$wp" ; NIXPKGS_ALLOW_UNFREE=1 \
-                    nix develop --command bash -c "tmux new -As $wp nvim" || tmux new -As $wp nvim )
+                    nix develop --command bash -c "tmux new -As $wp nvim" || tmux new -As "$wp" nvim )
 
         '';
       })

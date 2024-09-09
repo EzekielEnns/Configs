@@ -11,3 +11,4 @@ eval "$(starship init bash)"
 export EDITOR=nvim
 export VISUAL=nvim
 export NIXPKGS_ALLOW_UNFREE=1
+eval "$(direnv hook bash)"
