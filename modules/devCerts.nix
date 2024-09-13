@@ -8,6 +8,7 @@
 #https://stackoverflow.com/questions/44159793/trusted-root-certificates-in-dotnet-core-on-linux-rhel-7-1
 #use full commands for debugging `sudo openssl x509 -noout -text -in *.pem`
 
+#try name of cert
 #please note these are generated from the command `dotnet dev-certs https -ep *.crt --format Pem`
       security.pki.certificates= [
       ''
