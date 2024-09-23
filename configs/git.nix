@@ -3,6 +3,8 @@
     options = {};
     config = {
         programs.git = {
+        userName  = "Zeke";
+        userEmail = "ezekiel.enns@protonmail.com";
         enable = true;
         aliases = {
             capri-sun ="!f() { if [ \"\$1\" = \"-a\" ]; then git commit -am \"\$(git rev-parse --abbrev-ref HEAD) \$2\"; else git commit -m \"\$(git rev-parse --abbrev-ref HEAD) \$1\"; fi; }; f";
