@@ -37,6 +37,10 @@ myNeovim = pkgs.neovim.override {
         vim-prettier
         nvim-treesitter.withAllGrammars
         nvim-treesitter-textobjects
+        nvim-treesitter-textobjects
+        nvim-treesitter-parsers.go
+        nvim-treesitter-parsers.gomod
+        nvim-treesitter-parsers.gosum
         nvim-lspconfig 
         trouble-nvim
         telescope-nvim
@@ -47,6 +51,7 @@ myNeovim = pkgs.neovim.override {
         cmp-cmdline 
         cmp-path
         vim-tmux-navigator
+        go-nvim
         luasnip
         cmp_luasnip
         lsp_signature-nvim

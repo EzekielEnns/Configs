@@ -59,3 +59,7 @@ https://github.com/mhinz/vim-galore#registers
 
 <C-l> dose noh
 TODO set hls
+
+
+for building/getting comp errors into quick list do
+    `:compiler tsc`:w q
