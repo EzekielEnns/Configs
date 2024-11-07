@@ -15,3 +15,28 @@ if you have a file that you need to change i.e. a vite config or something and
     its only for your machine use `git update-index --assume-unchanged path/to/your/file`
     these are git flags that change how git treats a file read more [here](https://git-scm.com/docs/git-update-index)
 
+
+for forks
+https://stackoverflow.com/questions/7244321/how-do-i-update-or-sync-a-forked-repository-on-github
+
+```
+# Add the remote, call it "upstream":
+
+git remote add upstream https://github.com/whoever/whatever.git
+
+# Fetch all the branches of that remote into remote-tracking branches
+
+git fetch upstream
+
+# Make sure that you're on your main branch:
+
+git checkout main
+
+# Rewrite your main branch so that any commits of yours that
+# aren't already in upstream/main are replayed on top of that
+# other branch:
+
+git rebase upstream/main
+```
+fork reference
+https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/getting-started/best-practices-for-pull-requests

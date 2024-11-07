@@ -36,7 +36,8 @@ in {
       veikk_driver
       xournalpp
       gromit-mpx
-      qbittorrent
+#TODO find a new torrent 
+      #qbittorrent
       mpv
       font-awesome_5
       #apps
