@@ -46,7 +46,7 @@ vim.cmd([[
 
         set t_Co=256
         set background=dark
-        colorscheme PaperColor
+        colorscheme gruvbox
 
         let g:winresizer_enable = 1
     "make WinSeparator invisible
@@ -193,6 +193,14 @@ require 'lspconfig'.nil_ls.setup {}
 require 'lspconfig'.marksman.setup {}
 require("typescript-tools").setup {
   settings = {
+    tsserver_file_preferences = {
+      includeInlayParameterNameHints = "all",
+      includeCompletionsForModuleExports = true,
+      quotePreference = "auto",
+      importModuleSpecifierPreference= "non-relative",
+      updateImportsOnFileMove= "always",
+      importModuleSpecifierEnding="minimal"
+    },
     separate_diagnostic_server = true,
     publish_diagnostic_on = "change",
     expose_as_code_action = {},
@@ -210,7 +218,14 @@ require("typescript-tools").setup {
 }
 require 'lspconfig'.kotlin_language_server.setup {}
 require 'lspconfig'.eslint.setup {}
-require 'lspconfig'.gopls.setup {}
+require 'lspconfig'.gopls.setup {
+    settings = {
+        gopls = {
+            completeUnimported = true,
+            usePlaceholders = true
+        }
+    }
+}
 require 'lspconfig'.pylsp.setup {}
 require 'lspconfig'.ruff_lsp.setup {}
 require 'lspconfig'.terraformls.setup {}

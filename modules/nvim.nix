@@ -59,6 +59,7 @@ myNeovim = pkgs.neovim.override {
         formatter-nvim 
         nvim-web-devicons 
         papercolor-theme
+        gruvbox
         vim-gitgutter
         which-key-nvim
         nvim-autopairs
