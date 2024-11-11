@@ -76,37 +76,35 @@ require("formatters")
 require("myTelescope")
 require("myWhichkey")
 require("nvim-web-devicons").setup({})
-require 'nvim-treesitter.configs'.setup {
-    highlight = {
-        enable = false,
-    },
-}
-require('gitblame').setup {
-     --Note how the `gitblame_` prefix is omitted in `setup`
-    enabled = true,
-}
+require("nvim-treesitter.configs").setup({
+	highlight = {
+		enable = false,
+	},
+})
+require("gitblame").setup({
+	--Note how the `gitblame_` prefix is omitted in `setup`
+	enabled = true,
+})
 --resiser rules
-vim.keymap.set('n', '<c-w>r', '<cmd>WinResizerStartResize<cr>', {});
-vim.keymap.set('n', '<c-w>f', '<cmd>WinResizerStartFocus<cr>', {});
-vim.keymap.set('n', '<c-w>m', '<cmd>WinResizerStartMove<cr>', {});
-vim.keymap.set('n', '<c-w>c', '<Plug>(choosewin)', {});
+vim.keymap.set("n", "<c-w>r", "<cmd>WinResizerStartResize<cr>", {})
+vim.keymap.set("n", "<c-w>f", "<cmd>WinResizerStartFocus<cr>", {})
+vim.keymap.set("n", "<c-w>m", "<cmd>WinResizerStartMove<cr>", {})
+vim.keymap.set("n", "<c-w>c", "<Plug>(choosewin)", {})
 
-
-
-require('Comment').setup()
+require("Comment").setup()
 
 --used to have highlighting spell check
 vim.api.nvim_create_autocmd("VimEnter", {
 	callback = function()
-        vim.cmd('TSEnable highlight')
+		vim.cmd("TSEnable highlight")
 	end,
 })
 
-vim.api.nvim_set_keymap('n', '<c-h>', '<cmd>TmuxNavigateLeft<cr>', { noremap = true, silent = true })
-vim.api.nvim_set_keymap('n', '<c-j>', '<cmd>TmuxNavigateDown<cr>', { noremap = true, silent = true })
-vim.api.nvim_set_keymap('n', '<c-k>', '<cmd>TmuxNavigateUp<cr>', { noremap = true, silent = true })
-vim.api.nvim_set_keymap('n', '<c-;>', '<cmd>TmuxNavigateRight<cr>', { noremap = true, silent = true })
-vim.api.nvim_set_keymap('n', '<c-\\>', '<cmd>TmuxNavigatePrevious<cr>', { noremap = true, silent = true })
+vim.api.nvim_set_keymap("n", "<c-h>", "<cmd>TmuxNavigateLeft<cr>", { noremap = true, silent = true })
+vim.api.nvim_set_keymap("n", "<c-j>", "<cmd>TmuxNavigateDown<cr>", { noremap = true, silent = true })
+vim.api.nvim_set_keymap("n", "<c-k>", "<cmd>TmuxNavigateUp<cr>", { noremap = true, silent = true })
+vim.api.nvim_set_keymap("n", "<c-;>", "<cmd>TmuxNavigateRight<cr>", { noremap = true, silent = true })
+vim.api.nvim_set_keymap("n", "<c-\\>", "<cmd>TmuxNavigatePrevious<cr>", { noremap = true, silent = true })
 
-require("fidget").setup { }
-require('go').setup()
+require("fidget").setup({})
+require("go").setup()

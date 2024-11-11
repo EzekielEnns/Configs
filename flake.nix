@@ -1,7 +1,6 @@
 {
-#TODO add ytermusic to flake
-#https://discourse.nixos.org/t/how-to-add-a-flake-package-to-system-configuration/14460/2
-#https://nix-community.github.io/home-manager/index.xhtml#sec-flakes-nixos-module
+#example setup https://github.com/dustinlyons/nixos-config?tab=readme-ov-file#nix-config-for-macos--nixos
+#tutorial https://nixcademy.com/posts/nix-on-macos/
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-24.05";
     nixpkgs-unstable.url = "github:nixos/nixpkgs/nixos-unstable";
@@ -9,9 +8,35 @@
         url = "github:nix-community/home-manager/release-24.05";
         inputs.nixpkgs.follows = "nixpkgs";
     };
+    # nix-darwin = {
+    #   url = "github:lnl7/nix-darwin";
+    #   inputs.nixpkgs.follows = "nixpkgs";
+    # };
   };
-  outputs = { nixpkgs, home-manager,nixpkgs-unstable, ... }@inputs: 
+  outputs = { nixpkgs, home-manager,nixpkgs-unstable,nix-darwin, ... }@inputs: 
     {
+#     darwinConfigurations = {
+#       macbook = nix-darwin.lib.darwinSystem {
+#         system = "x86_64-darwin";
+#         modules = [
+# #TODO          ./darwin/macbook.nix
+#           ./modules/general.nix
+#https://github.com/rounakdatta/dotfiles/blob/c9d6cb081daf5cc89ebea0c6f7817f21b061aff4/flake.nix#L66
+#           home-manager.nixosModules.home-manager
+#           {
+#             home-manager.useGlobalPkgs = true;
+#             home-manager.useUserPackages = true;
+#             home-manager.users.ezekiel = {
+#               imports = [
+#                 ./configs/users.nix
+# #TODO                ./configs/kitty-mac.nix
+#               ];
+#             };
+#           }
+#         ];
+#         specialArgs = { inherit inputs; };
+#       };
+#     };
     nixosConfigurations = {
       bk = nixpkgs.lib.nixosSystem {
         specialArgs.inputs = inputs;
