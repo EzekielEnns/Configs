@@ -13,15 +13,6 @@ myNeovim = pkgs.neovim.override {
     packages.myPlugins = with pkgs.vimPlugins; {
       start = [ 
         (pkgs.vimUtils.buildVimPlugin {
-            name = "Spelunker.vim";
-            src = pkgs.fetchFromGitHub {
-                repo = "spelunker.vim";
-                owner = "kamykn";
-                rev = "master";
-                sha256 = "sha256-/1MN2KU5+rJhjt7FALvvwmTKRk3n29tU/XQdt1Q5OTE=";
-            };
-         })
-        (pkgs.vimUtils.buildVimPlugin {
             name = "winresizer";
             src = pkgs.fetchFromGitHub {
                 repo = "winresizer";
@@ -30,42 +21,40 @@ myNeovim = pkgs.neovim.override {
                 sha256 = "sha256-5LR9A23BvpCBY9QVSF9PadRuDSBjv+knHSmdQn/3mH0=";
             };
          })
-        rustaceanvim
         fidget-nvim
         vim-choosewin
+#tree sitter
         nvim-treesitter
-        vim-prettier
         nvim-treesitter.withAllGrammars
         nvim-treesitter-textobjects
         nvim-treesitter-textobjects
         nvim-treesitter-parsers.go
         nvim-treesitter-parsers.gomod
         nvim-treesitter-parsers.gosum
+#lsp
         nvim-lspconfig 
         trouble-nvim
-        telescope-nvim
+#completion
         nvim-cmp
         cmp-spell
         cmp-nvim-lsp
         cmp-buffer
         cmp-cmdline 
         cmp-path
+# cmp_luasnip
+        telescope-nvim
         vim-tmux-navigator
         go-nvim
-        luasnip
-        cmp_luasnip
+# luasnip
         lsp_signature-nvim
-        omnisharp-extended-lsp-nvim
-        formatter-nvim 
+        neoformat
+        nvim-autopairs
+
         nvim-web-devicons 
-        papercolor-theme
         gruvbox
         vim-gitgutter
         which-key-nvim
-        nvim-autopairs
         git-blame-nvim
-        plenary-nvim
-        typescript-tools-nvim
 
         comment-nvim
         myConfig 
@@ -81,32 +70,33 @@ in {
         vscode-langservers-extracted
         quick-lint-js
         nil
-        rustc
         nodejs_latest
-        nodePackages_latest.typescript-language-server
         nodePackages_latest.eslint
         nodePackages_latest.typescript-language-server
         typescript
 
-        cabal-install
-        ghc
-        haskell-language-server
+        #haskell
+        # cabal-install
+        # ghc
+        # haskell-language-server
+        #ltex-ls
+        #texlab
+        #marksman
+        #tailwindcss-language-server
 
         cargo
         rust-analyzer
+        rustc
         lua-language-server
-        nodePackages_latest.pnpm
+        pnpm
         nodePackages.svelte-language-server
 
-        ltex-ls
-        texlab
-        marksman
-        tailwindcss-language-server
         gopls
         terraform-ls
         libclang
         nodePackages.prettier
-        vscode-langservers-extracted
+        stylua
+        nixpkgs-fmt
         
         #need
         git
