@@ -8,7 +8,7 @@ cmp.setup({
 		{ name = "nvim_lsp", keyword_length = 1 },
 		{ name = "buffer", keyword_length = 3 },
 		--{ name = 'vsnip',    keyword_length = 2 },
-		--{ name = 'luasnip' },
+		{ name = 'luasnip' },
 		{
 			name = "spell",
 			option = {
@@ -41,17 +41,18 @@ cmp.setup({
 		["<CR>"] = cmp.mapping.confirm({ select = false }),
 		["<C-l>"] = cmp.mapping.complete(),
 	}),
-	-- snippet = {
-	--     expand = function(args)
-	--     end
-	-- },
+	snippet = {
+	    expand = function(args)
+            require 'luasnip'.lsp_expand(args.body)
+	    end
+	},
 	window = {
 		completion = cmp.config.window.bordered(),
 		documentation = cmp.config.window.bordered(),
 	},
 })
 
-local handlers = require("nvim-autopairs.completion.handlers")
+-- local handlers = require("nvim-autopairs.completion.handlers")
 
 -- cmp.event:on(
 -- 	"confirm_done",

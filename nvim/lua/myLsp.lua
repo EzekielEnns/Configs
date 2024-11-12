@@ -1,6 +1,18 @@
 vim.diagnostic.config({ virtual_text = true })
 vim.lsp.set_log_level("off")
+require("trouble").setup({})
+local lspconfig = require("lspconfig")
 --lsp
+local lsp_defaults = lspconfig.util.default_config
+local cap = vim.tbl_deep_extend('force', lsp_defaults.capabilities,require('cmp_nvim_lsp').default_capabilities())
+lsp_defaults.capabilities = cap
+vim.api.nvim_create_autocmd("LspAttach", {
+	desc = "LSP actions",
+	callback = function(event)
+		local opts = { buffer = event.buf }
+		vim.keymap.set("n", "gd", "<cmd>lua vim.lsp.buf.definition()<cr>", opts)
+	end,
+})
 vim.api.nvim_create_autocmd("LspAttach", {
 	callback = function(args)
 		local bufnr = args.buf
@@ -20,8 +32,6 @@ vim.api.nvim_create_autocmd("LspAttach", {
 		}, bufnr)
 	end,
 })
-require("trouble").setup({})
-local lspconfig = require("lspconfig")
 
 -- require("typescript-tools").setup {
 --   settings = {
@@ -48,7 +58,19 @@ local lspconfig = require("lspconfig")
 --     }
 --   },
 -- }
+local handlers = {
+	["textDocument/hover"] = vim.lsp.with(vim.lsp.handlers.hover, { border = "rounded", silent = true }),
+	["textDocument/signatureHelp"] = vim.lsp.with(
+		vim.lsp.handlers.signature_help,
+		{ border = "rounded", silent = true }
+	),
+	["textDocument/publishDiagnostics"] = vim.lsp.with(
+		vim.lsp.diagnostic.on_publish_diagnostics,
+		{ virtual_text = true }
+	),
+}
 lspconfig.tsserver.setup({
+    handlers= handlers,
 	settings = {
 		typescript = {
 			inlayHints = {
@@ -119,15 +141,7 @@ vim.api.nvim_create_autocmd({ "BufWritePre" }, {
 		vim.lsp.buf.format()
 	end,
 })
-require("lspconfig").rust_analyzer.setup({
-	-- settings = {
-	--   ['rust-analyzer'] = {
-	--     diagnostics = {
-	--       enable = false;
-	--     }
-	--   }
-	-- }
-})
+-- require("lspconfig").rust_analyzer.setup()
 -- vim.g.rustaceanvim = {
 --   -- Plugin configuration
 --   tools = { },
@@ -152,13 +166,3 @@ require("lspconfig").rust_analyzer.setup({
 -- require("scissors").setup ({
 --     snippetDir = "~/.config/snippets",
 -- })
-local lsp_defaults = lspconfig.util.default_config
-local cap = vim.tbl_deep_extend("force", lsp_defaults.capabilities, require("cmp_nvim_lsp").default_capabilities())
-lsp_defaults.capabilities = cap
-vim.api.nvim_create_autocmd("LspAttach", {
-	desc = "LSP actions",
-	callback = function(event)
-		local opts = { buffer = event.buf }
-		vim.keymap.set("n", "gd", "<cmd>lua vim.lsp.buf.definition()<cr>", opts)
-	end,
-})

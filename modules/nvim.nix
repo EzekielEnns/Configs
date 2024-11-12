@@ -41,11 +41,12 @@ myNeovim = pkgs.neovim.override {
         cmp-buffer
         cmp-cmdline 
         cmp-path
-# cmp_luasnip
+cmp_luasnip
+cmp-nvim-lsp
         telescope-nvim
         vim-tmux-navigator
         go-nvim
-# luasnip
+luasnip
         lsp_signature-nvim
         neoformat
         nvim-autopairs
