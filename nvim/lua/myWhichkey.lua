@@ -13,6 +13,7 @@ local leader_binds = {
 	["es"] = { "<cmd>:Sex!<cr>", "Explorer" },
 	["ee"] = { "<cmd>:Exp!<cr>", "Explorer" },
 	["el"] = { "<cmd>:Lexplore!<cr>", "Explorer" },
+    ["gb"] = {"<cmd>:GitBlameToggle<CR>"},
 
 	["h"] = { "<cmd>lua vim.lsp.buf.signature_help()<cr>", "lsp sig help" },
 	["lh"] = { "<cmd>lua vim.lsp.buf.hover()<cr>", "hover" },

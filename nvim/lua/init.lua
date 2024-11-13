@@ -69,7 +69,7 @@ vim.cmd([[
 
         set statusline+=\ %t%y\~(%{b:git_branch})
 ]])
-
+vim.g.netrw_bufsettings = 'noma nomod nu rnu nobl nowrap ro'
 require("myCmp")
 require("myLsp")
 require("formatters")
