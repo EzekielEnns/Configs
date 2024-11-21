@@ -5,9 +5,11 @@
     config = {
         system.stateVersion = 5;
         environment.systemPackages = with pkgs; [
-            fzf
-            neofetch 
-            mpv
+            kitty
+                fzf
+                neofetch 
+                mpv
+                ripgrep
         ];
         environment.variables = {
             EDITOR = "nvim";
@@ -20,8 +22,8 @@
             enableFzfCompletion = true;
             enableFzfHistory = true;
             enableFzfGit = true;
-            enableFastSyntaxHighlighting= true;
-            interactiveShellInit = ''
+            #enableFastSyntaxHighlighting= true;
+            promptInit = ''
                 eval "$(starship init zsh)"
                 eval "$(direnv hook zsh)"
                 '';

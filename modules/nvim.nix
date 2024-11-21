@@ -19,7 +19,7 @@ myNeovim = pkgs.neovim.override {
                 repo = "typescript-tools.nvim";
                 owner = "pmizio";
                 rev = "master";
-                sha256 = "sha256-yADFe2V5h3a7HNNQl0GNwKA84XXA49X6NGfxI3Dg000=";
+                sha256 = "sha256-JP86GWCaPl/Gl6FDa4Pnd0blq0S8JD1EraJLwxL37vg=";
             };
          })
         (pkgs.vimUtils.buildVimPlugin {
