@@ -22,8 +22,8 @@
             enableFzfCompletion = true;
             enableFzfHistory = true;
             enableFzfGit = true;
-            #enableFastSyntaxHighlighting= true;
             promptInit = ''
+                bindkey -v
                 eval "$(starship init zsh)"
                 eval "$(direnv hook zsh)"
                 '';

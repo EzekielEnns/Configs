@@ -12,16 +12,20 @@
       url = "github:lnl7/nix-darwin";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+    mac-app-util.url = "github:hraban/mac-app-util";
   };
-  outputs = { nixpkgs, home-manager,nixpkgs-unstable,nix-darwin, ... }@inputs: 
+  outputs = { nixpkgs, home-manager,nixpkgs-unstable,nix-darwin, mac-app-util,... }@inputs: 
     {
     darwinConfigurations = {
       macbook = nix-darwin.lib.darwinSystem {
         system = "aarch64-darwin";
-        modules = [ ./darwin/config.nix
+        modules = [mac-app-util.darwinModules.default ./darwin/config.nix 
             home-manager.darwinModules.home-manager {
+                home-manager.sharedModules = [
+                 mac-app-util.homeManagerModules.default
+                ];
                 home-manager.useGlobalPkgs = true;
-                #home-manager.useUserPackages = true;
+                home-manager.useUserPackages = true;
                 home-manager.users.ezekielenns = {
                     imports= [ ./darwin/home.nix ];
                 };
