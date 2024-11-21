@@ -12,6 +12,25 @@ myNeovim = pkgs.neovim.override {
     '';
     packages.myPlugins = with pkgs.vimPlugins; {
       start = [ 
+        plenary-nvim
+        (pkgs.vimUtils.buildVimPlugin {
+            name = "typescript-tools.nvim";
+            src = pkgs.fetchFromGitHub {
+                repo = "typescript-tools.nvim";
+                owner = "pmizio";
+                rev = "master";
+                sha256 = "sha256-yADFe2V5h3a7HNNQl0GNwKA84XXA49X6NGfxI3Dg000=";
+            };
+         })
+        (pkgs.vimUtils.buildVimPlugin {
+            name = "mdx.nvim";
+            src = pkgs.fetchFromGitHub {
+                repo = "mdx.nvim";
+                owner = "davidmh";
+                rev = "main";
+                sha256 = "sha256-z835i8QkQFe185sgSLtUaaTsMs2Px9x6KTObTRAOFz0=";
+            };
+         })
         (pkgs.vimUtils.buildVimPlugin {
             name = "winresizer";
             src = pkgs.fetchFromGitHub {
@@ -56,7 +75,6 @@ luasnip
         vim-gitgutter
         which-key-nvim
         git-blame-nvim
-
         comment-nvim
         myConfig 
       ];

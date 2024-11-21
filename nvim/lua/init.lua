@@ -108,3 +108,4 @@ vim.api.nvim_set_keymap("n", "<c-\\>", "<cmd>TmuxNavigatePrevious<cr>", { norema
 
 require("fidget").setup({})
 require("go").setup()
+require("mdx").setup()

@@ -3,17 +3,7 @@
     imports = [ ];
     options = {};
     config = let 
-      men_bluetooth = pkgs.writeShellApplication {
-        name = "men_bluetooth";
-        runtimeInputs = [ pkgs.dmenu pkgs.bluez ];
-        text = ../misc/bluetooth.sh;
-      };
-      men_power = pkgs.writeTextFile {
-        name = "men_power";
-        destination = "/bin/men_power";
-        executable = true;
-        text = ../misc/powermenu.sh;
-      };
+    #todo make zsh
       repo_helper = pkgs.writeTextFile {
         name = "repo_helper";
         destination = "/bin/repo_helper";
@@ -22,8 +12,6 @@
       };
     in{
      environment.systemPackages = [
-        men_power
-        men_bluetooth
         repo_helper
         (pkgs.writeShellApplication {
         name = "finder";

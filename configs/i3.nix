@@ -154,29 +154,27 @@
                 keybindings = {
                    "${mod}+Return" = "exec ${kitty}/bin/kitty";
                    "${mod}+Shift+Return" = "exec ${kitty}/bin/kitty --class=float_term -e finder";
+#do a screen shot and copy to clip board
                    "${mod}+Ctrl+v" = "exec ${maim}/bin/maim -s | ${xclip}/bin/xclip -selection clipboard -t image/png";
+#do a screen shot and display it on screen
                    "${mod}+Shift+v" = "exec ${maim}/bin/maim -s --format=png /dev/stdout | feh -";
-                   "${mod}+Ctrl+f" = "exec --no-startup-id ${find-cursor}/bin/find-cursor --color fuchsia --repeat 3";
+#launch app search
                    "${mod}+a" = "exec --no-startup-id i3-dmenu-desktop";
-                   "${mod}+Ctrl+p" = "exec --no-startup-id men_power"; #TODO check
+                   "${mod}+Ctrl+p" = "exec --no-startup-id men_power";
                    "${mod}+Ctrl+b" = "exec --no-startup-id men_bluetooth";
 
                    "${mod}+q" = "workspace Editor";
                    "${mod}+Shift+q" = "move container to workspace Editor";
                    "${mod}+e" = "workspace Dev";
                    "${mod}+Shift+e" = mvw+"Dev";
-                    #TODO some how make these checks better
-                    #TODO add ytermusic
                    "${mod}+m" = "workspace Music; exec [ $( i3-msg -t get_tree | grep \"YouTube Music\" | wc -L) = 0 ] &&  youtube-music ";
                    "${mod}+Shift+m" = mvw+"Music";
-                    #TODO add a media worksapce
-                   "${mod}+w" = "workspace Web"; #; exec [ $(i3-msg -t get_tree | grep \\\".title.:.Mozilla Firefox.\\\" | wc -L) = 0 ] && firefox 
+                   "${mod}+w" = "workspace Web"; 
                    "${mod}+Shift+w" = mvw+"Web";
                    "${mod}+r" = "workspace Comm";
                    "${mod}+Shift+r" = mvw+"Comm";
                    "${mod}+u" = "workspace Utils";
                    "${mod}+Shift+u" = mvw+"Utils";
-                   "${mod}+o" = "mode resize";
                    "${mod}+d" = "kill";
                    "${mod}+h" = "focus left";
                    "${mod}+j" = "focus down";
@@ -192,10 +190,13 @@
                    "${mod}+f" = "fullscreen toggle";
                    "${mod}+Shift+space" = "floating toggle";
 
-                   "${mod}+Ctrl+c" = "reload";
-                   "${mod}+Ctrl+r" = "restart";
                    "${mod}+v" = "split horizontal";
                    "${mod}+s" = "split vertical";
+
+                   "${mod}+o" = "mode resize";
+                   "${mod}+Ctrl+c" = "reload";
+                   "${mod}+Ctrl+r" = "restart";
+                   "${mod}+Ctrl+f" = "exec --no-startup-id ${find-cursor}/bin/find-cursor --color fuchsia --repeat 3";
                 };
             };
         };

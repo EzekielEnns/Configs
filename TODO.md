@@ -1,11 +1,11 @@
-- migrate over to lspconfig ts_ls
-https://chatgpt.com/share/e/672e31d2-d8ec-8001-ba92-af1341856985
+- get some kind of ts tools into here that 
+dont just break
 
-- set branch name 
- git config --global init.defaultBranch main
+- add which key for tab movment
+    - tabnew %
+
+- add a basename command `read! basename % .%:e`
 
 
-- set on page leave to do formatting
-    * gopls
-    * prettier
-
+- wanna setup a way to do a telescope with
+git so like open diff files
