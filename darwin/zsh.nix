@@ -22,7 +22,7 @@
             enableFzfGit = true;
             enableFastSyntaxHighlighting= true;
             enableSyntaxHighlighting=true;
-            initExtra = ''
+            interactiveShellInit = ''
                 eval "$(starship init zsh)"
                 eval "$(direnv hook zsh)"
                 '';
