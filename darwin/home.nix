@@ -8,7 +8,7 @@
     ];
     options = {};
     config = {
-        home.username ="ezekiel";
+        home.username ="ezekielenns";
         home.homeDirectory = "/Users/ezekielenns";
         programs.home-manager.enable =true;
         home.stateVersion = "23.11";
