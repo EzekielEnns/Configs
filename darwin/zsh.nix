@@ -3,7 +3,7 @@
 {
     options = {};
     config = {
-
+        system.stateVersion = 5;
         environment.systemPackages = with pkgs; [
             fzf
             neofetch 
@@ -21,7 +21,6 @@
             enableFzfHistory = true;
             enableFzfGit = true;
             enableFastSyntaxHighlighting= true;
-            enableSyntaxHighlighting=true;
             interactiveShellInit = ''
                 eval "$(starship init zsh)"
                 eval "$(direnv hook zsh)"
