@@ -5,7 +5,6 @@
     config = {
         system.stateVersion = 5;
         environment.systemPackages = with pkgs; [
-            kitty
                 fzf
                 neofetch 
                 mpv

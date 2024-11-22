@@ -29,7 +29,7 @@
                 font = {
 
                     normal = {
-                        family = "JetBrainsMono Nerd Font";
+                        family ="pango:Monofur Nerd Font"; #"JetBrainsMono Nerd Font";
                         style = "Medium";
                     };
                     size = 15.0;

@@ -13,8 +13,10 @@
     nix.settings.experimental-features = "nix-command flakes";
     environment.systemPackages = with pkgs; [
         mkalias
-        fontconfig
-        findutils
+            fontconfig
+            findutils
+            slack
+            zoom-us
     ];
     users.users.ezekielenns = {
         name = "ezekielenns";
@@ -27,15 +29,30 @@
         dock.autohide  = true;
         dock.persistent-apps = [
             "${pkgs.alacritty}/Applications/Alacritty.app"
+# "${pkgs.slack}/Applications/"
 # "/Applications/Firefox.app"
 # "${pkgs.obsidian}/Applications/Obsidian.app"
 # "/System/Applications/Mail.app"
 # "/System/Applications/Calendar.app"
         ];
         finder.FXPreferredViewStyle = "clmv";
+        finder.FXEnableExtensionChangeWarning=false;
+        finder.CreateDesktop = false;
         loginwindow.GuestEnabled  = false;
-        NSGlobalDomain.AppleICUForce24HourTime = true;
         NSGlobalDomain.AppleInterfaceStyle = "Dark";
         NSGlobalDomain.KeyRepeat = 2;
+        NSGlobalDomain.AppleSpacesSwitchOnActivate=true;
+        NSGlobalDomain.AppleShowAllExtensions = true;
+        NSGlobalDomain.AppleShowAllFiles=true;
+#https://support.apple.com/en-ca/guide/mac-help/mchlc06d1059/mac
+#NSGlobalDomain.AppleKeyboardUIMode=3;
+    };
+    launchd.agents.alacritty-nvim = {
+        enable = true;
+        program = "${pkgs.alacritty}/bin/alacritty";
+        programArguments = [ "-e" "finder" ];
+        runAtLoad = true;
+        keepAlive = false;
+        workingDirectory = "/Users/ezekielenns";
     };
 }
