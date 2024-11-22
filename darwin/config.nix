@@ -5,6 +5,7 @@
         ../modules/nvim.nix
             ./zsh.nix
             ./scripts.nix
+            ./wm.nix
     ];
 
     services.nix-daemon.enable = true;
@@ -12,9 +13,11 @@
     nix.package = pkgs.nix;
     nix.settings.experimental-features = "nix-command flakes";
     environment.systemPackages = with pkgs; [
-        mkalias
-            fontconfig
+#needed for bash script
+            youtube-music
+            jetbrains.rider
             findutils
+            dotnet-sdk_8 
             slack
             zoom-us
     ];
@@ -23,17 +26,16 @@
         home = "/Users/ezekielenns";
     };
     fonts.packages = [
-        (pkgs.nerdfonts.override { fonts = [ "JetBrainsMono" "Monofur" ]; })
+        (pkgs.nerdfonts.override { fonts = [  "Monofur"  ]; })
     ];
     system.defaults = {
         dock.autohide  = true;
         dock.persistent-apps = [
             "${pkgs.alacritty}/Applications/Alacritty.app"
-# "${pkgs.slack}/Applications/"
-# "/Applications/Firefox.app"
-# "${pkgs.obsidian}/Applications/Obsidian.app"
-# "/System/Applications/Mail.app"
-# "/System/Applications/Calendar.app"
+            "${pkgs.slack}/Applications/Slack.app"
+            "${pkgs.youtube-music}/Applications/YouTube\ Music.app"
+            "/System/Applications/Mail.app"
+            "/System/Applications/Calendar.app"
         ];
         finder.FXPreferredViewStyle = "clmv";
         finder.FXEnableExtensionChangeWarning=false;
@@ -47,12 +49,12 @@
 #https://support.apple.com/en-ca/guide/mac-help/mchlc06d1059/mac
 #NSGlobalDomain.AppleKeyboardUIMode=3;
     };
-    launchd.agents.alacritty-nvim = {
+    
+    homebrew = {
         enable = true;
-        program = "${pkgs.alacritty}/bin/alacritty";
-        programArguments = [ "-e" "finder" ];
-        runAtLoad = true;
-        keepAlive = false;
-        workingDirectory = "/Users/ezekielenns";
+        global.autoUpdate = true;
+        casks=[ "docker" ];
+        # brews = [
+        # ];
     };
 }

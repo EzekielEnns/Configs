@@ -1,3 +1,5 @@
+- bluesnooze
+- rectangle
 mac setup
 - system configs https://www.youtube.com/watch?v=Z8BL8mdzWHI
 - add back alacrity

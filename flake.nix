@@ -14,12 +14,13 @@
     };
     mac-app-util.url = "github:hraban/mac-app-util";
   };
-  outputs = { nixpkgs, home-manager,nixpkgs-unstable,nix-darwin, mac-app-util,... }@inputs: 
+  outputs = { nixpkgs, home-manager,nixpkgs-unstable,nix-darwin, mac-app-util,   ... }@inputs: 
     {
     darwinConfigurations = {
       macbook = nix-darwin.lib.darwinSystem {
         system = "aarch64-darwin";
-        modules = [mac-app-util.darwinModules.default ./darwin/config.nix 
+        modules = [
+        mac-app-util.darwinModules.default ./darwin/config.nix 
             home-manager.darwinModules.home-manager {
                 home-manager.sharedModules = [
                  mac-app-util.homeManagerModules.default

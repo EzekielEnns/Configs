@@ -7,7 +7,6 @@
         environment.systemPackages = with pkgs; [
                 fzf
                 neofetch 
-                mpv
                 ripgrep
         ];
         environment.variables = {
