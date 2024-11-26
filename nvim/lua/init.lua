@@ -39,6 +39,8 @@ vim.cmd([[
         set shiftwidth=4
         set expandtab
         set confirm
+        " formatting now effects comments
+        set formatoptions-=c
 
     "searching
         set hls

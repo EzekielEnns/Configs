@@ -10,6 +10,25 @@
         home.username ="ezekielenns";
         home.homeDirectory = "/Users/ezekielenns";
         home.file.".ideavimrc" = {source =./../misc/.ideavimrc; recursive=true;};
+        home.file.".yabairc".text = ''
+            yabai -m config layout bsp
+            yabai -m config auto_balance on
+            yabai -m config mouse_follows_focus on
+            yabai -m rule --add app='System Preferences' manage=off
+            yabai -m config mouse_modifier fn
+            yabai -m config mouse_action1 move
+            yabai -m config mouse_action2 resize
+        '';
+        # home.file.".skhdrc".text = ''
+        #         alt - h : yabai -m window --focus west
+        #         alt - j : yabai -m window --focus south
+        #         alt - k : yabai -m window --focus north
+        #         alt - l : yabai -m window --focus east
+        #         alt - < : yabai -m display --focus 1
+        #         alt - > : yabai -m display --focus 2
+        #         alt - n : yabai -m space --focus next
+        #         alt - p : yabai -m space --focus prev
+        # '';
         xdg.enable = true;
         programs.home-manager.enable =true;
         home.stateVersion = "23.11";
@@ -23,8 +42,9 @@
                 };
 
                 window = {
-                    opacity = 1; # Specified in floating number from 0.0 to 1.0
-                        title = "terminal";
+                    opacity = 1.0; # Specified in floating number from 0.0 to 1.0
+                    title = "terminal";
+                    decorations="none";
                 };
                 cursor ={
                     style="Block";
@@ -43,34 +63,6 @@
                     save_to_clipboard = true;
                 };
                 live_config_reload =true;
-                # colors = {
-                #     primary = {
-                #         background = "#32302f"; # soft contrast
-                #             foreground = "#ebdbb2";
-                #     };
-                #
-                #     normal = {
-                #         black = "#282828";
-                #         red = "#cc241d";
-                #         green = "#98971a";
-                #         yellow = "#d79921";
-                #         blue = "#458588";
-                #         magenta = "#b16286";
-                #         cyan = "#689d6a";
-                #         white = "#a89984";
-                #     };
-                #
-                #     bright = {
-                #         black = "#928374";
-                #         red = "#fb4934";
-                #         green = "#b8bb26";
-                #         yellow = "#fabd2f";
-                #         blue = "#83a598";
-                #         magenta = "#d3869b";
-                #         cyan = "#8ec07c";
-                #         white = "#ebdbb2";
-                #     };
-                # };
             };
         };
     };
