@@ -25,7 +25,8 @@ in
          #set -g prefix C-s
          #set -g mouse on
          set-option -g status-style bg=default
-
+         set-option -g default-shell /bin/zsh
+         set-option -g default-command /bin/zsh
          # unbind s 
          # bind e choose-session
          # unbind l 
@@ -45,7 +46,8 @@ in
          | grep -iqE '^[^TXZ ]+ +(\\S+\\/)?g?(view|n?vim?x?)(diff)?$'"
          bind-key '"' if-shell "$is_vim" "split-window -h -p 20" "split-window -h"
          bind-key % if-shell "$is_vim" "split-window -v -p 10" "split-window -v"
-
+         #just for mac
+         # set-option -g default-command "reattach-to-user-namespace -l zsh"
          '';
  };
 }

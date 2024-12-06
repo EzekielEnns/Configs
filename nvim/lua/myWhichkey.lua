@@ -1,42 +1,41 @@
 --MAPING
 vim.g.mapleader = " "
 local wk = require("which-key")
-local leader_binds = {
-	["f"] = { "<cmd>Telescope find_files<CR>", "find files" },
-	["b"] = { "<cmd>Telescope buffers<CR>", "find buffers" },
-	["/"] = { "<cmd>Telescope live_grep<CR>", "find text" },
-	["d"] = { "<cmd>Telescope diagnostics<CR>", "look through diag" },
-	["s"] = { "<cmd>Telescope lsp_document_symbols<CR>", "find symbol" },
-	["w"] = { "<cmd>Telescope lsp_workspace_symbols<CR>", "find symbol workspace" },
-	["cd"] = { "<cmd>:lua folder_finder()<cr>", "find Directory" },
-	["ev"] = { "<cmd>:Vex!<cr>", "Explorer" },
-	["es"] = { "<cmd>:Sex!<cr>", "Explorer" },
-	["ee"] = { "<cmd>:Exp!<cr>", "Explorer" },
-	["el"] = { "<cmd>:Lexplore!<cr>", "Explorer" },
-    ["gb"] = {"<cmd>:GitBlameToggle<CR>"},
+wk.add({
+    { "<leader>f" ,"<cmd>Telescope find_files<CR>", desc= "find files" },
+    {"<leader>b", "<cmd>Telescope buffers<CR>",desc= "find buffers" },
+    {"<leader>/", "<cmd>Telescope live_grep<CR>",desc= "find text" },
+    {"<leader>d", "<cmd>Telescope diagnostics<CR>",desc= "look through diag" },
+    {"<leader>s", "<cmd>Telescope lsp_document_symbols<CR>",desc= "find symbol" },
+    {"<leader>w", "<cmd>Telescope lsp_workspace_symbols<CR>",desc= "find symbol workspace" },
+    {"<leader>cd", "<cmd>:lua folder_finder()<cr>",desc= "find Directory" },
+    {"<leader>ev", "<cmd>:Vex!<cr>",desc= "Explorer" },
+    {"<leader>es", "<cmd>:Sex!<cr>",desc= "Explorer" },
+    {"<leader>ee", "<cmd>:Exp!<cr>",desc= "Explorer" },
+    {"<leader>el", "<cmd>:Lexplore!<cr>",desc= "Explorer" },
+    {"<leader>gb","<cmd>:GitBlameToggle<CR>"},
 
-	["h"] = { "<cmd>lua vim.lsp.buf.signature_help()<cr>", "lsp sig help" },
-	["lh"] = { "<cmd>lua vim.lsp.buf.hover()<cr>", "hover" },
-	["lH"] = { "<cmd>lua vim.diagnostic.open_float()<cr>", "diagnostic" },
-	["ls"] = { "<cmd>lua vim.lsp.buf.signature_help()<cr>", "signature" },
-	["la"] = { "<cmd>lua vim.lsp.buf.code_action()<cr>", "code action" },
-	["lf"] = { "<cmd>lua vim.lsp.buf.format({async = true})<cr>", "format" },
-	["lr"] = { "<cmd>lua vim.lsp.buf.references()<cr>", "rename" },
-	["lR"] = { "<cmd>lua vim.lsp.buf.rename()<cr>", "rename" },
-	["ld"] = { "<cmd>lua vim.lsp.buf.declaration()<cr>", "declaration" },
-	["lD"] = { "<cmd>lua vim.lsp.buf.definition()<cr>", "definition" },
-	["li"] = { "<cmd>lua vim.lsp.buf.implementation()<cr>", "implementation" },
-	["lt"] = { "<cmd>lua vim.lsp.buf.type_declaration()<cr>", "type" },
-	["["] = { "<cmd>lua vim.diagnostic.goto_prev()<cr>", "prev" },
-	["]"] = { "<cmd>lua vim.diagnostic.goto_next()<cr>", "next" },
+    {"<leader>h", "<cmd>lua vim.lsp.buf.signature_help()<cr>",desc= "lsp sig help" },
+    {"<leader>lh","<cmd>lua vim.lsp.buf.hover()<cr>",desc= "hover" },
+    {"<leader>lH","<cmd>lua vim.diagnostic.open_float()<cr>",desc= "diagnostic" },
+    {"<leader>ls","<cmd>lua vim.lsp.buf.signature_help()<cr>",desc= "signature" },
+    {"<leader>la","<cmd>lua vim.lsp.buf.code_action()<cr>",desc= "code action" },
+    {"<leader>lf","<cmd>lua vim.lsp.buf.format({async = true})<cr>",desc= "format" },
+    {"<leader>lr","<cmd>lua vim.lsp.buf.references()<cr>",desc= "rename" },
+    {"<leader>lR","<cmd>lua vim.lsp.buf.rename()<cr>",desc= "rename" },
+    {"<leader>ld","<cmd>lua vim.lsp.buf.declaration()<cr>",desc= "declaration" },
+    {"<leader>lD","<cmd>lua vim.lsp.buf.definition()<cr>",desc= "definition" },
+    {"<leader>li","<cmd>lua vim.lsp.buf.implementation()<cr>",desc= "implementation" },
+    {"<leader>lt","<cmd>lua vim.lsp.buf.type_declaration()<cr>",desc= "type" },
+    { "<leader>[","<cmd>lua vim.diagnostic.goto_prev()<cr>",desc= "prev" },
+    { "<leader>]","<cmd>lua vim.diagnostic.goto_next()<cr>",desc= "next" },
 
-	["p"] = { '"+p', "find text from clip" },
-	["P"] = { '"+P', "paste from clip" },
-	["y"] = { '"+y', "yank from clip" },
-	["yy"] = { '"+yy', "yank line from clip" },
-	["Y"] = { '"+yg_', "yank line" },
-	["tr"] = { "<cmd>setlocal relativenumber!<CR>", "toggle relative lines" },
-	--TODO toggle relative lines
-}
-wk.register(leader_binds, { prefix = "<leader>" })
-wk.register(leader_binds, { prefix = "<leader>", mode = "v" })
+    {"<leader>p",'"+p',desc= "find text from clip",mode ={"v","n"} },
+    {"<leader>P",'"+P',desc= "paste from clip",mode ={"v","n"} },
+    {"<leader>y",'"+y',desc= "yank from clip",mode ={"v","n"} },
+    { "<leader>yy",'"+yy',desc= "yank line from clip",mode ={"v","n"}},
+    { "<leader>Y",'"+yg_',desc= "yank line",mode ={"v","n"} },
+    { "<leader>tr","<cmd>setlocal relativenumber!<CR>",desc= "toggle relative lines",mode ={"v","n"} },
+})
+-- wk.register(leader_binds, { prefix = "<leader>" })
+-- wk.register(leader_binds, { prefix = "<leader>", mode = "v" })

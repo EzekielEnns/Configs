@@ -2,10 +2,10 @@
 #example setup https://github.com/dustinlyons/nixos-config?tab=readme-ov-file#nix-config-for-macos--nixos
 #tutorial https://nixcademy.com/posts/nix-on-macos/
   inputs = {
-    nixpkgs.url = "github:NixOS/nixpkgs/nixos-24.05";
+    nixpkgs.url = "github:NixOS/nixpkgs/nixos-24.11";
     nixpkgs-unstable.url = "github:nixos/nixpkgs/nixos-unstable";
     home-manager= {
-        url = "github:nix-community/home-manager/release-24.05";
+        url = "github:nix-community/home-manager/release-24.11";
         inputs.nixpkgs.follows = "nixpkgs";
     };
     nix-darwin = {

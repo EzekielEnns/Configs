@@ -67,13 +67,17 @@
         NSGlobalDomain.AppleShowAllExtensions = true;
         NSGlobalDomain.AppleShowAllFiles=true;
     };
-    # #for silicon needed so far
+    #for silicon needed so far
     environment.extraInit = ''
         #make sure brew is on the path for M1 
         if [[ $(uname -m) == 'arm64' ]]; then
             eval "$(/opt/homebrew/bin/brew shellenv)"
                 fi
     '';
+    environment.shells = [ pkgs.bashInteractive pkgs.zsh ];
+    
+
+
 
     homebrew = {
         #this is where you put your repos (think apt repos) "koekeishiya/formulae")
@@ -82,10 +86,22 @@
         ];
         enable = true;
         global.autoUpdate = true;
-        casks=[ "docker" "chromium" "raycast" "alt-tab" "zen-browser" ];
+        casks=[ "docker" "chromium" "raycast" "alt-tab" "zen-browser" "microsoft-azure-storage-explorer"  ]; 
         #this is where you would put a app from the repo "koekeishiya/formulae/skhd"
         brews = [
             "koekeishiya/formulae/yabai"
         ];
+    };
+
+    # bashtrue
+    environment.etc.bashrc.text = builtins.readFile(../misc/.bashrc);
+    environment.etc.inputrc.text = builtins.readFile(../misc/.inputrc);
+    programs.bash = {
+        enable = true;
+        completion.enable =true;
+        # interactiveShellInit = ''
+        #     set -o vi
+        #     eval "$(starship init bash)"
+        # '';
     };
 }
