@@ -1,8 +1,27 @@
 let mapleader=" "
-:map <leader>f <Action>(SearchEverywhere)
-:map <leader>la <Action>(ShowIntentionActions)
-:map <Leader>p <Action>(EditorPasteSimple)
-:map <Leader>y <Action>(CopyAsPlainText)
-:map <Leader>yy yy<Action>(CopyAsPlainText)
-:map <Leader>Y  yg_<Action>(CopyAsPlainText)
-:map <leader>lb <Action>(ToggleLineBreakpoint)
+map <leader>f <Action>(GotoFile)
+map <leader>b <Action>(RecentFiles)
+map <leader>c <Action>(SearchEverywhere)
+map <leader>/ <Action>(GotoText)
+map <leader>ld <Action>(GotoDeclaration)
+map <leader>lt <Action>(GotoTypeDeclaration)
+map <leader>li <Action>(GotoImplementation)
+map <leader>la <Action>(ShowIntentionActions)
+map <leader>lr <Action>(ShowUsages)
+map <leader>ls <Action>(ShowHoverInfo)
+map <leader>lR <Action>(RenameElement)
+map <leader>] <Action>(GotoNextError)
+map <leader>[ <Action>(GotoNextError)
+map gc <Action>(SurroundWith)
+set hlsearch
+"TODO try out in normal vim
+nnoremap <Esc> :nohlsearch<cr>
+"TODO add class search
+
+map <Leader>p <Action>(EditorPasteSimple)
+map <Leader>y <Action>(CopyAsPlainText)
+map <Leader>yy yy<Action>(CopyAsPlainText)
+map <Leader>Y  yg_<Action>(CopyAsPlainText)
+map <leader>lb <Action>(ToggleLineBreakpoint)
+
+"NewFile NewDir RenameFile

@@ -14,6 +14,7 @@
 [ ] clean up repo
 [ ] tinker with key press setting (Darwin)
 [x] check out alt-tab out
+[ ] remove alt-tab
 
 [ ] fuzzy finder for tmux
 [ ] remove vim change possibly
@@ -30,3 +31,11 @@
 [ ] setup fuzzy tmux
 [ ] think about chaining tmux with vim motions
     - maybe change motions in vimidearc
+
+
+
+
+want to reworkd my keybinds
+    make it so that jb and nvim have a very common flow
+want to change tmux to just let me start with it, instead of having to launch new instantiates
+https://youtu.be/N-RH_n7ZEfg?si=0Ok_M_cTxJbuYyy3

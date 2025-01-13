@@ -16,7 +16,6 @@ require("telescope").setup({
 		},
 		mappings = {}, -- mappings
 	}, -- defaults
-	...,
 }) -- telescope setup
 local pickers = require("telescope.pickers")
 local finders = require("telescope.finders")

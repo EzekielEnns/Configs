@@ -18,7 +18,6 @@
             #needed for bash script
             findutils
             dotnet-sdk_8 
-            slack
             zoom-us
     ];
     users.users.ezekielenns = {
@@ -33,13 +32,15 @@
     system.defaults = {
         dock = {
             autohide  = true;
-            persistent-apps = [
-                "${pkgs.alacritty}/Applications/Alacritty.app"
-                "${pkgs.slack}/Applications/Slack.app"
-                "${pkgs.youtube-music}/Applications/YouTube\ Music.app"
-                "/System/Applications/Mail.app"
-                "/System/Applications/Calendar.app"
-            ];
+            # persistent-apps = [
+            #     "${pkgs.alacritty}/Applications/Alacritty.app"
+            #     "/System/Applications/Mail.app"
+            #     "/System/Applications/Calendar.app"
+            # ];
+            mru-spaces = true;
+            #https://daiderd.com/nix-darwin/manual/index.html#opt-system.defaults.dock.wvous-bl-corner
+            wvous-bl-corner = 1;
+            wvous-br-corner = 1;
             expose-animation-duration = 0.0;
             tilesize=25;
             autohide-time-modifier=0.0;
@@ -74,7 +75,7 @@
             eval "$(/opt/homebrew/bin/brew shellenv)"
                 fi
     '';
-    environment.shells = [ pkgs.bashInteractive pkgs.zsh ];
+    environment.shells = [ pkgs.zsh ];
     
 
 
@@ -86,7 +87,7 @@
         ];
         enable = true;
         global.autoUpdate = true;
-        casks=[ "docker" "chromium" "raycast" "alt-tab" "zen-browser" "microsoft-azure-storage-explorer"  ]; 
+        casks=[ "docker" "chromium" "raycast" "zen-browser" "microsoft-azure-storage-explorer" "kitty" "slack" "ghostty" ]; 
         #this is where you would put a app from the repo "koekeishiya/formulae/skhd"
         brews = [
             "koekeishiya/formulae/yabai"
@@ -94,14 +95,14 @@
     };
 
     # bashtrue
-    environment.etc.bashrc.text = builtins.readFile(../misc/.bashrc);
-    environment.etc.inputrc.text = builtins.readFile(../misc/.inputrc);
-    programs.bash = {
-        enable = true;
-        completion.enable =true;
-        # interactiveShellInit = ''
-        #     set -o vi
-        #     eval "$(starship init bash)"
-        # '';
-    };
+    # environment.etc.bashrc.text = builtins.readFile(../misc/.bashrc);
+    # environment.etc.inputrc.text = builtins.readFile(../misc/.inputrc);
+    # programs.bash = {
+    #     enable = true;
+    #     completion.enable =true;
+    #     # interactiveShellInit = ''
+    #     #     set -o vi
+    #     #     eval "$(starship init bash)"
+    #     # '';
+    # };
 }

@@ -102,6 +102,7 @@ local handlers = {
 -- 		},
 -- 	},
 -- })
+require('lspconfig').gdscript.setup({})
 require("lspconfig").eslint.setup({})
 require("lspconfig").gopls.setup({
 	settings = {

@@ -18,6 +18,7 @@
             FZF_COMPLETION_OPTS="--border --info=inline";
             VISUAL = "nvim";
             NIXPKGS_ALLOW_UNFREE = "1";
+#TODO figure out 
             FZF_CTRL_T_OPTS="--walker-skip .git,node_modules,target --preview 'bat -n --color=always {}' --bind 'ctrl-/:change-preview-window(down|hidden|)'";
         };
         programs.zsh = {

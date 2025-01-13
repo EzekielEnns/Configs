@@ -94,15 +94,6 @@ in {
         nodePackages_latest.typescript-language-server
         typescript
 
-        #haskell
-        # cabal-install
-        # ghc
-        # haskell-language-server
-        #ltex-ls
-        #texlab
-        #marksman
-        #tailwindcss-language-server
-
         cargo
         rust-analyzer
         rustc
