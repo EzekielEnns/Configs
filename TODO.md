@@ -1,3 +1,14 @@
+[ ] move finder script into tmux
+[ ] make float windows a thing tmux
+[ ] add tmux bind for rename window
+[ ] look into session storing tmux
+
+
+
+
+
+
+
 ## mac stuff
 [ ] scripts to do stuff
     - mac service init i.e. yabai and others

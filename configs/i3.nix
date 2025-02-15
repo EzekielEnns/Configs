@@ -23,7 +23,7 @@
         xsession.windowManager.i3 =  
         let mod="Mod4"; 
             #TODO make sure this is using kitty that is configed 
-            term="${pkgs.kitty}/bin/kitty";
+            term="${pkgs.ghostty}/bin/ghostty";
             mvw = "move container to workspace ";
         in with pkgs.lib;  {
             enable = true;

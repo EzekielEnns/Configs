@@ -7,3 +7,8 @@ vim.api.nvim_create_autocmd("BufWritePre", {
   pattern = { "*.js", "*.ts", "*.jsx", "*.tsx","*.nix","*.go" },
   command = "Neoformat"
 })
+
+vim.api.nvim_create_autocmd("BufWritePre", {
+  pattern = { "*.ts",  "*.tsx", },
+  command = "TSToolsRemoveUnusedImports"
+})

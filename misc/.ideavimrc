@@ -25,3 +25,13 @@ map <Leader>Y  yg_<Action>(CopyAsPlainText)
 map <leader>lb <Action>(ToggleLineBreakpoint)
 
 "NewFile NewDir RenameFile
+" Map Ctrl+h to move left
+nnoremap <C-h> <C-w>h
+" Map Ctrl+j to move down
+nnoremap <C-j> <C-w>j
+" Map Ctrl+k to move up
+nnoremap <C-k> <C-w>k
+" Map Ctrl+l to move right
+nnoremap <C-l> <C-w>l
+nnoremap <C-w>q <C-w>c
+" C-w c

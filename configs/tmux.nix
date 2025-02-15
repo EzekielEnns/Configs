@@ -22,16 +22,14 @@ in
          sensible
      ];
      extraConfig =  ''
-         bind w display-popup -E "tmux list-windows -a -F '#{session_name}:#{window_index} - #{window_name}' \
+         bind f display-popup -E "tmux list-windows -a -F '#{session_name}:#{window_index} - #{window_name}' \
                           | grep -v \"^$(tmux display-message -p '#S')\$\" \
                           | fzf --reverse \
                           | sed -E 's/\s-.*$//' \
                           | xargs -r tmux switch-client -t"
-         bind s display-popup -E "tmux list-sessions -a -F '#{session_name}' \
-                          | grep -v \"^$(tmux display-message -p '#S')\$\" \
-                          | fzf --reverse \
-                          | sed -E 's/\s-.*$//' \
-                          | xargs -r tmux switch-client -t"
+         #bind s display-popup -E finder
+         bind g display-popup
+         bind-key r command-prompt -I "#W" "rename-window '%%'"
          set -g mouse on
          set-option -g status-style bg=default
          set-option -g default-shell /bin/zsh

@@ -11,6 +11,7 @@
     config = {
         home.username ="ezekiel";
         home.homeDirectory = "/home/ezekiel";
+        shell = pkgs.zsh;
         programs.home-manager.enable =true;
         home.stateVersion = "23.11";
     };
