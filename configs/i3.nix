@@ -1,15 +1,10 @@
-#https://nix-community.github.io/home-manager/index.xhtml#sec-flakes-nixos-module
-#https://mipmip.github.io/home-manager-option-search/
-
-#https://git.sr.ht/~sntx/flake/tree/main/item/flake.nix
-#https://git.sr.ht/~sntx/flake/tree/main/item/modules/pkgs-usr/sway/default.nix
-
-#TODO make sure im reffrencing user packages
-{pkgs,...}:
+{pkgs,pkgs-unstable,...}:
 {
     imports = [];
     options = {};
-    config = {
+    config = let 
+        term="${pkgs-unstable.ghostty}/bin/ghostty";
+    in {
         services.dunst = {
             enable = true;
             settings = {
@@ -23,7 +18,6 @@
         xsession.windowManager.i3 =  
         let mod="Mod4"; 
             #TODO make sure this is using kitty that is configed 
-            term="${pkgs.ghostty}/bin/ghostty";
             mvw = "move container to workspace ";
         in with pkgs.lib;  {
             enable = true;
@@ -105,7 +99,7 @@
                         command = "--no-startup-id ${feh}/bin/feh --bg-center --randomize ~/Documents/bkgs/*";
                     }
                     {
-                        command = "${kitty}/bin/kitty finder";
+                        command = "${term} finder";
                     }
                 ];
                 modifier = mod;
@@ -152,8 +146,8 @@
                      };
                  };
                 keybindings = {
-                   "${mod}+Return" = "exec ${kitty}/bin/kitty";
-                   "${mod}+Shift+Return" = "exec ${kitty}/bin/kitty --class=float_term -e finder";
+                   "${mod}+Return" = "exec ${term}";
+                   "${mod}+Shift+Return" = "exec ${term} --class=float_term -e finder";
 #do a screen shot and copy to clip board
                    "${mod}+Ctrl+v" = "exec ${maim}/bin/maim -s | ${xclip}/bin/xclip -selection clipboard -t image/png";
 #do a screen shot and display it on screen
