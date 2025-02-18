@@ -21,6 +21,11 @@
     ];
     options = {};
     config = {
+
+     programs.fzf = {
+        fuzzyCompletion=true;
+        keybindings=true;
+      };
       system.stateVersion = "23.05"; 
 
       # hard drives

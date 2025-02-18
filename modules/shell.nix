@@ -17,10 +17,6 @@
             NIXPKGS_ALLOW_UNFREE = "1";
             FZF_CTRL_T_OPTS="--walker-skip .git,node_modules,target --preview 'bat -n --color=always {}' --bind 'ctrl-/:change-preview-window(down|hidden|)'";
         };
-        programs.fzf = {
-            fuzzyCompletion=true;
-            keybindings=true;
-        };
         programs.zsh = {
             enable = true;
             enableCompletion=true;
