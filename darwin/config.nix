@@ -6,7 +6,7 @@
             ./zsh.nix
             ./scripts.nix
     ];
-
+    system.stateVersion = 5;
     services.nix-daemon.enable = true;
     nixpkgs.config.allowUnfree = true;
     nix.package = pkgs.nix;
