@@ -3,6 +3,7 @@ vim.g.mapleader = " "
 local wk = require("which-key")
 wk.add({
     {"<leader>f" ,"<cmd>Telescope find_files<CR>", desc= "find files" },
+    {"<leader>w" ,"<cmd>set list!<CR>", desc= "toggle white space" },
     {"<leader>b", "<cmd>Telescope buffers<CR>",desc= "find buffers" },
     {"<leader>/", "<cmd>Telescope live_grep<CR>",desc= "find text" },
     {"<leader>d", "<cmd>Telescope diagnostics<CR>",desc= "look through diag" },

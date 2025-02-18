@@ -17,6 +17,7 @@
         ./nvim.nix
         ../configs/scripts.nix
         ../configs/bash.nix
+        ./shell.nix
     ];
     options = {};
     config = {
@@ -44,9 +45,7 @@
       time.timeZone = "Canada/Mountain";
       i18n.defaultLocale = "en_CA.UTF-8";
 
-      # Enable sound with pipe wire.
       services.blueman.enable = true;
-      sound.enable = true;
       hardware.pulseaudio.enable = false;
       security.rtkit.enable = true;
       services.pipewire = {
@@ -61,6 +60,7 @@
       # Define a user account. Don't forget to set a password with ‘passwd’.
       users.users.ezekiel = {
         isNormalUser = true;
+        shell = pkgs.zsh;
         description = "ezekiel";
         extraGroups = [ "networkmanager" "wheel" "docker" ];
         packages = with pkgs; [ firefox xfce.thunar vial ];
@@ -97,61 +97,5 @@
          max-free = ${toString (1024 * 1024 * 1024)}
       '';
 
-      #xdg.portal.config.common.default = "*";
-
-      # security.polkit.enable = true;
-      # systemd = {
-      #   user.services.polkit-gnome-authentication-agent-1 = {
-      #     description = "polkit-gnome-authentication-agent-1";
-      #     wantedBy = [ "graphical-session.target" ];
-      #     wants = [ "graphical-session.target" ];
-      #     after = [ "graphical-session.target" ];
-      #     serviceConfig = {
-      #       Type = "simple";
-      #       ExecStart =
-      #         "${pkgs.polkit_gnome}/libexec/polkit-gnome-authentication-agent-1";
-      #       Restart = "on-failure";
-      #       RestartSec = 1;
-      #       TimeoutStopSec = 10;
-      #     };
-      #   };
-      #   extraConfig = ''
-      #     DefaultTimeoutStopSec=10s
-      #   '';
-      # };
-    # system.autoUpgrade = {
-    #     enable = true;
-    #     flake = inputs.self.outPath;
-    #     flags = [
-    #       "--update-input"
-    #       "nixpkgs"
-    #       "--no-write-lock-file"
-    #       "-L" # print build logs
-    #     ];
-    #     dates = "8:00";
-    #     randomizedDelaySec = "45min";
-    #   };
-
-      # Copy the NixOS configuration file and link it from the resulting system
-      # (/run/current-system/configuration.nix). This is useful in case you
-      # accidentally delete configuration.nix.
-      #system.copySystemConfiguration = true;
-      #system.autoUpgrade.enable = true;
-      #system.autoUpgrade.channel = "https://channels.nixos.org/nixos-23.11";
-      #system.autoUpgrade.allowReboot = true;
-      # Some programs need SUID wrappers, can be configured further or are
-      # started in user sessions.
-      # programs.mtr.enable = true;
-      # programs.gnupg.agent = {
-      #   enable = true;
-      #   enableSSHSupport = true;
-      # };
-
-      # This value determines the NixOS release from which the default
-      # settings for stateful data, like file locations and database versions
-      # on your system were taken. It‘s perfectly fine and recommended to leave
-      # this value at the release version of the first install of this system.
-      # Before changing this value read the documentation for this option
-      # (e.g. man configuration.nix or on https://nixos.org/nixos/options.html).
     };
 }

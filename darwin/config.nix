@@ -5,7 +5,6 @@
             ../modules/nvim.nix
             ./zsh.nix
             ./scripts.nix
-            ./wm.nix
     ];
 
     services.nix-daemon.enable = true;
@@ -29,14 +28,10 @@
     ];
 
     system.startup.chime=false;
+
     system.defaults = {
         dock = {
             autohide  = true;
-            # persistent-apps = [
-            #     "${pkgs.alacritty}/Applications/Alacritty.app"
-            #     "/System/Applications/Mail.app"
-            #     "/System/Applications/Calendar.app"
-            # ];
             mru-spaces = true;
             #https://daiderd.com/nix-darwin/manual/index.html#opt-system.defaults.dock.wvous-bl-corner
             wvous-bl-corner = 1;
@@ -53,10 +48,7 @@
         controlcenter= {
             BatteryShowPercentage=true;
         };
-        # universalaccess= {
-        #     reduceMotion=true;
-        #     reduceTransparency=true;
-        # };
+        menuExtraClock.Show24Hour = false;
         finder.QuitMenuItem=true;
         finder.FXPreferredViewStyle = "clmv";
         finder.FXEnableExtensionChangeWarning=false;
@@ -67,6 +59,7 @@
         NSGlobalDomain.AppleSpacesSwitchOnActivate=true;
         NSGlobalDomain.AppleShowAllExtensions = true;
         NSGlobalDomain.AppleShowAllFiles=true;
+        NSGlobalDomain.AppleICUForce24HourTime = false;
     };
     #for silicon needed so far
     environment.extraInit = ''

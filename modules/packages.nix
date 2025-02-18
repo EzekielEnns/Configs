@@ -1,9 +1,11 @@
-{config,pkgs,pkgs-unstable,inputs,...}:
+{pkgs,pkgs-unstable,...}:
 {
   environment.systemPackages = with pkgs; [
-    pulseaudio #for volumn
+    pkgs-unstable.ghostty
+    pulseaudio 
     playerctl
     p7zip
+    unrar
     openvpn
     busybox
     chromium
@@ -11,12 +13,6 @@
     yazi
     du-dust
     #work
-    pkgs.jetbrains.jdk
-    pkgs.jetbrains.rider
-    pkgs.jetbrains.gateway
-    dotnet-sdk_8 
-    msbuild
-    mono
     slack
     libreoffice-qt
     zoom-us
@@ -39,10 +35,9 @@
     trash-cli
     unzip
     xclip
-    carapace #complication
+    carapace #completions
     #gaming 
     steam
-    #steam-run
     #desktop goodies
     xdg-desktop-portal-gtk
     xorg.libX11

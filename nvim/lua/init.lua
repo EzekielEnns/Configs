@@ -1,6 +1,5 @@
 vim.cmd([[
-        set list
-        set listchars=tab:>-
+        set listchars=eol:¬,tab:>·,trail:~,extends:>,precedes:<,space:␣
         set autoread                                                                                                                                                                                    
         au CursorHold * silent! checktime
     "colors and cursor

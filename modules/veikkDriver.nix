@@ -13,7 +13,7 @@ stdenv.mkDerivation rec {
     sha256 = "sha256-5w7xUYe8GeTxY1CA9URmjDwLQWhPBkXNzHovf1BTH38=";
   };
 
-  buildInputs = [ dpkg libusb autoPatchelfHook libGL stdenv.cc.cc.lib glib libX11 libXi dbus fontconfig makeWrapper xkeyboard_config];
+  buildInputs = [ dpkg libusb1 autoPatchelfHook libGL stdenv.cc.cc.lib glib libX11 libXi dbus fontconfig makeWrapper xkeyboard_config];
 
   unpackPhase = ''
     echo "Unpacking";

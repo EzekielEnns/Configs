@@ -1,4 +1,3 @@
-#TODO make bash
 {config, pkgs, ...}: 
 {
     options = {};
