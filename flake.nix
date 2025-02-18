@@ -37,7 +37,7 @@
     };
     nixosConfigurations = {
       bk = nixpkgs.lib.nixosSystem {
-        specialArgs.inputs = inputs;
+        extraSpecialArgs.inputs = inputs;
         system = "x86_64-linux";
         specialArgs.pkgs-unstable= import nixpkgs-unstable {
             system = "x86_64-linux";
@@ -60,7 +60,7 @@
       laptop = nixpkgs.lib.nixosSystem {
         specialArgs.inputs = inputs;
         system = "x86_64-linux";
-        specialArgs.pkgs-unstable= import nixpkgs-unstable {
+        extraSpecialArgs.pkgs-unstable= import nixpkgs-unstable {
             system = "x86_64-linux";
             config.allowUnfree = true;
         };
