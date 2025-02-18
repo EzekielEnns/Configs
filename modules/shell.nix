@@ -2,7 +2,6 @@
 {
     options = {};
     config = {
-        system.stateVersion = 5;
         environment.systemPackages = with pkgs; [
                 fzf
                 neofetch 

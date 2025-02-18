@@ -3,7 +3,6 @@
 {
     imports = [
         ./i3.nix
-        ./kitty.nix
         ./starship.nix
         ./git.nix
         ./tmux.nix
