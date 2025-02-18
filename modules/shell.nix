@@ -19,7 +19,7 @@
         };
         programs.fzf = {
             fuzzyCompletion=true;
-            keybindings="**";
+            keybindings=true;
         };
         programs.zsh = {
             enable = true;
