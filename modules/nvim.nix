@@ -28,7 +28,7 @@ myNeovim = pkgs.neovim.override {
                 repo = "mdx.nvim";
                 owner = "davidmh";
                 rev = "main";
-                sha256 = "sha256-z835i8QkQFe185sgSLtUaaTsMs2Px9x6KTObTRAOFz0=";
+                sha256 = "sha256-jpMcrWx/Rg9sMfkQFXnIM8VB5qRuSB/70wuSh6Y5uFk=";
             };
          })
         (pkgs.vimUtils.buildVimPlugin {
