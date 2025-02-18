@@ -37,7 +37,7 @@
     };
     nixosConfigurations = {
       bk = nixpkgs.lib.nixosSystem {
-        extraSpecialArgs.inputs = inputs;
+        specialArgs.inputs = inputs;
         system = "x86_64-linux";
         specialArgs.pkgs-unstable= import nixpkgs-unstable {
             system = "x86_64-linux";
@@ -54,13 +54,17 @@
                         ./configs/i3status-rust.nix
                     ];
                 };
+                extraSpecialArgs = import nixpkgs-unstable {
+                    system = "x86_64-linux";
+                    config.allowUnfree = true;
+                };
             }
           ];
       };
       laptop = nixpkgs.lib.nixosSystem {
         specialArgs.inputs = inputs;
         system = "x86_64-linux";
-        extraSpecialArgs.pkgs-unstable= import nixpkgs-unstable {
+        specialArgs.pkgs-unstable= import nixpkgs-unstable {
             system = "x86_64-linux";
             config.allowUnfree = true;
         };
@@ -76,13 +80,17 @@
                         ./configs/kitty-lp.nix
                     ];
                 };
+                extraSpecialArgs = import nixpkgs-unstable {
+                    system = "x86_64-linux";
+                    config.allowUnfree = true;
+                };
             }
           ];
       };
       desktop = nixpkgs.lib.nixosSystem {
         specialArgs.inputs = inputs;
         system = "x86_64-linux";
-        extraSpecialArgs.pkgs-unstable= import nixpkgs-unstable {
+        specialArgs.pkgs-unstable= import nixpkgs-unstable {
             system = "x86_64-linux";
             config.allowUnfree = true;
         };
@@ -96,6 +104,10 @@
                         ./configs/users.nix
                         ./configs/i3status-rust-dk.nix
                     ];
+                };
+                extraSpecialArgs = import nixpkgs-unstable {
+                    system = "x86_64-linux";
+                    config.allowUnfree = true;
                 };
             }
         ];
