@@ -16,8 +16,7 @@
             pkgs-unstable.jetbrains.rider
             #needed for bash script
             findutils
-            dotnet-sdk_8 
-            zoom-us
+            dotnet-sdk 
     ];
     users.users.ezekielenns = {
         name = "ezekielenns";
@@ -80,22 +79,10 @@
         ];
         enable = true;
         global.autoUpdate = true;
-        casks=[ "docker" "chromium" "raycast" "zen-browser" "microsoft-azure-storage-explorer" "kitty" "slack" "ghostty" ]; 
+        casks=[ "docker" "chromium" "raycast" "zen-browser" "microsoft-azure-storage-explorer" "slack" "ghostty" "zoom" "macfuse" "godot" "obs" ]; 
         #this is where you would put a app from the repo "koekeishiya/formulae/skhd"
         brews = [
             "koekeishiya/formulae/yabai"
         ];
     };
-
-    # bashtrue
-    # environment.etc.bashrc.text = builtins.readFile(../misc/.bashrc);
-    # environment.etc.inputrc.text = builtins.readFile(../misc/.inputrc);
-    # programs.bash = {
-    #     enable = true;
-    #     completion.enable =true;
-    #     # interactiveShellInit = ''
-    #     #     set -o vi
-    #     #     eval "$(starship init bash)"
-    #     # '';
-    # };
 }
