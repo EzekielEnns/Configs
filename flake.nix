@@ -54,7 +54,7 @@
                         ./configs/i3status-rust.nix
                     ];
                 };
-                home-manager.extraSpecialArgs = import nixpkgs-unstable {
+                home-manager.extraSpecialArgs.pkgs-unstable = import nixpkgs-unstable {
                     system = "x86_64-linux";
                     config.allowUnfree = true;
                 };
@@ -80,7 +80,7 @@
                         ./configs/kitty-lp.nix
                     ];
                 };
-                home-manager.extraSpecialArgs = import nixpkgs-unstable {
+                home-manager.extraSpecialArgs.pkgs-unstable= import nixpkgs-unstable {
                     system = "x86_64-linux";
                     config.allowUnfree = true;
                 };
@@ -105,7 +105,7 @@
                         ./configs/i3status-rust-dk.nix
                     ];
                 };
-                home-manager.extraSpecialArgs = import nixpkgs-unstable {
+                home-manager.extraSpecialArgs.pkgs-unstable= import nixpkgs-unstable {
                     system = "x86_64-linux";
                     config.allowUnfree = true;
                 };
