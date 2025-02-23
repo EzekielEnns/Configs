@@ -1,8 +1,10 @@
 {...}: 
 {
     config = {
-        home.file.".ideavimrc" = {source =./../misc/.ideavimrc; recursive=true;};
-        home.file.".config/ghostty/config".text = ''
+        home.file.".ideavimrc" = {source =./../misc/.ideavimrc; recursive=true;force=true;};
+        home.file.".config/ghostty/config" = {
+            force =true;
+            text = ''
             font-size = 15
             font-family = "Monofur Nerd Font Mono"
             theme = gruvbox-material
@@ -16,5 +18,6 @@
             clipboard-write = allow
             copy-on-select = true
             '';
+        };
     };
 }

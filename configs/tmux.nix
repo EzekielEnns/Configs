@@ -32,8 +32,8 @@ in
          bind-key r command-prompt -I "#W" "rename-window '%%'"
          set -g mouse on
          set-option -g status-style bg=default
-         set-option -g default-shell /bin/zsh
-         set-option -g default-command /bin/zsh
+         #set-option -g default-shell /bin/zsh
+         #set-option -g default-command /bin/zsh
          # unbind s 
          # bind e choose-session
          # unbind l 

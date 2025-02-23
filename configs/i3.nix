@@ -99,7 +99,7 @@
                         command = "--no-startup-id ${feh}/bin/feh --bg-center --randomize ~/Documents/bkgs/*";
                     }
                     {
-                        command = "${term} finder";
+                        command = "${term}";
                     }
                 ];
                 modifier = mod;
