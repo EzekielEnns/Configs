@@ -24,6 +24,11 @@
         programs.steam.enable =true;
         programs.steam.gamescopeSession.enable =true;
     services.joycond.enable =true;
+
+        programs.direnv = {
+            enable = true;
+            nix-direnv.enable = true;
+        };
      programs.fzf = {
         fuzzyCompletion=true;
         keybindings=true;

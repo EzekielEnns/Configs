@@ -28,12 +28,14 @@ in
                           | sed -E 's/\s-.*$//' \
                           | xargs -r tmux switch-client -t"
          #bind s display-popup -E finder
-         bind g display-popup
+         #bind g display-popup
          bind-key r command-prompt -I "#W" "rename-window '%%'"
-         set -g mouse on
+         #set -g mouse on
          set-option -g status-style bg=default
+#TODO try  and fix this
          #set-option -g default-shell /bin/zsh
-         #set-option -g default-command /bin/zsh
+          #set-option -g default-command "reattach-to-user-namespace -l zsh"
+         set-option -g default-command zsh
          # unbind s 
          # bind e choose-session
          # unbind l 
@@ -53,8 +55,6 @@ in
          | grep -iqE '^[^TXZ ]+ +(\\S+\\/)?g?(view|n?vim?x?)(diff)?$'"
          bind-key '"' if-shell "$is_vim" "split-window -h -p 20" "split-window -h"
          bind-key % if-shell "$is_vim" "split-window -v -p 10" "split-window -v"
-         #just for mac
-         # set-option -g default-command "reattach-to-user-namespace -l zsh"
          '';
  };
 }
