@@ -22,6 +22,11 @@
     options = {};
     config = {
 
+#TODO MOVE somewhere
+        programs.direnv = {
+            enable = true;
+            nix-direnv.enable = true;
+        };
      programs.fzf = {
         fuzzyCompletion=true;
         keybindings=true;

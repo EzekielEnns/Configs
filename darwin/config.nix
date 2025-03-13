@@ -12,6 +12,7 @@
     nix.package = pkgs.nix;
     nix.settings.experimental-features = "nix-command flakes";
     environment.systemPackages = with pkgs; [
+            zsh
             pkgs-unstable.youtube-music
             pkgs-unstable.jetbrains.rider
             #needed for bash script
@@ -82,6 +83,7 @@
         casks=[ "docker" "chromium" "raycast" "zen-browser" "microsoft-azure-storage-explorer" "slack" "ghostty" "zoom" "macfuse" "godot" "obs" ]; 
         #this is where you would put a app from the repo "koekeishiya/formulae/skhd"
         brews = [
+            "direnv"
             "koekeishiya/formulae/yabai"
         ];
     };

@@ -26,9 +26,5 @@
                 eval "$(direnv hook zsh)"
                 '';
         };
-        programs.direnv = {
-            enable = true;
-            nix-direnv.enable = true;
-        };
     };
 }
