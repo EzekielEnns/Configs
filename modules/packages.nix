@@ -2,6 +2,11 @@
 {
   environment.systemPackages = with pkgs; [
     pkgs-unstable.ghostty
+    protonvpn-gui
+    mpv
+    font-awesome_5
+    proton-pass
+    qbittorrent
     pulseaudio 
     playerctl
     p7zip
@@ -36,8 +41,6 @@
     unzip
     xclip
     carapace #completions
-    #gaming 
-    steam
     #desktop goodies
     xdg-desktop-portal-gtk
     xorg.libX11

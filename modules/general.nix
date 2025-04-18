@@ -21,13 +21,15 @@
     ];
     options = {};
     config = {
-
+        programs.steam.enable =true;
+        programs.steam.gamescopeSession.enable =true;
+    services.joycond.enable =true;
      programs.fzf = {
         fuzzyCompletion=true;
         keybindings=true;
       };
       system.stateVersion = "23.05"; 
-
+      services.gnome.gnome-keyring.enable = true;
       # hard drives
       services.gvfs.enable = true;
       services.devmon.enable = true;

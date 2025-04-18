@@ -5,7 +5,7 @@ in {
   # Desktop
   services.xserver.enable = true;
   services.xserver.desktopManager = { xterm.enable = false; };
-  services.displayManager = { defaultSession = "none+i3"; };
+ # services.displayManager = { defaultSession = "none+i3"; };
   nixpkgs.config.permittedInsecurePackages = [
     "electron-25.9.0"
   ];
@@ -28,9 +28,10 @@ in {
       user = "ezekiel";
     };
   };
-
+  services.displayManager.defaultSession = "gnome";
+services.xserver.desktopManager.gnome.enable = true;
   services.xserver.windowManager.i3 = {
-    enable = true;
+    enable = false;
     extraPackages = with pkgs; [
       #inputs.ytermusic
       veikk_driver

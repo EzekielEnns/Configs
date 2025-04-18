@@ -10,6 +10,8 @@
   networking.networkmanager.unmanaged = ["enp6s0"];
 
   services.xserver.videoDrivers = ["nvidia"];
+  hardware.steam-hardware.enable =true;
+  hardware.graphics.enable32Bit=true;
   hardware.nvidia = {
 
     # Modesetting is needed most of the time
