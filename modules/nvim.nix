@@ -42,6 +42,10 @@ myNeovim = pkgs.neovim.override {
          })
         fidget-nvim
         vim-choosewin
+        tailwind-tools-nvim
+        lspkind-nvim
+# for documenting and such
+        copilot-vim
 #tree sitter
         nvim-treesitter
         nvim-treesitter.withAllGrammars
@@ -93,7 +97,7 @@ in {
         nodePackages_latest.eslint
         nodePackages_latest.typescript-language-server
         typescript
-
+        tailwindcss-language-server
         cargo
         rust-analyzer
         rustc

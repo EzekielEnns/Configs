@@ -26,5 +26,6 @@
             copy-on-select = true
             '';
         };
+        home.file.".config/zellij/config.kdl" = {source = ./../misc/config.kdl; force =true;};
     };
 }

@@ -1,6 +1,7 @@
 {pkgs,pkgs-unstable,...}:
 {
   environment.systemPackages = with pkgs; [
+    zellij
     pkgs-unstable.ghostty
     protonvpn-gui
     mpv

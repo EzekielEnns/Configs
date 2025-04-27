@@ -167,3 +167,4 @@ vim.api.nvim_create_autocmd({ "BufWritePre" }, {
 -- require("scissors").setup ({
 --     snippetDir = "~/.config/snippets",
 -- })
+require("tailwind-tools").setup({ })
