@@ -1,4 +1,5 @@
 {pkgs,  ...}: 
+#https://github.com/tmux-plugins/tmux-resurrect
 let
   test = pkgs.tmuxPlugins.mkTmuxPlugin {
     pluginName = "tmux-which-key";
