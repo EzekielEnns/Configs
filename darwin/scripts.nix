@@ -26,7 +26,19 @@
 
         '';
       })
+        (pkgs.writeShellApplication {
+        name = "finderV2";
+        runtimeInputs = [ pkgs.fzf ];
+        text = '' 
+                #! /bin/bash
+                set -x
+                echo "$SHELL"
+                wp=$(find ~/Documents/repos/* -maxdepth 0 -type d -printf "%f\n" | fzf --prompt="Select a repo: ") || exit 1
+                cd ~/Documents/repos/"$wp"
+                $SHELL
+
+        '';
+      })
      ];
     };
-    #TODO import i3 config 
 }

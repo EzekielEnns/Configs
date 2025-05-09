@@ -1,4 +1,4 @@
-{...}: 
+{config,...}: 
 {
     config = {
         home.file.".ideavimrc" = {source =./../misc/.ideavimrc; recursive=true;force=true;};
@@ -7,7 +7,9 @@
         home.file.".config/ghostty/config" = {
             force =true;
             text = ''
-            window-decoration = auto
+            keybind = alt+left=unbind
+            keybind = alt+right=unbind
+            macos-option-as-alt = true
             macos-titlebar-style = "native"
             macos-titlebar-proxy-icon = hidden
             keybind = ctrl+a>n=new_window
@@ -26,6 +28,15 @@
             copy-on-select = true
             '';
         };
-        home.file.".config/zellij/config.kdl" = {source = ./../misc/config.kdl; force =true;};
+
+        home.file.".config/zellij/config.kdl" = {
+            text = (builtins.readFile ./../misc/config.kdl)+''
+                layout_dir "${config.home.homeDirectory}/.config/zellij/layouts"
+            ''; 
+            force =true;
+        };
+        home.file.".config/zellij/layouts/.keep" = {
+            text = "keep"; 
+        };
     };
 }
