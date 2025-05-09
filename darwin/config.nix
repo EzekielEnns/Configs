@@ -12,6 +12,7 @@
     nix.package = pkgs.nix;
     nix.settings.experimental-features = "nix-command flakes";
     environment.systemPackages = with pkgs; [
+            pkgs-unstable.zellij
             zsh
             pkgs-unstable.youtube-music
             pkgs-unstable.jetbrains.rider
