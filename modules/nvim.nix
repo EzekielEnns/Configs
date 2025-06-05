@@ -1,4 +1,4 @@
-{config,pkgs,lib,...}:
+{config,pkgs,pkgs-unstable,lib,...}:
 let
 myConfig = pkgs.vimUtils.buildVimPlugin {
   name = "my-config";
@@ -22,30 +22,26 @@ myNeovim = pkgs.neovim.override {
                 sha256 = "sha256-JP86GWCaPl/Gl6FDa4Pnd0blq0S8JD1EraJLwxL37vg=";
             };
          })
-        (pkgs.vimUtils.buildVimPlugin {
-            name = "mdx.nvim";
-            src = pkgs.fetchFromGitHub {
-                repo = "mdx.nvim";
-                owner = "davidmh";
-                rev = "main";
-                sha256 = "sha256-jpMcrWx/Rg9sMfkQFXnIM8VB5qRuSB/70wuSh6Y5uFk=";
-            };
-         })
-        (pkgs.vimUtils.buildVimPlugin {
-            name = "winresizer";
-            src = pkgs.fetchFromGitHub {
-                repo = "winresizer";
-                owner = "simeji";
-                rev = "master";
-                sha256 = "sha256-5LR9A23BvpCBY9QVSF9PadRuDSBjv+knHSmdQn/3mH0=";
-            };
-         })
+        # (pkgs.vimUtils.buildVimPlugin {
+        #     name = "mdx.nvim";
+        #     src = pkgs.fetchFromGitHub {
+        #         repo = "mdx.nvim";
+        #         owner = "davidmh";
+        #         rev = "main";
+        #         sha256 = "sha256-jpMcrWx/Rg9sMfkQFXnIM8VB5qRuSB/70wuSh6Y5uFk=";
+        #     };
+        #  })
+        # (pkgs.vimUtils.buildVimPlugin {
+        #     name = "winresizer";
+        #     src = pkgs.fetchFromGitHub {
+        #         repo = "winresizer";
+        #         owner = "simeji";
+        #         rev = "master";
+        #         sha256 = "sha256-5LR9A23BvpCBY9QVSF9PadRuDSBjv+knHSmdQn/3mH0=";
+        #     };
+        #  })
         fidget-nvim
-        vim-choosewin
-        tailwind-tools-nvim
         lspkind-nvim
-# for documenting and such
-        copilot-vim
 #tree sitter
         nvim-treesitter
         nvim-treesitter.withAllGrammars
@@ -55,8 +51,10 @@ myNeovim = pkgs.neovim.override {
         nvim-treesitter-parsers.gomod
         nvim-treesitter-parsers.gosum
 #lsp
+
         nvim-lspconfig 
         trouble-nvim
+        nvim-lint
 #completion
         nvim-cmp
         cmp-spell
@@ -64,8 +62,8 @@ myNeovim = pkgs.neovim.override {
         cmp-buffer
         cmp-cmdline 
         cmp-path
-cmp_luasnip
-cmp-nvim-lsp
+        cmp_luasnip
+        cmp-nvim-lsp
         telescope-nvim
         vim-tmux-navigator
         go-nvim
@@ -73,7 +71,6 @@ luasnip
         lsp_signature-nvim
         neoformat
         nvim-autopairs
-
         nvim-web-devicons 
         gruvbox
         vim-gitgutter
@@ -88,33 +85,31 @@ luasnip
 };
 in {
     environment.systemPackages = with pkgs; [
+        efm-langserver
         tree-sitter
-        lemminx
-        vscode-langservers-extracted
-        quick-lint-js
-        nil
-        nodejs_latest
-        nodePackages_latest.eslint
-        nodePackages_latest.typescript-language-server
+        #lemminx
+        #vscode-langservers-extracted
+        # quick-lint-js
+        # nil
+        nodejs_23
+        eslint_d
+        typescript-language-server
         typescript
-        tailwindcss-language-server
-        cargo
-        rust-analyzer
-        rustc
+        codespell
+        # cargo
+        # rust-analyzer
+        # rustc
+        # libclang
         lua-language-server
         pnpm
-        nodePackages.svelte-language-server
-
-        gopls
         terraform-ls
-        libclang
-        nodePackages.prettier
+        prettierd
         stylua
-        nixpkgs-fmt
-        
-        #need
+        #nixpkgs-fmt
         git
-        myNeovim
+        gofumpt
+        gopls
         go
+        myNeovim
     ];
 }

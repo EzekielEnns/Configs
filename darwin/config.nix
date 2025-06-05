@@ -6,6 +6,7 @@
             ./zsh.nix
             ./scripts.nix
     ];
+    nix.settings.download-buffer-size = 524288000;
     system.stateVersion = 5;
     services.nix-daemon.enable = true;
     nixpkgs.config.allowUnfree = true;

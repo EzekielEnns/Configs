@@ -21,9 +21,9 @@ cmp.setup({
 	},
 	formatting = {
 		fields = { "menu", "abbr", "kind" },
-        format = require("lspkind").cmp_format({
-          before = require("tailwind-tools.cmp").lspkind_format
-        }),
+        -- format = require("lspkind").cmp_format({
+        --   before = require("tailwind-tools.cmp").lspkind_format
+        -- }),
       },
 	mapping = cmp.mapping.preset.insert({
 		["<TAB>"] = cmp.mapping.select_next_item(),
