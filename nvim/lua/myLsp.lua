@@ -2,7 +2,6 @@ vim.diagnostic.config({ virtual_text = true })
 vim.lsp.set_log_level("off")
 require("trouble").setup({})
 local lspconfig = require("lspconfig")
---lsp
 local lsp_defaults = lspconfig.util.default_config
 local cap = vim.tbl_deep_extend('force', lsp_defaults.capabilities,require('cmp_nvim_lsp').default_capabilities())
 lsp_defaults.capabilities = cap
@@ -16,14 +15,9 @@ vim.api.nvim_create_autocmd("LspAttach", {
 vim.api.nvim_create_autocmd("LspAttach", {
 	callback = function(args)
 		local bufnr = args.buf
-		local client = vim.lsp.get_client_by_id(args.data.client_id)
-		if vim.tbl_contains({ "null-ls" }, client.name) then -- blacklist lsp
-			return
-		end
 		require("lsp_signature").on_attach({
-			bind = true, -- This is mandatory, otherwise border config won't get registered.
+			bind = true,
 			hint_enable = true,
-			--TODO setup
 			toggle_key = "<M-f>",
 			floating_window = false,
 			handler_opts = {
@@ -69,41 +63,8 @@ local handlers = {
 		{ virtual_text = true }
 	),
 }
--- lspconfig.tsserver.setup({
---     handlers= handlers,
--- 	settings = {
--- 		typescript = {
--- 			inlayHints = {
--- 				includeInlayParameterNameHints = "all",
--- 			},
--- 			preferences = {
--- 				includeCompletionsForModuleExports = true,
--- 				quotePreference = "auto",
--- 				importModuleSpecifierPreference = "non-relative",
--- 				importModuleSpecifierEnding = "minimal",
--- 			},
--- 			updateImportsOnFileMove = {
--- 				enable = "always",
--- 			},
--- 		},
--- 		javascript = {
--- 			inlayHints = {
--- 				includeInlayParameterNameHints = "all",
--- 			},
--- 			preferences = {
--- 				includeCompletionsForModuleExports = true,
--- 				quotePreference = "auto",
--- 				importModuleSpecifierPreference = "non-relative",
--- 				importModuleSpecifierEnding = "minimal",
--- 			},
--- 			updateImportsOnFileMove = {
--- 				enable = "always",
--- 			},
--- 		},
--- 	},
--- })
 require('lspconfig').gdscript.setup({})
-require("lspconfig").eslint.setup({})
+--require("lspconfig").eslint.setup({})
 require("lspconfig").gopls.setup({
 	settings = {
 		gopls = {
@@ -112,7 +73,6 @@ require("lspconfig").gopls.setup({
 		},
 	},
 })
-require("lspconfig").nil_ls.setup({})
 require("lspconfig").terraformls.setup({})
 lspconfig.lua_ls.setup({
 	settings = {
@@ -142,29 +102,25 @@ vim.api.nvim_create_autocmd({ "BufWritePre" }, {
 		vim.lsp.buf.format()
 	end,
 })
--- require("lspconfig").rust_analyzer.setup()
--- vim.g.rustaceanvim = {
---   -- Plugin configuration
---   tools = { },
---   -- LSP configuration
---   server = {
---     on_attach = function(client, bufnr)
---       -- you can also put keymaps in here
---     end,
---     default_settings = {
---       -- rust-analyzer language server configuration
---       ['rust-analyzer'] = {
---       },
---     },
---   },
---   -- DAP configuration
---   dap = {
---   },
--- }
 
---CMP
---require("luasnip.loaders.from_vscode").lazy_load { paths = { "~/.config/snippets" } }
--- require("scissors").setup ({
---     snippetDir = "~/.config/snippets",
--- })
-require("tailwind-tools").setup({ })
+
+
+local eslint = {
+  lintCommand  = "eslint_d -f visualstudio --stdin --stdin-filename ${INPUT}",
+  lintStdin    = true,
+  lintFormats  = { "%f(%l,%c): %m" },
+  lintIgnoreExitCode = true,
+  formatCommand = "eslint_d --fix-to-stdout --stdin --stdin-filename ${INPUT}",
+  formatStdin   = true,
+}
+
+lspconfig.efm.setup({
+  init_options = { documentFormatting = true, codeAction = true },
+  filetypes = { "javascript", "javascriptreact", "typescript", "typescriptreact" },
+  settings = {
+    languages = {
+      javascript = { eslint },
+      typescript = { eslint },
+    },
+  },
+})
