@@ -1,4 +1,5 @@
-i need you to go into ./nvim/lua/ and take the configurations and convert it into a 
-usable vscode configurations, i only need the keybindings, fuzzy finding stuff like telescope 
-and typescript you do not need to support any other languages in this vscode config
-you can find the plugins i install in ./modules/nvim.nix
+can you add some usefull plugins to my vscode configs located in ./.vscode/
+i need something like telescope, vim bindings and whichkeu? 
+
+im migrating from my neovim config located in ./nvim/lua/
+i only need support for typescript, so please ignore other languages
