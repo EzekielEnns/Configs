@@ -6,4 +6,7 @@
     "typescript.suggest.completeFunctionCalls": false,
     "typescript.inlayHints.parameterNames.enabled": "all",
     "typescript.tsserver.log": "off"
+    ,
+    "vim.useSystemClipboard": true,
+    "vim.leader": "<space>"
 }

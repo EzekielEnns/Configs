@@ -1,8 +1,8 @@
 [
-    { "key": "space f", "command": "workbench.action.quickOpen" },
+    { "key": "space f", "command": "fzf-quick-open.runFzfFile" },
     { "key": "space w", "command": "editor.action.toggleRenderWhitespace" },
     { "key": "space b", "command": "workbench.action.showAllEditors" },
-    { "key": "space /", "command": "workbench.action.findInFiles" },
+    { "key": "space /", "command": "fzf-quick-open.runFzfSearch" },
     { "key": "space d", "command": "workbench.action.showErrorsWarnings" },
     { "key": "space l s", "command": "workbench.action.gotoSymbol" },
     { "key": "space l w", "command": "workbench.action.showAllSymbols" },
