@@ -2,6 +2,9 @@
   "recommendations": [
     "dbaeumer.vscode-eslint",
     "esbenp.prettier-vscode",
-    "eamodio.gitlens"
+    "eamodio.gitlens",
+    "vscodevim.vim",
+    "VSpaceCode.whichkey",
+    "rlivings39.fzf-quick-open"
   ]
 }
