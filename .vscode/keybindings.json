@@ -1,0 +1,22 @@
+[
+    { "key": "space f", "command": "workbench.action.quickOpen" },
+    { "key": "space w", "command": "editor.action.toggleRenderWhitespace" },
+    { "key": "space b", "command": "workbench.action.showAllEditors" },
+    { "key": "space /", "command": "workbench.action.findInFiles" },
+    { "key": "space d", "command": "workbench.action.showErrorsWarnings" },
+    { "key": "space l s", "command": "workbench.action.gotoSymbol" },
+    { "key": "space l w", "command": "workbench.action.showAllSymbols" },
+    { "key": "space l r", "command": "editor.action.referenceSearch.trigger" },
+    { "key": "space l i", "command": "editor.action.goToImplementation" },
+    { "key": "space l e", "command": "workbench.actions.view.problems" },
+    { "key": "space c d", "command": "workbench.action.files.openFile" },
+    { "key": "space e", "command": "workbench.view.explorer" },
+    { "key": "space g b", "command": "gitlens.toggleFileBlame" },
+    { "key": "space h", "command": "editor.action.triggerParameterHints" },
+    { "key": "space l h", "command": "editor.action.showHover" },
+    { "key": "space l a", "command": "editor.action.quickFix" },
+    { "key": "space r", "command": "editor.action.rename" },
+    { "key": "space l t", "command": "editor.action.goToTypeDefinition" },
+    { "key": "space ]", "command": "editor.action.marker.prev" },
+    { "key": "space [", "command": "editor.action.marker.next" }
+]

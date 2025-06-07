@@ -1,0 +1,9 @@
+{
+    "typescript.updateImportsOnFileMove.enabled": "always",
+    "typescript.preferences.importModuleSpecifier": "non-relative",
+    "typescript.preferences.quoteStyle": "auto",
+    "typescript.tsserver.maxTsServerMemory": 4096,
+    "typescript.suggest.completeFunctionCalls": false,
+    "typescript.inlayHints.parameterNames.enabled": "all",
+    "typescript.tsserver.log": "off"
+}
