@@ -1,18 +1,21 @@
 {config,pkgs,pkgs-unstable,lib,...}:
 let
-ts-go = pkgs.buildNpmPackage {
-    pname = "native-preview";
+tsgo = pkgs.buildNpmPackage {
+    pname = "tsgo";
     version = "7.0.0-dev.20250609.1";
     src = pkgs.fetchurl {
         url = "https://registry.npmjs.org/@typescript/native-preview/-/native-preview-7.0.0-dev.20250609.1.tgz";
 # You need to update this after first build!
-        sha256 = "0000000000000000000000000000000000000000000000000000";
+        sha256 = "sha256-UbrG1T8OinBfQFNpPeaKj9HMMaRcizmvOXYv8ovEAaY=";
     };
 # This will also error on first build; copy from error!
-    npmDepsHash = "0000000000000000000000000000000000000000000000000000";
+    npmDepsHash = "sha256-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=";
+    postPatch = ''
+        cp ${../package-lock.json} ./packages-lock.json
+    '';
     postInstall = ''
         mkdir -p $out/bin
-        ln -s $out/lib/node_modules/@typescript/native-preview/bin/preview.js $out/bin/native-preview
+        ln -s $out/lib/node_modules/@typescript/native-preview/bin/tsgo.js $out/bin/tsgo
         '';
 };
 myConfig = pkgs.vimUtils.buildVimPlugin {
@@ -20,6 +23,7 @@ myConfig = pkgs.vimUtils.buildVimPlugin {
   src = ../nvim;
   recursive = true;
   dependencies = with pkgs.vimPlugins; [
+        tsgo
         plenary-nvim
         typescript-tools-nvim
         fidget-nvim
@@ -119,7 +123,6 @@ in {
         gofumpt
         gopls
         go
-        ts-go
         myNeovim
     ];
 }
