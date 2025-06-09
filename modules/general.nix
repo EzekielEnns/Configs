@@ -86,7 +86,7 @@
           source-han-sans
           source-han-sans-japanese
           source-han-serif-japanese
-          (nerdfonts.override { fonts = [ "Monofur" ]; })
+          nerd-fonts.monofur
         ];
         fontconfig = {
           enable = true;

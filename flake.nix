@@ -24,15 +24,6 @@
             config.allowUnfree = true;
         };
         modules = [
-       {
-          nixpkgs.overlays = [
-            (self: super: {
-              #nixfmt-latest = nixfmt.packages."x86_64-darwin".nixfmt;
-              nodejs = super.nodejs_23;
-              nodejs-slim = super.nodejs_23;
-            })
-          ];
-       }
         ./darwin/config.nix 
             home-manager.darwinModules.home-manager {
                 home-manager.useGlobalPkgs = true;

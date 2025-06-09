@@ -4,42 +4,9 @@ myConfig = pkgs.vimUtils.buildVimPlugin {
   name = "my-config";
   src = ../nvim;
   recursive = true;
-};
-myNeovim = pkgs.neovim.override {
-  configure = {
-    customRC = ''
-      lua require("init")
-    '';
-    packages.myPlugins = with pkgs.vimPlugins; {
-      start = [ 
+  dependencies = with pkgs.vimPlugins; [
         plenary-nvim
-        (pkgs.vimUtils.buildVimPlugin {
-            name = "typescript-tools.nvim";
-            src = pkgs.fetchFromGitHub {
-                repo = "typescript-tools.nvim";
-                owner = "pmizio";
-                rev = "master";
-                sha256 = "sha256-JP86GWCaPl/Gl6FDa4Pnd0blq0S8JD1EraJLwxL37vg=";
-            };
-         })
-        # (pkgs.vimUtils.buildVimPlugin {
-        #     name = "mdx.nvim";
-        #     src = pkgs.fetchFromGitHub {
-        #         repo = "mdx.nvim";
-        #         owner = "davidmh";
-        #         rev = "main";
-        #         sha256 = "sha256-jpMcrWx/Rg9sMfkQFXnIM8VB5qRuSB/70wuSh6Y5uFk=";
-        #     };
-        #  })
-        # (pkgs.vimUtils.buildVimPlugin {
-        #     name = "winresizer";
-        #     src = pkgs.fetchFromGitHub {
-        #         repo = "winresizer";
-        #         owner = "simeji";
-        #         rev = "master";
-        #         sha256 = "sha256-5LR9A23BvpCBY9QVSF9PadRuDSBjv+knHSmdQn/3mH0=";
-        #     };
-        #  })
+        typescript-tools-nvim
         fidget-nvim
         lspkind-nvim
 #tree sitter
@@ -77,6 +44,33 @@ luasnip
         which-key-nvim
         git-blame-nvim
         comment-nvim
+  ];
+};
+myNeovim = pkgs.neovim.override {
+  configure = {
+    customRC = ''
+      lua require("init")
+    '';
+    packages.myPlugins = with pkgs.vimPlugins; {
+      start = [ 
+        # (pkgs.vimUtils.buildVimPlugin {
+        #     name = "mdx.nvim";
+        #     src = pkgs.fetchFromGitHub {
+        #         repo = "mdx.nvim";
+        #         owner = "davidmh";
+        #         rev = "main";
+        #         sha256 = "sha256-jpMcrWx/Rg9sMfkQFXnIM8VB5qRuSB/70wuSh6Y5uFk=";
+        #     };
+        #  })
+        # (pkgs.vimUtils.buildVimPlugin {
+        #     name = "winresizer";
+        #     src = pkgs.fetchFromGitHub {
+        #         repo = "winresizer";
+        #         owner = "simeji";
+        #         rev = "master";
+        #         sha256 = "sha256-5LR9A23BvpCBY9QVSF9PadRuDSBjv+knHSmdQn/3mH0=";
+        #     };
+        #  })
         myConfig 
       ];
       opt = [ ];
@@ -91,7 +85,7 @@ in {
         #vscode-langservers-extracted
         # quick-lint-js
         # nil
-        nodejs_23
+        nodejs_24
         eslint_d
         typescript-language-server
         typescript

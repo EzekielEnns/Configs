@@ -8,7 +8,7 @@
     ];
     nix.settings.download-buffer-size = 524288000;
     system.stateVersion = 5;
-    services.nix-daemon.enable = true;
+    nix.enable = true;
     nixpkgs.config.allowUnfree = true;
     nix.package = pkgs.nix;
     nix.settings.experimental-features = "nix-command flakes";
@@ -25,8 +25,9 @@
         name = "ezekielenns";
         home = "/Users/ezekielenns";
     };
+    system.primaryUser = "ezekielenns";
     fonts.packages = [
-        (pkgs.nerdfonts.override { fonts = [  "Monofur"  ]; })
+        pkgs.nerd-fonts.monofur
     ];
 
     system.startup.chime=false;
