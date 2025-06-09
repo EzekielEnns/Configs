@@ -58,7 +58,7 @@ vim.cmd([[
 
         set spell spelllang=en_ca spo=camel
         set syntax=ON   
-        let g:gitblame_enabled = 0
+        let g:gitblame_enabled = 1
         let g:choosewin_overlay_enable = 1
         "status 
         function Gitbranch()
@@ -72,7 +72,7 @@ vim.cmd([[
 
         set statusline+=\ %t%y\~(%{b:git_branch})
 ]])
-vim.g.netrw_bufsettings = 'noma nomod nu rnu nobl nowrap ro'
+vim.g.netrw_bufsettings = "noma nomod nu rnu nobl nowrap ro"
 require("myCmp")
 require("myLsp")
 require("formatters")
@@ -86,7 +86,7 @@ require("nvim-treesitter.configs").setup({
 })
 require("gitblame").setup({
 	--Note how the `gitblame_` prefix is omitted in `setup`
-	enabled = true,
+	enabled = false,
 })
 --resiser rules
 vim.keymap.set("n", "<c-w>r", "<cmd>WinResizerStartResize<cr>", {})
@@ -113,15 +113,62 @@ require("fidget").setup({})
 require("go").setup()
 
 vim.env.ESLINT_D_PPID = vim.fn.getpid()
-require('lint').linters_by_ft = {
-  javascript = {'eslint_d'},
-  typescript = {'eslint_d'},
+require("lint").linters_by_ft = {
+	javascript = { "eslint_d" },
+	typescript = { "eslint_d" },
 }
 vim.api.nvim_create_autocmd({ "BufWritePost" }, {
-  callback = function()
-    -- try_lint without arguments runs the linters defined in `linters_by_ft`
-    -- for the current filetype
-    require("lint").try_lint()
-    require("lint").try_lint("codespell")
-  end,
+	callback = function()
+		-- try_lint without arguments runs the linters defined in `linters_by_ft`
+		-- for the current filetype
+		require("lint").try_lint()
+		require("lint").try_lint("codespell")
+	end,
+})
+
+-- ai??
+require("avante_lib").load()
+require("avante").setup()
+-- views can only be fully collapsed with the global statusline
+vim.opt.laststatus = 3
+vim.notify = require("notify")
+-- cmd omg
+require("noice").setup({
+	health = {
+		checker = true, -- Disable if you don't want health checks to run
+	},
+	views = {
+		cmdline_popup = {
+			position = {
+				row = "90%",
+				col = "50%",
+			},
+			size = {
+				width = 60,
+				height = "auto",
+			},
+			border = {
+				style = "rounded",
+			},
+			win_options = {
+				winhighlight = { Normal = "Normal", FloatBorder = "FloatBorder" },
+			},
+		},
+	},
+	lsp = {
+		-- override markdown rendering so that **cmp** and other plugins use **Treesitter**
+		override = {
+			["vim.lsp.util.convert_input_to_markdown_lines"] = true,
+			["vim.lsp.util.stylize_markdown"] = true,
+			["cmp.entry.get_documentation"] = true, -- requires hrsh7th/nvim-cmp
+		},
+	},
+	-- you can enable a preset for easier configuration
+	presets = {
+		bottom_search = true, -- use a classic bottom cmdline for search
+		command_palette = true, -- position the cmdline and popupmenu together
+		long_message_to_split = true, -- long messages will be sent to a split
+		inc_rename = false, -- enables an input dialog for inc-rename.nvim
+		lsp_doc_border = false, -- add a border to hover docs and signature help
+	},
 })

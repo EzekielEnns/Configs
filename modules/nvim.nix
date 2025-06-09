@@ -58,6 +58,12 @@ luasnip
         nvim-autopairs
         nvim-web-devicons 
         gruvbox
+        #ai
+        avante-nvim
+        nui-nvim
+        #other
+        nvim-notify
+        noice-nvim
         vim-gitgutter
         which-key-nvim
         git-blame-nvim
