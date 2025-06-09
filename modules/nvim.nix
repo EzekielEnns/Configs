@@ -1,5 +1,20 @@
 {config,pkgs,pkgs-unstable,lib,...}:
 let
+ts-go = pkgs.buildNpmPackage {
+    pname = "native-preview";
+    version = "7.0.0-dev.20250609.1";
+    src = pkgs.fetchurl {
+        url = "https://registry.npmjs.org/@typescript/native-preview/-/native-preview-7.0.0-dev.20250609.1.tgz";
+# You need to update this after first build!
+        sha256 = "0000000000000000000000000000000000000000000000000000";
+    };
+# This will also error on first build; copy from error!
+    npmDepsHash = "0000000000000000000000000000000000000000000000000000";
+    postInstall = ''
+        mkdir -p $out/bin
+        ln -s $out/lib/node_modules/@typescript/native-preview/bin/preview.js $out/bin/native-preview
+        '';
+};
 myConfig = pkgs.vimUtils.buildVimPlugin {
   name = "my-config";
   src = ../nvim;
@@ -104,6 +119,7 @@ in {
         gofumpt
         gopls
         go
+        ts-go
         myNeovim
     ];
 }
