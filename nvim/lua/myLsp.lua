@@ -124,3 +124,17 @@ lspconfig.efm.setup({
     },
   },
 })
+
+
+vim.lsp.config("ts_go_ls", {
+    cmd = { "tsgo", "lsp", "-stdio" },
+    filetypes = {
+        "javascript",
+        "javascriptreact",
+        "javascript.jsx",
+        "typescript",
+        "typescriptreact",
+        "typescript.tsx",
+    },
+    root_markers = { "tsconfig.json", "jsconfig.json", "package.json", ".git" },
+})

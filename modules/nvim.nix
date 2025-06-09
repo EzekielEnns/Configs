@@ -8,15 +8,14 @@ tsgo = pkgs.buildNpmPackage {
 # You need to update this after first build!
         sha256 = "sha256-UbrG1T8OinBfQFNpPeaKj9HMMaRcizmvOXYv8ovEAaY=";
     };
-# This will also error on first build; copy from error!
-    npmDepsHash = "sha256-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=";
+#the test sha sha256-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+    npmDepsHash = "sha256-I1GMI0N+YIj3cLjpxst2JI9FbVLZkBj5e7FwYSY1uQg=";
+    dontNpmBuild = true;
     postPatch = ''
-        cp ${../package-lock.json} ./packages-lock.json
+      ls -l
+      cp ${../package-lock.json} ./package-lock.json
+      ls -l
     '';
-    postInstall = ''
-        mkdir -p $out/bin
-        ln -s $out/lib/node_modules/@typescript/native-preview/bin/tsgo.js $out/bin/tsgo
-        '';
 };
 myConfig = pkgs.vimUtils.buildVimPlugin {
   name = "my-config";
@@ -123,6 +122,7 @@ in {
         gofumpt
         gopls
         go
+        tsgo
         myNeovim
     ];
 }
