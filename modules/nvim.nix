@@ -25,11 +25,12 @@ myConfig = pkgs.vimUtils.buildVimPlugin {
   name = "my-config";
   src = ../nvim;
   recursive = true;
+  doCheck = false;
 };
 myNeovim = pkgs.neovim.override {
   configure = {
     customRC = ''
-      lua require("init-lazy")
+      lua require("init")
     '';
     packages.myPlugins = with pkgs.vimPlugins; {
       start = [ 

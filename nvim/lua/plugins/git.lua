@@ -1,5 +1,4 @@
 return {
-  -- Git gutter signs
   {
     "airblade/vim-gitgutter",
     event = { "BufReadPre", "BufNewFile" },
