@@ -2,7 +2,6 @@ return {
   "neovim/nvim-lspconfig",
   event = { "BufReadPre", "BufNewFile" },
   dependencies = {
-    "hrsh7th/cmp-nvim-lsp",
     "ray-x/lsp_signature.nvim",
   },
   config = function()
@@ -10,13 +9,6 @@ return {
     vim.lsp.set_log_level("off")
 
     local lspconfig = require("lspconfig")
-    local lsp_defaults = lspconfig.util.default_config
-    
-    -- Only setup capabilities if cmp is available
-    local has_cmp, cmp_nvim_lsp = pcall(require, 'cmp_nvim_lsp')
-    if has_cmp then
-      lsp_defaults.capabilities = vim.tbl_deep_extend('force', lsp_defaults.capabilities, cmp_nvim_lsp.default_capabilities())
-    end
 
     vim.api.nvim_create_autocmd("LspAttach", {
       desc = "LSP actions",
@@ -72,6 +64,55 @@ return {
       },
     })
     lspconfig.svelte.setup({})
+    
+    -- TypeScript/JavaScript LSP
+    lspconfig.ts_ls.setup({
+      settings = {
+        typescript = {
+          inlayHints = {
+            includeInlayParameterNameHints = "all",
+            includeInlayParameterNameHintsWhenArgumentMatchesName = false,
+            includeInlayFunctionParameterTypeHints = true,
+            includeInlayVariableTypeHints = true,
+            includeInlayPropertyDeclarationTypeHints = true,
+            includeInlayFunctionLikeReturnTypeHints = true,
+            includeInlayEnumMemberValueHints = true,
+          },
+        },
+        javascript = {
+          inlayHints = {
+            includeInlayParameterNameHints = "all",
+            includeInlayParameterNameHintsWhenArgumentMatchesName = false,
+            includeInlayFunctionParameterTypeHints = true,
+            includeInlayVariableTypeHints = true,
+            includeInlayPropertyDeclarationTypeHints = true,
+            includeInlayFunctionLikeReturnTypeHints = true,
+            includeInlayEnumMemberValueHints = true,
+          },
+        },
+      },
+    })
+
+    -- Custom tsgo LSP server
+    local configs = require("lspconfig.configs")
+    if not configs.ts_go_ls then
+      configs.ts_go_ls = {
+        default_config = {
+          cmd = { "tsgo", "--lsp", "-stdio" },
+          filetypes = {
+            "javascript",
+            "javascriptreact", 
+            "javascript.jsx",
+            "typescript",
+            "typescriptreact",
+            "typescript.tsx",
+          },
+          root_dir = lspconfig.util.root_pattern("tsconfig.json", "jsconfig.json", "package.json", ".git"),
+          settings = {},
+        },
+      }
+    end
+    lspconfig.ts_go_ls.setup({})
 
     -- EFM for eslint
     local eslint = {
