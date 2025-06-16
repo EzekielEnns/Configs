@@ -1,78 +1,95 @@
--- Basic vim settings
+-- Basic vim settings using vim.opt
+vim.opt.listchars = { eol = "¬", tab = ">·", trail = "~", extends = ">", precedes = "<", space = "␣" }
+vim.opt.autoread = true
+vim.opt.encoding = "UTF-8"
+vim.opt.background = "dark"
+vim.opt.termguicolors = true
+vim.opt.guicursor = ""
+vim.opt.cmdheight = 1
+
+-- Utils and special features
+vim.opt.splitbelow = true
+vim.opt.splitright = true
+vim.opt.mouse = ""
+vim.opt.updatetime = 100
+vim.opt.hidden = true
+vim.opt.errorbells = false
+vim.opt.swapfile = false
+vim.opt.backup = false
+vim.opt.undodir = vim.fn.expand("~/.vim/undodir")
+vim.opt.undofile = true
+vim.opt.shortmess:append("c")
+
+-- Columns and numbers
+vim.opt.wrap = false
+vim.opt.signcolumn = "yes"
+vim.opt.number = true
+vim.opt.relativenumber = true
+vim.opt.ruler = true
+vim.opt.scrolloff = 13
+vim.opt.colorcolumn = "100"
+
+-- Indenting
+vim.opt.autoindent = true
+vim.opt.smartindent = true
+vim.opt.tabstop = 4
+vim.opt.softtabstop = 4
+vim.opt.shiftwidth = 4
+vim.opt.expandtab = true
+vim.opt.confirm = true
+vim.opt.formatoptions:remove("c")
+
+-- Searching
+vim.opt.hlsearch = true
+vim.opt.incsearch = true
+
+-- Spell checking
+vim.opt.spell = true
+vim.opt.spelllang = "en_ca"
+vim.opt.spelloptions = "camel"
+
+-- Autocmds and functions that need vim.cmd
+vim.api.nvim_create_autocmd("CursorHold", {
+    callback = function()
+        vim.cmd("silent! checktime")
+    end,
+})
+
+-- Highlights
+vim.api.nvim_create_autocmd("VimEnter", {
+    callback = function()
+        vim.cmd("highlight WinSeparator ctermbg=none guifg=bg")
+        vim.cmd("highlight LineNr guifg=white")
+    end,
+})
+
+-- Git branch function and statusline
 vim.cmd([[
-    set listchars=eol:¬,tab:>·,trail:~,extends:>,precedes:<,space:␣
-    set autoread                                                                                                                                                                                    
-    au CursorHold * silent! checktime
-    "colors and cursor
-    set encoding=UTF-8
-    set background=dark
-    set termguicolors
-    set guicursor=
-    set cmdheight=1
-    "utils and special features
-    set autoread
-    set splitbelow
-    set splitright
-    set mouse=
-    set updatetime=100
-    set encoding=utf-8
-    set hidden
-    set noerrorbells
-    set noswapfile
-    set nobackup
-    set undodir=~/.vim/undodir
-    set undofile
-    set shortmess+=c
-
-    "columns and numbers
-    set nowrap
-    set signcolumn=yes
-    set number
-    set relativenumber
-    set ruler
-    set scrolloff=13
-    set colorcolumn=100
-
-    "indenting
-    set autoindent
-    set smartindent
-    set tabstop=4 softtabstop=4
-    set shiftwidth=4
-    set expandtab
-    set confirm
-    set formatoptions-=c
-
-    "searching
-    set hls
-    set incsearch
-
-    set t_Co=256
-    set background=dark
-
-    "make WinSeparator invisible
-    highlight WinSeparator ctermbg=none guifg=bg   
-    highlight LineNr guifg=white
-
-    set spell spelllang=en_ca spo=camel
-    set syntax=ON   
-    let g:gitblame_enabled = 1
-    let g:choosewin_overlay_enable = 1
-    
-    "status 
-    function Gitbranch()
+    function! Gitbranch()
         return trim(system("git -C " . expand("%:h") . " branch --show-current 2>/dev/null"))
-        endfunction
+    endfunction
 
-        augroup Gitget
+    augroup Gitget
         autocmd!
         autocmd BufEnter * let b:git_branch = Gitbranch()
     augroup END
-
-    set statusline+=\ %t%y\~(%{b:git_branch})
 ]])
+
+vim.opt.statusline:append(" %t%y~(%{b:git_branch})")
+
+-- Global variables
+vim.g.gitblame_enabled = 1
+vim.g.choosewin_overlay_enable = 1
 
 vim.g.netrw_bufsettings = "noma nomod nu rnu nobl nowrap ro"
 
 -- Global statusline
 vim.opt.laststatus = 3
+
+-- Window movement keybinds
+vim.keymap.set("n", "<C-h>", "<C-w>h", { desc = "Move to left window" })
+vim.keymap.set("n", "<C-j>", "<C-w>j", { desc = "Move to bottom window" })
+vim.keymap.set("n", "<C-k>", "<C-w>k", { desc = "Move to top window" })
+vim.keymap.set("n", "<C-l>", "<C-w>l", { desc = "Move to right window" })
+
 require("config.lazy")
