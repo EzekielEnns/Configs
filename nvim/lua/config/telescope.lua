@@ -15,13 +15,17 @@ require("telescope").setup({
 		mappings = {},
 	},
 })
+
+-- Custom folder finder
 local pickers = require("telescope.pickers")
 local finders = require("telescope.finders")
 local conf = require("telescope.config").values
 local actions = require("telescope.actions")
 local action_state = require("telescope.actions.state")
+
 local dirs = vim.split(vim.fn.glob(vim.fn.getcwd() .. "/*/"), "\n", { trimemtpy = true })
 table.insert(dirs, vim.fn.getcwd())
+
 local folders = function(opts)
 	opts = opts or {}
 	pickers
@@ -35,8 +39,6 @@ local folders = function(opts)
 				actions.select_default:replace(function()
 					actions.close(prompt_bufnr)
 					local selection = action_state.get_selected_entry()
-					print(vim.inspect(selection))
-					--vim.api.nvim_put({ selection[1] }, "", false, true)
 					vim.api.nvim_set_current_dir(selection[1])
 				end)
 				return true

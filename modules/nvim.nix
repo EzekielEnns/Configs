@@ -21,63 +21,15 @@ tsgo = pkgs.buildNpmPackage {
       ls -l
     '';
 };
-myConfig = pkgs.vimUtils.buildVimPlugin {
+myConfig = pkgs.vimUtils.buildVimPlugin {  
   name = "my-config";
   src = ../nvim;
   recursive = true;
-  dependencies = with pkgs.vimPlugins; [
-        tsgo
-        plenary-nvim
-        typescript-tools-nvim
-        fidget-nvim
-        lspkind-nvim
-#tree sitter
-        nvim-treesitter
-        nvim-treesitter.withAllGrammars
-        nvim-treesitter-textobjects
-        nvim-treesitter-textobjects
-        nvim-treesitter-parsers.go
-        nvim-treesitter-parsers.gomod
-        nvim-treesitter-parsers.gosum
-#lsp
-
-        nvim-lspconfig 
-        trouble-nvim
-        nvim-lint
-#completion
-        nvim-cmp
-        cmp-spell
-        cmp-nvim-lsp
-        cmp-buffer
-        cmp-cmdline 
-        cmp-path
-        cmp_luasnip
-        cmp-nvim-lsp
-        telescope-nvim
-        vim-tmux-navigator
-        go-nvim
-luasnip
-        lsp_signature-nvim
-        neoformat
-        nvim-autopairs
-        nvim-web-devicons 
-        gruvbox
-        #ai
-        avante-nvim
-        nui-nvim
-        #other
-        nvim-notify
-        noice-nvim
-        vim-gitgutter
-        which-key-nvim
-        git-blame-nvim
-        comment-nvim
-  ];
 };
 myNeovim = pkgs.neovim.override {
   configure = {
     customRC = ''
-      lua require("init")
+      lua require("init-lazy")
     '';
     packages.myPlugins = with pkgs.vimPlugins; {
       start = [ 
@@ -107,31 +59,28 @@ myNeovim = pkgs.neovim.override {
 };
 in {
     environment.systemPackages = with pkgs; [
+        # Language servers and tools
         efm-langserver
         tree-sitter
-        #lemminx
-        #vscode-langservers-extracted
-        # quick-lint-js
-        # nil
         nodejs_24
         eslint_d
         typescript-language-server
         typescript
         codespell
-        # cargo
-        # rust-analyzer
-        # rustc
-        # libclang
         lua-language-server
         pnpm
         terraform-ls
         prettierd
         stylua
-        #nixpkgs-fmt
-        git
         gofumpt
         gopls
         go
+        
+        # Required for lazy.nvim plugin management
+        git
+        curl
+        
+        # Custom packages
         tsgo
         myNeovim
         pkgs-unstable.claude-code

@@ -1,13 +1,10 @@
-require("nvim-autopairs").setup()
 local cmp = require("cmp")
-local cmp_autopairs = require("nvim-autopairs.completion.cmp")
-cmp.event:on("confirm_done", cmp_autopairs.on_confirm_done())
+
 cmp.setup({
 	sources = {
 		{ name = "path" },
 		{ name = "nvim_lsp", keyword_length = 1 },
 		{ name = "buffer", keyword_length = 3 },
-		--{ name = 'vsnip',    keyword_length = 2 },
 		{ name = 'luasnip' },
 		{
 			name = "spell",
@@ -21,14 +18,10 @@ cmp.setup({
 	},
 	formatting = {
 		fields = { "menu", "abbr", "kind" },
-        -- format = require("lspkind").cmp_format({
-        --   before = require("tailwind-tools.cmp").lspkind_format
-        -- }),
       },
 	mapping = cmp.mapping.preset.insert({
 		["<TAB>"] = cmp.mapping.select_next_item(),
 		["<S-TAB>"] = cmp.mapping.select_prev_item(),
-		--["<>"] = cmp.mapping.select_next_item(),
 		["<CR>"] = cmp.mapping.confirm({ select = false }),
 		["<C-l>"] = cmp.mapping.complete(),
 	}),
