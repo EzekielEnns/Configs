@@ -130,5 +130,6 @@ in {
         go
         tsgo
         myNeovim
+        pkgs-unstable.claude-code
     ];
 }
