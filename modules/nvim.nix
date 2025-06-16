@@ -2,14 +2,18 @@
 let
 tsgo = pkgs.buildNpmPackage {
     pname = "tsgo";
-    version = "7.0.0-dev.20250609.1";
+#update version, 
+#1. use the end stub in url and version
+    version = "7.0.0-dev.20250616.1";
     src = pkgs.fetchurl {
-        url = "https://registry.npmjs.org/@typescript/native-preview/-/native-preview-7.0.0-dev.20250609.1.tgz";
-# You need to update this after first build!
-        sha256 = "sha256-UbrG1T8OinBfQFNpPeaKj9HMMaRcizmvOXYv8ovEAaY=";
+        url = "https://registry.npmjs.org/@typescript/native-preview/-/native-preview-7.0.0-dev.20250616.1.tgz";
+#2. nix flake update + build switch 
+        sha256 = "sha256-F2B1k+LadJlALStJ2O+JG+KD5OwyBveo6T1vvhFhAb4=";
     };
-#the test sha sha256-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-    npmDepsHash = "sha256-I1GMI0N+YIj3cLjpxst2JI9FbVLZkBj5e7FwYSY1uQg=";
+#3. do a npm i for the package, updating the lock file
+#4. use lib.fakeHash, do a build switch
+#5. update hash
+    npmDepsHash = "sha256-d+Su0g8GziIufu02R40You1pNRY8odQH/6GAMPhEvcE=";
     dontNpmBuild = true;
     postPatch = ''
       ls -l

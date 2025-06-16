@@ -1,0 +1,23 @@
+{
+  "name": "configs",
+  "version": "1.0.0",
+  "description": "this config is transtioning from using standard nix to using flakes so far the install steps are as follows: `nixos-rebuild --flake .#<laptop|desktop> switch --impure` `sh scripts/update_config.sh`",
+  "homepage": "https://github.com/EzekielEnns/Configs#readme",
+  "bugs": {
+    "url": "https://github.com/EzekielEnns/Configs/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/EzekielEnns/Configs.git"
+  },
+  "license": "ISC",
+  "author": "",
+  "type": "commonjs",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "dependencies": {
+    "@typescript/native-preview": "^7.0.0-dev.20250616.1"
+  }
+}

@@ -4,6 +4,7 @@ require("trouble").setup({})
 local lspconfig = require("lspconfig")
 local lsp_defaults = lspconfig.util.default_config
 local cap = vim.tbl_deep_extend('force', lsp_defaults.capabilities,require('cmp_nvim_lsp').default_capabilities())
+local configs = require("lspconfig.configs")
 lsp_defaults.capabilities = cap
 vim.api.nvim_create_autocmd("LspAttach", {
 	desc = "LSP actions",
@@ -52,20 +53,9 @@ require("typescript-tools").setup {
     }
   },
 }
-local handlers = {
-	["textDocument/hover"] = vim.lsp.with(vim.lsp.handlers.hover, { border = "rounded", silent = true }),
-	["textDocument/signatureHelp"] = vim.lsp.with(
-		vim.lsp.handlers.signature_help,
-		{ border = "rounded", silent = true }
-	),
-	["textDocument/publishDiagnostics"] = vim.lsp.with(
-		vim.lsp.diagnostic.on_publish_diagnostics,
-		{ virtual_text = true }
-	),
-}
-require('lspconfig').gdscript.setup({})
+lspconfig.gdscript.setup({})
 --require("lspconfig").eslint.setup({})
-require("lspconfig").gopls.setup({
+lspconfig.gopls.setup({
 	settings = {
 		gopls = {
 			completeUnimported = true,
@@ -73,7 +63,7 @@ require("lspconfig").gopls.setup({
 		},
 	},
 })
-require("lspconfig").terraformls.setup({})
+lspconfig.terraformls.setup({})
 lspconfig.lua_ls.setup({
 	settings = {
 		Lua = {
@@ -94,7 +84,7 @@ lspconfig.lua_ls.setup({
 		},
 	},
 })
-require("lspconfig").svelte.setup({})
+lspconfig.svelte.setup({})
 
 vim.api.nvim_create_autocmd({ "BufWritePre" }, {
 	pattern = { "*.tf", "*.tfvars" },
@@ -126,15 +116,24 @@ lspconfig.efm.setup({
 })
 
 
-vim.lsp.config("ts_go_ls", {
-    cmd = { "tsgo", "lsp", "-stdio" },
-    filetypes = {
+-- Define the custom LSP server configuration
+if not configs.ts_go_ls then
+  configs.ts_go_ls = {
+    default_config = {
+      cmd = { "tsgo", "--lsp", "-stdio" },
+      filetypes = {
         "javascript",
         "javascriptreact",
         "javascript.jsx",
         "typescript",
         "typescriptreact",
         "typescript.tsx",
+      },
+      root_dir = lspconfig.util.root_pattern("tsconfig.json", "jsconfig.json", "package.json", ".git"),
+      settings = {},
     },
-    root_markers = { "tsconfig.json", "jsconfig.json", "package.json", ".git" },
-})
+  }
+end
+
+-- Now setup the custom LSP server
+lspconfig.ts_go_ls.setup({})
