@@ -5,29 +5,31 @@ return {
     "MunifTanjim/nui.nvim",
     "rcarriga/nvim-notify",
   },
-  config = function()
-    require("noice").setup({
+  opts ={
       health = {
         checker = true,
       },
-      views = {
-        cmdline_popup = {
-          position = {
-            row = "90%",
-            col = "50%",
-          },
-          size = {
-            width = 60,
-            height = "auto",
-          },
-          border = {
-            style = "rounded",
-          },
-          win_options = {
-            winhighlight = { Normal = "Normal", FloatBorder = "FloatBorder" },
-          },
-        },
+      cmdline = {
+          view = "cmdline"
       },
+      -- views = {
+      --   cmdline_popup = {
+      --     position = {
+      --       row = "90%",
+      --       col = "50%",
+      --     },
+      --     size = {
+      --       width = 60,
+      --       height = "auto",
+      --     },
+      --     border = {
+      --       style = "rounded",
+      --     },
+      --     win_options = {
+      --       winhighlight = { Normal = "Normal", FloatBorder = "FloatBorder" },
+      --     },
+      --   },
+      -- },
       lsp = {
         override = {
           ["vim.lsp.util.convert_input_to_markdown_lines"] = true,
@@ -42,6 +44,6 @@ return {
         inc_rename = false,
         lsp_doc_border = false,
       },
-    })
-  end,
+
+  }
 }

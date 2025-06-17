@@ -1,6 +1,24 @@
 return {
     'nvim-telescope/telescope.nvim', tag = '0.1.8',
     dependencies = { 'nvim-lua/plenary.nvim' },
+    -- opts={
+    --         defaults = {
+    --             pickers = {
+    --                 buffer = {
+    --                     mappings = {
+    --                         n = {
+    --                             ["<c-c>"] = require("telescope.actions").delete_buffer,
+    --                         },
+    --                         i = {
+    --                             ["<c-c>"] = require("telescope.actions").delete_buffer,
+    --                         },
+    --                     },
+    --                 },
+    --             },
+    --             mappings = {},
+    --         },
+    --
+    -- },
     config = function()
         require("telescope").setup({
             defaults = {

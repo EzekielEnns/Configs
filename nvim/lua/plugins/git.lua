@@ -1,17 +1,17 @@
 return {
   {
-    "airblade/vim-gitgutter",
-    event = { "BufReadPre", "BufNewFile" },
+    "lewis6991/gitsigns.nvim",
+    opts = {}
+  },
+  {
+      "sindrets/diffview.nvim",
+      cmd = {"DiffviewOpen"},
+      opts = {}
   },
 
   -- Git blame
   {
     "f-person/git-blame.nvim",
     cmd = { "GitBlameToggle" },
-    config = function()
-      require("gitblame").setup({
-        enabled = false,
-      })
-    end,
   },
 }
