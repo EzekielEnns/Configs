@@ -1,4 +1,8 @@
-return {}
+return {
+    "pmizio/typescript-tools.nvim",
+    dependencies = { "nvim-lua/plenary.nvim", "neovim/nvim-lspconfig" },
+    opts = {},
+}
 -- Using default TypeScript LSP instead
 -- return {
 --   "pmizio/typescript-tools.nvim",

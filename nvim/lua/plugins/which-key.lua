@@ -23,6 +23,8 @@ return {
         {"<leader>ee", "<cmd>:Exp!<cr>",desc= "Explorer" },
         {"<leader>el", "<cmd>:Lexplore!<cr>",desc= "Explorer" },
         {"<leader>gb","<cmd>:GitBlameToggle<CR>", desc="git blame"},
+        {"<leader>gd","<cmd>:DiffviewOpen<CR>", desc="git blame"},
+        {"<leader>gc","<cmd>:DiffviewClose<CR>", desc="git blame"},
 
         {"<leader>h", "<cmd>lua vim.lsp.buf.signature_help()<cr>",desc= "lsp sig help" },
         {"<leader>lh","<cmd>lua vim.lsp.buf.hover()<cr>",desc= "hover" },
