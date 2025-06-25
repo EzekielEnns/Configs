@@ -71,7 +71,8 @@ in {
         lua-language-server
         pnpm
         terraform-ls
-        prettierd
+        nodePackages.prettier
+        prettierd 
         stylua
         gofumpt
         gopls
@@ -85,5 +86,9 @@ in {
         tsgo
         myNeovim
         pkgs-unstable.claude-code
+        pkgs-unstable.rustc
+        pkgs-unstable.rust-analyzer
+        pkgs-unstable.cargo
+
     ];
 }
