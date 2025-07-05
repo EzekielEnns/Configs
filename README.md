@@ -11,3 +11,17 @@ Recommended extensions:
 - `vscodevim.vim` for Vim keybindings
 - `VSpaceCode.whichkey` to show key hints similar to Neovim's WhichKey
 - `rlivings39.fzf-quick-open` for fuzzy file and text search (Telescope like)
+
+
+
+- [ ] clean up editor flow
+    - custom snippets
+    x line ref copy pastier
+    x git-branch/blame fix
+    x try getting https://github.com/stephansama/nvim/blob/main/lsp/tsgo.lua tsgo working again
+    x follow this https://madprofessorblog.org/articles/how-to-install-and-configure-typescript-go-as-an-lsp-in-neovim/
+    - fix snippets
+    - fix keybinds to make easier to deal with 
+    - maybe add harpoon/multi file jumps??
+    x undo tree
+    x disable git branch on nerwrt

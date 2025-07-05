@@ -50,30 +50,57 @@ vim.opt.spelloptions = "camel"
 
 -- Autocmds and functions that need vim.cmd
 vim.api.nvim_create_autocmd("CursorHold", {
-    callback = function()
-        vim.cmd("silent! checktime")
-    end,
+	callback = function()
+		vim.cmd("silent! checktime")
+	end,
 })
 
 -- Highlights
 vim.api.nvim_create_autocmd("VimEnter", {
-    callback = function()
-        vim.cmd("highlight WinSeparator ctermbg=none guifg=bg")
-        vim.cmd("highlight LineNr guifg=white")
-    end,
+	callback = function()
+		vim.cmd("highlight WinSeparator ctermbg=none guifg=bg")
+		vim.cmd("highlight LineNr guifg=white")
+	end,
 })
 
 -- Git branch function and statusline
-vim.cmd([[
-    function! Gitbranch()
-        return trim(system("git -C " . expand("%:h") . " branch --show-current 2>/dev/null"))
-    endfunction
+-- vim.cmd([[
+--     function! Gitbranch()
+--         return trim(system("git -C " . expand("%:h") . " branch --show-current 2>/dev/null"))
+--     endfunction
+--
+--     augroup Gitget
+--         autocmd!
+--         autocmd BufEnter * let b:git_branch = Gitbranch()
+--     augroup END
+-- ]])
+local function git_branch()
+	local filepath = vim.api.nvim_buf_get_name(0)
+	if filepath == "" or vim.bo.buftype ~= "" then
+		-- buffer isn't a real file, return empty
+		return " "
+	end
 
-    augroup Gitget
-        autocmd!
-        autocmd BufEnter * let b:git_branch = Gitbranch()
-    augroup END
-]])
+	local dir = vim.fn.fnamemodify(filepath, ":h")
+	local cmd = { "git", "-C", dir, "branch", "--show-current" }
+	local result = vim.fn.system(cmd)
+
+	if vim.v.shell_error ~= 0 then
+		-- git command failed (not a repo)
+		return "no git"
+	end
+
+	return vim.fn.trim(result)
+end
+
+-- update branch name on buffer enter safely
+vim.api.nvim_create_augroup("GitBranch", { clear = true })
+vim.api.nvim_create_autocmd("BufEnter", {
+	group = "GitBranch",
+	callback = function()
+		vim.b.git_branch = git_branch()
+	end,
+})
 
 vim.opt.statusline:append(" %t%y~(%{b:git_branch})")
 

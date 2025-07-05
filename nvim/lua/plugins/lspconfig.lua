@@ -34,11 +34,6 @@ return {
 		})
 
 		-- Language servers
-		vim.lsp.enable("gdscript")
-		--TODO vim.lsp.enable('gdshader_lsp')
-		vim.lsp.enable("gopls")
-		vim.lsp.config("gopls", {})
-		vim.lsp.enable("terraformls")
 		vim.lsp.config("lua_ls", {
 			on_init = function(client)
 				if client.workspace_folders then
@@ -87,26 +82,6 @@ return {
 				Lua = {},
 			},
 		})
-		vim.lsp.enable("lua_ls")
-
-		-- Custom tsgo LSP server
-		-- local configs = require("lspconfig.configs")
-		-- if not configs.ts_go_ls then
-		-- 	configs.ts_go_ls = {
-		-- 		default_config = {
-		-- 			cmd = { "tsgo", "--lsp", "-stdio" },
-		-- 			filetypes = {
-		-- 				"javascript",
-		-- 				"javascriptreact",
-		-- 				"typescript",
-		-- 				"typescriptreact",
-		-- 			},
-		-- 			root_dir = lspconfig.util.root_pattern("tsconfig.json", "jsconfig.json", "package.json", ".git"),
-		-- 			settings = {},
-		-- 		},
-		-- 	}
-		-- end
-		-- lspconfig.ts_go_ls.setup({})
 
 		-- EFM for eslint
 		local eslint = {
@@ -128,7 +103,6 @@ return {
 				},
 			},
 		})
-		vim.lsp.enable("efm")
 		vim.lsp.config("rust_analyzer", {
 			settings = {
 				["rust-analyzer"] = {
@@ -138,6 +112,14 @@ return {
 				},
 			},
 		})
-		vim.lsp.enable("rust_analyzer")
+		vim.lsp.enable({
+			"tsgo",
+			"gdscript",
+			"gopls",
+			"terraformls",
+			"efm",
+			"lua_ls",
+			"rust_analyzer",
+		})
 	end,
 }
