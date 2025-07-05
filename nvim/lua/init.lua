@@ -63,22 +63,11 @@ vim.api.nvim_create_autocmd("VimEnter", {
 	end,
 })
 
--- Git branch function and statusline
--- vim.cmd([[
---     function! Gitbranch()
---         return trim(system("git -C " . expand("%:h") . " branch --show-current 2>/dev/null"))
---     endfunction
---
---     augroup Gitget
---         autocmd!
---         autocmd BufEnter * let b:git_branch = Gitbranch()
---     augroup END
--- ]])
 local function git_branch()
 	local filepath = vim.api.nvim_buf_get_name(0)
 	if filepath == "" or vim.bo.buftype ~= "" then
 		-- buffer isn't a real file, return empty
-		return " "
+		return " - "
 	end
 
 	local dir = vim.fn.fnamemodify(filepath, ":h")
@@ -102,7 +91,41 @@ vim.api.nvim_create_autocmd("BufEnter", {
 	end,
 })
 
+_G.mode_indicator = function()
+	local modes = {
+		["n"] = "NORMAL",
+		["no"] = "NORMAL·OPERATOR",
+		["v"] = "VISUAL",
+		["V"] = "V·LINE",
+		["\22"] = "V·BLOCK",
+		["s"] = "SELECT",
+		["S"] = "S·LINE",
+		["\19"] = "S·BLOCK",
+		["i"] = "INSERT",
+		["R"] = "REPLACE",
+		["Rv"] = "V·REPLACE",
+		["c"] = "COMMAND",
+		["cv"] = "VIM·EX",
+		["ce"] = "EX",
+		["r"] = "PROMPT",
+		["rm"] = "MORE",
+		["r?"] = "CONFIRM",
+		["!"] = "SHELL",
+		["t"] = "TERMINAL",
+	}
+	local current_mode = vim.api.nvim_get_mode().mode
+	return modes[current_mode] or "UNKNOWN"
+end
+
+vim.o.statusline = table.concat({
+	"%#PmenuSel# ",
+	"%{v:lua.mode_indicator()} ",
+	"%#LineNr#",
+	" %f %=",
+	"%y [%l:%c]",
+})
 vim.opt.statusline:append(" %t%y~(%{b:git_branch})")
+vim.opt.showmode = true
 
 -- Global variables
 vim.g.gitblame_enabled = 1
@@ -114,9 +137,9 @@ vim.g.netrw_bufsettings = "noma nomod nu rnu nobl nowrap ro"
 vim.opt.laststatus = 3
 
 -- Window movement keybinds
-vim.keymap.set("n", "<C-h>", "<C-w>h", { desc = "Move to left window" })
-vim.keymap.set("n", "<C-j>", "<C-w>j", { desc = "Move to bottom window" })
-vim.keymap.set("n", "<C-k>", "<C-w>k", { desc = "Move to top window" })
-vim.keymap.set("n", "<C-l>", "<C-w>l", { desc = "Move to right window" })
+vim.keymap.set("n", "<M-h>", "<C-w>h", { desc = "Move to left window" })
+vim.keymap.set("n", "<M-j>", "<C-w>j", { desc = "Move to bottom window" })
+vim.keymap.set("n", "<M-k>", "<C-w>k", { desc = "Move to top window" })
+vim.keymap.set("n", "<M-l>", "<C-w>l", { desc = "Move to right window" })
 
 require("config.lazy")
