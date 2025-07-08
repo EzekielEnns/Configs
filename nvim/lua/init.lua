@@ -128,10 +128,16 @@ vim.opt.statusline:append(" %t%y~(%{b:git_branch})")
 vim.opt.showmode = true
 
 -- Global variables
-vim.g.gitblame_enabled = 1
+vim.g.gitblame_enabled = 0
 vim.g.choosewin_overlay_enable = 1
 
 vim.g.netrw_bufsettings = "noma nomod nu rnu nobl nowrap ro"
+
+-- Line movement keybinds
+vim.keymap.set('n', '<C-k>', ':m-2<CR>==', { noremap = true, silent = true })
+vim.keymap.set('n', '<C-j>', ':m+1<CR>==', { noremap = true, silent = true })
+vim.keymap.set('x', '<C-k>', ":m'<-2<CR>gv=gv", { noremap = true, silent = true })
+vim.keymap.set('x', '<C-j>', ":m'>+1<CR>gv=gv", { noremap = true, silent = true })
 
 -- Global statusline
 vim.opt.laststatus = 3

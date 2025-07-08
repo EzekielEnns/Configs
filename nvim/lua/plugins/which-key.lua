@@ -29,8 +29,6 @@ return {
 			{ "<leader>es", "<cmd>Sex!<cr>", desc = "Explorer" },
 			{ "<leader>ee", "<cmd>Exp!<cr>", desc = "Explorer" },
 			{ "<leader>el", "<cmd>Lexplore!<cr>", desc = "Explorer" },
-
-			-- git
 			{ "<leader>gb", "<cmd>GitBlameToggle<CR>", desc = "git blame" },
 			{ "<leader>gd", "<cmd>DiffviewOpen<CR>", desc = "git diff open" },
 			{ "<leader>gc", "<cmd>DiffviewClose<CR>", desc = "git diff close" },
