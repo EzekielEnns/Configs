@@ -134,18 +134,18 @@ vim.g.choosewin_overlay_enable = 1
 vim.g.netrw_bufsettings = "noma nomod nu rnu nobl nowrap ro"
 
 -- Line movement keybinds
-vim.keymap.set('n', '<C-k>', ':m-2<CR>==', { noremap = true, silent = true })
-vim.keymap.set('n', '<C-j>', ':m+1<CR>==', { noremap = true, silent = true })
-vim.keymap.set('x', '<C-k>', ":m'<-2<CR>gv=gv", { noremap = true, silent = true })
-vim.keymap.set('x', '<C-j>', ":m'>+1<CR>gv=gv", { noremap = true, silent = true })
+vim.keymap.set("n", "<M-h>", ":m-2<CR>==", { noremap = true, silent = true })
+vim.keymap.set("n", "<M-j>", ":m+1<CR>==", { noremap = true, silent = true })
+vim.keymap.set("x", "<M-h>", ":m'<-2<CR>gv=gv", { noremap = true, silent = true })
+vim.keymap.set("x", "<M-j>", ":m'>+1<CR>gv=gv", { noremap = true, silent = true })
 
 -- Global statusline
 vim.opt.laststatus = 3
 
 -- Window movement keybinds
-vim.keymap.set("n", "<M-h>", "<C-w>h", { desc = "Move to left window" })
-vim.keymap.set("n", "<M-j>", "<C-w>j", { desc = "Move to bottom window" })
-vim.keymap.set("n", "<M-k>", "<C-w>k", { desc = "Move to top window" })
-vim.keymap.set("n", "<M-l>", "<C-w>l", { desc = "Move to right window" })
+vim.keymap.set("n", "<C-h>", "<C-w>h", { desc = "Move to left window" })
+vim.keymap.set("n", "<C-j>", "<C-w>j", { desc = "Move to bottom window" })
+vim.keymap.set("n", "<C-k>", "<C-w>k", { desc = "Move to top window" })
+vim.keymap.set("n", "<C-l>", "<C-w>l", { desc = "Move to right window" })
 
 require("config.lazy")

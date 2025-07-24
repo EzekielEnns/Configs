@@ -12,23 +12,29 @@ return {
 		local wk = require("which-key")
 
 		wk.add({
+			--nav
 			{ "<leader>f", "<cmd>Telescope find_files<CR>", desc = "find files" },
-			{ "<leader>wr", "<cmd>WinResizerStartResize<cr>", desc = "Resize window" },
+			{ "<leader>s", "<cmd>WinResizerStartResize<cr>", desc = "Resize window" },
 			{ "<leader>w", "<cmd>set list!<CR>", desc = "toggle white space" },
 			{ "<leader>b", "<cmd>Telescope buffers<CR>", desc = "find buffers" },
 			{ "<leader>/", "<cmd>Telescope live_grep<CR>", desc = "find text" },
+			{ "<leader>j", "<cmd>Telescope jumplist<CR>", desc = "find text" },
+			{ "<leader>m", "<cmd>Telescope marks<CR>", desc = "find text" },
 			{ "<leader>d", "<cmd>Telescope diagnostics<CR>", desc = "look through diag" },
+			--lsp
 			{ "<leader>ls", "<cmd>Telescope lsp_document_symbols<CR>", desc = "document symbols" },
-			{ "<leader>lw", "<cmd>Telescope lsp_workspace_symbols<CR>", desc = "workspace symbols" },
+			{ "<leader>lw", "<cmd>Telescope lsp_dynamic_workspace_symbols<CR>", desc = "workspace symbols" },
 			{ "<leader>lr", "<cmd>Telescope lsp_references<CR>", desc = "references" },
-			{ "<leader>le", "<cmd>Telescope lsp_document_diagnostics<CR>", desc = "diagnostics" },
 			{ "<leader>li", "<cmd>Telescope lsp_implementations<CR>", desc = "implementation" },
 
+			--explore
 			{ "<leader>cd", "<cmd>lua folder_finder()<cr>", desc = "find Directory" },
 			{ "<leader>ev", "<cmd>Vex!<cr>", desc = "Explorer" },
 			{ "<leader>es", "<cmd>Sex!<cr>", desc = "Explorer" },
 			{ "<leader>ee", "<cmd>Exp!<cr>", desc = "Explorer" },
 			{ "<leader>el", "<cmd>Lexplore!<cr>", desc = "Explorer" },
+
+			--git
 			{ "<leader>gb", "<cmd>GitBlameToggle<CR>", desc = "git blame" },
 			{ "<leader>gd", "<cmd>DiffviewOpen<CR>", desc = "git diff open" },
 			{ "<leader>gc", "<cmd>DiffviewClose<CR>", desc = "git diff close" },
@@ -42,14 +48,12 @@ return {
 			{ "<leader>]", "<cmd>lua vim.diagnostic.goto_prev()<cr>", desc = "prev diagnostic" },
 			{ "<leader>[", "<cmd>lua vim.diagnostic.goto_next()<cr>", desc = "next diagnostic" },
 
+			--helpful
 			{ "<leader>p", '"+p', desc = "paste from clip", mode = { "v", "n" } },
 			{ "<leader>P", '"+P', desc = "paste from clip", mode = { "v", "n" } },
 			{ "<leader>y", '"+y', desc = "yank to clip", mode = { "v", "n" } },
 			{ "<leader>yy", '"+yy', desc = "yank line to clip", mode = { "v", "n" } },
 			{ "<leader>Y", '"+yg_', desc = "yank line", mode = { "v", "n" } },
-			{ "<leader>tr", "<cmd>setlocal relativenumber!<CR>", desc = "toggle relative lines", mode = { "v", "n" } },
-
-			-- New shortcut for copying cursor location
 			{
 				"<leader>cl",
 				function()
@@ -64,6 +68,71 @@ return {
 					vim.notify("Copied cursor location:\n" .. pos)
 				end,
 				desc = "copy cursor location relative to root",
+			},
+			{
+				"<leader>ch",
+				function()
+					local line = vim.api.nvim_get_current_line()
+					local row = vim.api.nvim_win_get_cursor(0)[1]
+					local col = vim.api.nvim_win_get_cursor(0)[2]
+
+					if #line <= 100 then
+						return
+					end
+
+					local indent = line:match("^%s*")
+					local content = line:sub(#indent + 1)
+
+					local parts = {}
+					while #content > 0 do
+						local max_len = 100 - #indent
+						if #content <= max_len then
+							table.insert(parts, indent .. content)
+							break
+						end
+
+						-- Find the last space before the 100-character limit
+						local cut_pos = nil
+						for i = max_len, 1, -1 do
+							if content:sub(i, i):match("%s") then
+								cut_pos = i
+								break
+							end
+						end
+
+						-- If no space found, don't split this line
+						if not cut_pos then
+							table.insert(parts, indent .. content)
+							break
+						end
+
+						table.insert(parts, indent .. content:sub(1, cut_pos - 1))
+						content = content:sub(cut_pos + 1):gsub("^%s+", "")
+					end
+
+					vim.api.nvim_buf_set_lines(0, row - 1, row, false, parts)
+					vim.api.nvim_win_set_cursor(0, { row, math.min(col, #parts[1]) })
+				end,
+				desc = "chop line at 100 chars",
+			},
+			--toggles
+			{ "<leader>tr", "<cmd>setlocal relativenumber!<CR>", desc = "toggle relative lines", mode = { "v", "n" } },
+
+			-- AI/Copilot bindings
+			{
+				"<leader>at",
+				function()
+					if vim.g.copilot_enabled == false then
+						vim.cmd("Copilot enable")
+						vim.g.copilot_enabled = true
+						vim.notify("Copilot enabled")
+					else
+						vim.cmd("Copilot disable")
+						vim.g.copilot_enabled = false
+						vim.notify("Copilot disabled")
+					end
+				end,
+				desc = "toggle copilot",
 			},
 		})
 	end,

@@ -14,6 +14,7 @@
                 bindkey -v
                 eval "$(starship init zsh)"
                 eval "$(direnv hook zsh)"
+                eval "$(zoxide init zsh)"
                 '';
         };
     };

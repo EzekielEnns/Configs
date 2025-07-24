@@ -24,7 +24,7 @@
             config.allowUnfree = true;
         };
         modules = [
-        ./darwin/config.nix 
+        ./darwin/config.nix
             home-manager.darwinModules.home-manager {
                 home-manager.useGlobalPkgs = true;
                 home-manager.useUserPackages = true;
@@ -44,7 +44,7 @@
             config.allowUnfree = true;
         };
         modules = 
-          [ ./nixos/hardware/bk.nix ./nixos/bk.nix  ./modules/general.nix 
+          [ ./nixos/hardware/bk.nix ./nixos/bk.nix  ./modules/general.nix
             home-manager.nixosModules.home-manager {
                 home-manager.useGlobalPkgs = true;
                 home-manager.useUserPackages = true;
@@ -69,7 +69,7 @@
             config.allowUnfree = true;
         };
         modules =
-          [ ./nixos/hardware/lp.nix ./nixos/lp.nix ./modules/general.nix 
+          [ ./nixos/hardware/lp.nix ./nixos/lp.nix ./modules/general.nix
             home-manager.nixosModules.home-manager {
                 home-manager.useGlobalPkgs = true;
                 home-manager.useUserPackages = true;
@@ -95,7 +95,7 @@
             config.allowUnfree = true;
         };
         modules = 
-          [ ./nixos/hardware/dk.nix ./nixos/dk.nix  ./modules/general.nix 
+          [ ./nixos/hardware/dk.nix ./nixos/dk.nix  ./modules/general.nix
             home-manager.nixosModules.home-manager {
                 home-manager.useGlobalPkgs = true;
                 home-manager.useUserPackages = true;

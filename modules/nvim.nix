@@ -77,7 +77,6 @@ in {
         gofumpt
         gopls
         go
-        
         # Required for lazy.nvim plugin management
         git
         curl

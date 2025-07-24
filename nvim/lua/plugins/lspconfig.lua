@@ -112,6 +112,7 @@ return {
 				},
 			},
 		})
+
 		vim.lsp.enable({
 			"tsgo",
 			"gdscript",
@@ -120,6 +121,7 @@ return {
 			"efm",
 			"lua_ls",
 			"rust_analyzer",
+			"csharp_ls",
 		})
 	end,
 }
