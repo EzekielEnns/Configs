@@ -66,10 +66,14 @@
     };
     #for silicon needed so far
     environment.extraInit = ''
-        #make sure brew is on the path for M1 
-        if [[ $(uname -m) == 'arm64' ]]; then
-            eval "$(/opt/homebrew/bin/brew shellenv)"
-                fi
+       #make sure brew is on the path for M1 
+       if [[ $(uname -m) == 'arm64' ]]; then
+           eval "$(/opt/homebrew/bin/brew shellenv)"
+       fi
+       # add Docker CLI to PATH if it exists
+      if [ -d "/Applications/Docker.app/Contents/Resources/bin/" ]; then
+        export PATH="$PATH:/Applications/Docker.app/Contents/Resources/bin/"
+      fi
     '';
     environment.shells = [ pkgs.zsh ];
     

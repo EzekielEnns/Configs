@@ -27,11 +27,15 @@ in
     home.file.".config/ghostty/config" = {
       force = true;
       text = ''
+        background-opacity = 0.85
         keybind = alt+left=unbind
         keybind = alt+right=unbind
         macos-option-as-alt = true
-        macos-titlebar-style = "native"
         macos-titlebar-proxy-icon = hidden
+        macos-non-native-fullscreen = true
+        # you must hold ⌥ (alt)
+        macos-titlebar-style = hidden
+        window-decoration = false
         keybind = ctrl+a>n=new_window
         keybind = ctrl+a>h=toggle_window_decorations
         font-size = 15
@@ -52,7 +56,7 @@ in
     home.file.".config/zellij/config.kdl" = {
         text = ''
             plugins {
-                tab-bar location="zellij:tab-bar"
+                    tab-bar location="zellij:tab-bar"
                     status-bar location="zellij:status-bar"
                     strider location="zellij:strider"
                     compact-bar location="zellij:compact-bar"

@@ -149,3 +149,14 @@ vim.keymap.set("n", "<C-k>", "<C-w>k", { desc = "Move to top window" })
 vim.keymap.set("n", "<C-l>", "<C-w>l", { desc = "Move to right window" })
 
 require("config.lazy")
+-- transparency
+vim.api.nvim_set_hl(0, "Normal", { bg = "none", ctermbg = "none" })
+vim.api.nvim_set_hl(0, "NonText", { bg = "none", ctermbg = "none" })
+
+vim.api.nvim_create_autocmd({ "ColorScheme" }, {
+	pattern = "*",
+	callback = function()
+		vim.api.nvim_set_hl(0, "Normal", { bg = "none", ctermbg = "none" })
+		vim.api.nvim_set_hl(0, "NonText", { bg = "none", ctermbg = "none" })
+	end,
+})

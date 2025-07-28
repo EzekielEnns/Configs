@@ -9,9 +9,6 @@ return {
 	-- build = 'cargo build --release',
 	-- If you use nix, you can build from source using latest nightly rust with:
 	-- build = 'nix run .#build-plugin',
-
-	---@module 'blink.cmp'
-	---@type blink.cmp.Config
 	opts = {
 		snippets = { preset = "luasnip" },
 		-- 'default' (recommended) for mappings similar to built-in completions (C-y to accept)
@@ -36,21 +33,16 @@ return {
 		},
 
 		appearance = {
-			-- 'mono' (default) for 'Nerd Font Mono' or 'normal' for 'Nerd Font'
-			-- Adjusts spacing to ensure icons are aligned
 			nerd_font_variant = "mono",
 		},
 
-		-- (Default) Only show the documentation popup when manually triggered
 		completion = {
+			ghost_text = { enabled = true },
 			trigger = {
 				show_in_snippet = true,
 			},
 			documentation = {
 				auto_show = true,
-			},
-			ghost_text = {
-				enable = true,
 			},
 			menu = {
 				draw = {
@@ -92,19 +84,17 @@ return {
 		},
 		signature = {
 			enabled = true,
-			show_on_insert = true,
-		},
-		providers = {
-			lazydev = {
-				name = "LazyDev",
-				module = "lazydev.integrations.blink",
-				score_offset = 100, -- make lazydev completions top priority (see `:h blink.cmp`)
-			},
 		},
 		-- Default list of enabled providers defined so that you can extend it
 		-- elsewhere in your config, without redefining it, due to `opts_extend`
 		sources = {
 			default = { "lsp", "path", "snippets", "buffer" },
+			-- npm = {
+			-- 	name = "npm",
+			-- 	module = "blink-cmp-npm",
+			-- 	async = true,
+			-- 	score_offset = 100,
+			-- },
 		},
 
 		-- (Default) Rust fuzzy matcher for typo resistance and significantly better performance
