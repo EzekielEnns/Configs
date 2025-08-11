@@ -88,6 +88,7 @@ in {
         pkgs-unstable.rustc
         pkgs-unstable.rust-analyzer
         pkgs-unstable.cargo
+        pkgs-unstable.omnisharp-roslyn
 
     ];
 }

@@ -4,6 +4,7 @@ return {
 	event = { "BufReadPre", "BufNewFile" },
 	dependencies = {
 		"ray-x/lsp_signature.nvim",
+		"hoffs/omnisharp-extended-lsp.nvim",
 	},
 	priority = 1000,
 	config = function()
@@ -113,7 +114,42 @@ return {
 			},
 		})
 
+		local pid = vim.fn.getpid()
+		vim.lsp.config("omnisharp", {
+			cmd = {
+				"OmniSharp",
+				"--languageserver",
+				"--hostPID",
+				tostring(pid),
+				"DotNet:enablePackageRestore=false",
+				"--encoding",
+				"utf-8",
+			},
+			handlers = {
+				["textDocument/definition"] = require("omnisharp_extended").definition_handler,
+				["textDocument/typeDefinition"] = require("omnisharp_extended").type_definition_handler,
+				["textDocument/references"] = require("omnisharp_extended").references_handler,
+				["textDocument/implementation"] = require("omnisharp_extended").implementation_handler,
+			},
+			on_init = function(client)
+				client.server_capabilities.semanticTokensProvider = nil
+			end,
+			settings = {
+				RoslynExtensionsOptions = {
+					EnableAnalyzersSupport = false,
+					EnableImportCompletion = false,
+				},
+				MsBuild = {
+					LoadProjectsOnDemand = true,
+				},
+				Sdk = {
+					IncludePrerelease = true,
+				},
+			},
+		})
+
 		vim.lsp.enable({
+			"omnisharp",
 			"tsgo",
 			"gdscript",
 			"gopls",

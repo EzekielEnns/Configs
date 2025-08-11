@@ -1,6 +1,10 @@
 return {
 	"github/copilot.vim",
 	event = "InsertEnter",
+	opt = {
+		suggestion = { enabled = false },
+		panel = { enabled = false },
+	},
 	config = function()
 		-- Disable default tab mapping
 		vim.g.copilot_no_tab_map = true
@@ -14,18 +18,5 @@ return {
 			replace_keycodes = false,
 			silent = true,
 		})
-		-- -- Accept word
-		-- vim.keymap.set("i", "<C-k>", 'copilot#AcceptWord("")', {
-		-- 	expr = true,
-		-- 	replace_keycodes = false,
-		-- 	silent = true,
-		-- })
-
-		-- Accept line
-		-- vim.keymap.set("i", "<C-Tab>", 'copilot#AcceptLine("")', {
-		-- 	expr = true,
-		-- 	replace_keycodes = false,
-		-- 	silent = true,
-		-- })
 	end,
 }
