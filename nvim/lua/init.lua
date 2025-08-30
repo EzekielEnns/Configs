@@ -149,6 +149,42 @@ vim.keymap.set("n", "<C-k>", "<C-w>k", { desc = "Move to top window" })
 vim.keymap.set("n", "<C-l>", "<C-w>l", { desc = "Move to right window" })
 
 require("config.lazy")
+-- require("lazy").setup({
+-- 	{
+-- 		"nvim-treesitter/nvim-treesitter",
+-- 		build = ":TSUpdate",
+-- 		config = function()
+-- 			local configs = require("nvim-treesitter.configs")
+--
+-- 			configs.setup({
+-- 				ensure_installed = {
+-- 					"c",
+-- 					"lua",
+-- 					"vim",
+-- 					"vimdoc",
+-- 					"query",
+-- 					"elixir",
+-- 					"heex",
+-- 					"javascript",
+-- 					"html",
+-- 					"go",
+-- 					"python",
+-- 					"rust",
+-- 					"json",
+-- 					"typescript",
+-- 					"css",
+-- 					"bash",
+-- 					"markdown",
+-- 					"yaml",
+-- 					"toml",
+-- 				},
+-- 				sync_install = false,
+-- 				highlight = { enable = true },
+-- 				indent = { enable = true },
+-- 			})
+-- 		end,
+-- 	},
+-- })
 -- transparency
 vim.api.nvim_set_hl(0, "Normal", { bg = "none", ctermbg = "none" })
 vim.api.nvim_set_hl(0, "NonText", { bg = "none", ctermbg = "none" })

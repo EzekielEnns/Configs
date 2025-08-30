@@ -13,7 +13,6 @@
     nix.package = pkgs.nix;
     nix.settings.experimental-features = "nix-command flakes";
     environment.systemPackages = with pkgs; [
-            pkgs-unstable.zellij
             zsh
             pkgs-unstable.youtube-music
             pkgs-unstable.jetbrains.rider
@@ -63,6 +62,7 @@
         NSGlobalDomain.AppleShowAllExtensions = true;
         NSGlobalDomain.AppleShowAllFiles=true;
         NSGlobalDomain.AppleICUForce24HourTime = false;
+        NSGlobalDomain._HIHideMenuBar = false;
     };
     #for silicon needed so far
     environment.extraInit = ''
@@ -87,9 +87,10 @@
         ];
         enable = true;
         global.autoUpdate = true;
-        casks=[ "docker" "chromium" "raycast" "zen-browser" "microsoft-azure-storage-explorer" "slack" "ghostty" "zoom" "macfuse" "godot" "obs" ]; 
+        casks=[ "docker" "chromium" "raycast" "zen-browser" "microsoft-azure-storage-explorer" "slack" "ghostty"  "obs"]; 
         #this is where you would put a app from the repo "koekeishiya/formulae/skhd"
         brews = [
+            "zellij"
             "direnv"
             "koekeishiya/formulae/yabai"
         ];

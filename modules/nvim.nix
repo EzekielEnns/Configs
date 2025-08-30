@@ -85,9 +85,7 @@ in {
         tsgo
         myNeovim
         pkgs-unstable.claude-code
-        pkgs-unstable.rustc
-        pkgs-unstable.rust-analyzer
-        pkgs-unstable.cargo
+        pkgs-unstable.rustup
         pkgs-unstable.omnisharp-roslyn
 
     ];

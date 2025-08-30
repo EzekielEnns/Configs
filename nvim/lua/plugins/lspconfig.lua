@@ -104,15 +104,15 @@ return {
 				},
 			},
 		})
-		vim.lsp.config("rust_analyzer", {
-			settings = {
-				["rust-analyzer"] = {
-					diagnostics = {
-						enable = false,
-					},
-				},
-			},
-		})
+		-- vim.lsp.config("rust_analyzer", {
+		-- 	settings = {
+		-- 		["rust-analyzer"] = {
+		-- 			diagnostics = {
+		-- 				enable = false,
+		-- 			},
+		-- 		},
+		-- 	},
+		-- })
 
 		local pid = vim.fn.getpid()
 		vim.lsp.config("omnisharp", {
@@ -150,7 +150,7 @@ return {
 
 		vim.lsp.enable({
 			"omnisharp",
-			"tsgo",
+			--"tsgo",
 			"gdscript",
 			"gopls",
 			"terraformls",
