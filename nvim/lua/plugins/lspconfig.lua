@@ -150,7 +150,6 @@ return {
 
 		vim.lsp.enable({
 			"omnisharp",
-			--"tsgo",
 			"gdscript",
 			"gopls",
 			"terraformls",
