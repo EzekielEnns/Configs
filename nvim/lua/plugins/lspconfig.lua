@@ -157,6 +157,11 @@ return {
 			"lua_ls",
 			"rust_analyzer",
 			"csharp_ls",
+			"cssls",
+			"html",
+			"eslint",
+			"jsonls",
+			"tailwindcss",
 		})
 	end,
 }

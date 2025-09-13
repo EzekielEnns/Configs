@@ -69,6 +69,8 @@ in {
         typescript
         codespell
         lua-language-server
+        vscode-langservers-extracted
+        tailwindcss-language-server
         pnpm
         terraform-ls
         nodePackages.prettier
