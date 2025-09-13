@@ -18,6 +18,7 @@
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "dependencies": {
-    "@typescript/native-preview": "7.0.0-dev.20250705.1"
+    "@typescript/native-preview": "7.0.0-dev.20250705.1",
+    "opencode-ai": "^0.7.9"
   }
 }

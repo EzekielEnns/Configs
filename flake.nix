@@ -95,7 +95,7 @@
             config.allowUnfree = true;
         };
         modules = 
-          [ ./nixos/hardware/dk.nix ./nixos/dk.nix  ./modules/general.nix
+          [ ./modules/ai.nix ./nixos/hardware/dk.nix ./nixos/dk.nix  ./modules/general.nix
             home-manager.nixosModules.home-manager {
                 home-manager.useGlobalPkgs = true;
                 home-manager.useUserPackages = true;

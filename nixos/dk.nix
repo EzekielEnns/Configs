@@ -1,5 +1,4 @@
-{ config, pkgs, ... }:
-
+{ config, pkgs,  ... }:
 {
   networking.interfaces.enp6s0.wakeOnLan = {
     enable = true;
@@ -35,33 +34,46 @@
     package = config.boot.kernelPackages.nvidiaPackages.production;
   };
 
-  services.nginx = {
+  services.ollama = {
     enable = true;
-    recommendedGzipSettings = true;
-    recommendedOptimisation = true;
-    recommendedProxySettings = true;
-    recommendedTlsSettings = true;
-    virtualHosts."192.168.0.105:5001" = {
-      locations = {
-         "/" = {
-           proxyPass = "https://localhost:5001";
-           #websocket support should work even if not websocket
-           proxyWebsockets = true;
-        };
-      };
-    };
-    virtualHosts."192.168.0.105" = {
-      locations = {
-         "/" = {
-           proxyPass = "https://localhost:3000";
-        };
-         "/hubs" = {
-           proxyPass = "https://localhost:5001/hubs";
-           proxyWebsockets = true;
-        };
+    acceleration = "cuda";
+    host = "0.0.0.0";
+  };
+    # services.open-webui = {
+    #     enable = true;
+    #     port = 8080;  # Default port is 8080, you can change it if needed
+    #     environment = {
+    #         ANONYMIZED_TELEMETRY = "False";
+    #         DO_NOT_TRACK = "True";
+    #         SCARF_NO_ANALYTICS = "True";
+    #         OLLAMA_API_BASE_URL = "http://127.0.0.1:11434";  # Points to your local Ollama instance
+    #         WEBUI_AUTH = "False";  # Optional: disable authentication
+    #     };
+    # };
+  hardware.opengl = {
+    enable = true;
+  };
+
+services.nginx = {
+  enable = true;
+  recommendedGzipSettings = true;
+  recommendedOptimisation = true;
+  recommendedProxySettings = true;
+  recommendedTlsSettings = true;
+  
+  # Just the virtual host for the LLM interface (Open WebUI)
+  virtualHosts."192.168.1.6" = {
+    locations = {
+      "/" = {
+        proxyPass = "http://localhost:8080";  # Open WebUI runs on HTTP by default
+        proxyWebsockets = true;  # Important for real-time interactions in the UI
       };
     };
   };
+};
+
+# Don't forget to allow the necessary ports in your firewall
+networking.firewall.allowedTCPPorts = [ 80 443 11434 ];  # ← Added 11434
 
 }
 

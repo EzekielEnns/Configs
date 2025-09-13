@@ -1,25 +1,32 @@
 {config,pkgs,pkgs-unstable,lib,...}:
 let
-tsgo = pkgs.buildNpmPackage {
-    pname = "tsgo";
-#update version, 
-#1. use the end stub in url and version
-    version = "7.0.0-dev.20250705.1";
-    src = pkgs.fetchurl {
-        url = "https://registry.npmjs.org/@typescript/native-preview/-/native-preview-7.0.0-dev.20250705.1.tgz";
-#2. nix flake update + build switch 
-        sha256 = "sha256-rr0HVxz5axXO3/3G1TH4XlRuT9XMckqD/x+mmOs1Em0=";
-    };
-#3. do a npm i for the package, updating the lock file or npm update
-#4. use lib.fakeHash, do a build switch
-#5. update hash
-    npmDepsHash = "sha256-cl5TH47ha5EHPpf5K7pGfogBfARHn+q1uP7/u6uWNGU=";
-    dontNpmBuild = true;
-    postPatch = ''
-      ls -l
-      cp ${../package-lock.json} ./package-lock.json
-      ls -l
-    '';
+opencode = pkgs.python3Packages.buildPythonApplication {
+  pname = "opencode";
+  version = "latest";
+  src = pkgs.fetchFromGitHub {
+    owner = "xichen1997";
+    repo = "opencode";
+    rev = "main";
+    sha256 = "sha256-RRTFHgKBz0zrnZUOuAc/31kFtfq6odbNpkmBgWNIGE4=";
+  };
+  
+  # Python dependencies - you'll need to add these based on requirements.txt
+  propagatedBuildInputs = with pkgs.python3Packages; [
+    click
+    requests
+    pyyaml
+    rich
+    # Add other dependencies from requirements.txt here
+  ];
+  
+  # Skip tests if they exist
+  doCheck = false;
+  
+  postPatch = ''
+    ls -l
+    # Any patches needed
+    ls -l
+  '';
 };
 myConfig = pkgs.vimUtils.buildVimPlugin {  
   name = "my-config";
@@ -82,13 +89,13 @@ in {
         # Required for lazy.nvim plugin management
         git
         curl
+        gcc
         
         # Custom packages
-        tsgo
         myNeovim
         pkgs-unstable.claude-code
         pkgs-unstable.rustup
         pkgs-unstable.omnisharp-roslyn
-
+        opencode
     ];
 }

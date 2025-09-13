@@ -219,5 +219,30 @@ in
     home.file.".config/zellij/layouts/.keep" = {
         text = "keep";
     };
+        home.file.".config/opencode/opencode.json" = {
+            force = true;
+            text = ''
+    {
+      "$schema": "https://opencode.ai/config.json",
+      "provider": {
+        "ollama": {
+          "npm": "@ai-sdk/openai-compatible",
+          "name": "Ollama (local)",
+          "options": {
+            "baseURL": "http://192.168.1.6:11434/v1"
+          },
+          "models": {
+            "deepseek-coder:6.7b": {
+              "name": "DeepSeek Coder 6.7B"
+            },
+            "deepseek-coder-v2:16b": {
+              "name": "DeepSeek Coder V2 16B"
+            }
+          }
+        }
+      }
+    }
+            '';
+        };
   };
 }
