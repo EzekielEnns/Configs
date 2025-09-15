@@ -1,33 +1,5 @@
 {config,pkgs,pkgs-unstable,lib,...}:
 let
-opencode = pkgs.python3Packages.buildPythonApplication {
-  pname = "opencode";
-  version = "latest";
-  src = pkgs.fetchFromGitHub {
-    owner = "xichen1997";
-    repo = "opencode";
-    rev = "main";
-    sha256 = "sha256-RRTFHgKBz0zrnZUOuAc/31kFtfq6odbNpkmBgWNIGE4=";
-  };
-  
-  # Python dependencies - you'll need to add these based on requirements.txt
-  propagatedBuildInputs = with pkgs.python3Packages; [
-    click
-    requests
-    pyyaml
-    rich
-    # Add other dependencies from requirements.txt here
-  ];
-  
-  # Skip tests if they exist
-  doCheck = false;
-  
-  postPatch = ''
-    ls -l
-    # Any patches needed
-    ls -l
-  '';
-};
 myConfig = pkgs.vimUtils.buildVimPlugin {  
   name = "my-config";
   src = ../nvim;
@@ -96,6 +68,5 @@ in {
         pkgs-unstable.claude-code
         pkgs-unstable.rustup
         pkgs-unstable.omnisharp-roslyn
-        opencode
     ];
 }
