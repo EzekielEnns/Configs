@@ -1,10 +1,5 @@
-[ ] move finder script into tmux
-[ ] make float windows a thing tmux
-[ ] add tmux bind for rename window
-[ ] look into session storing tmux
-
-
-
+- open ssh locally
+- setup some kind of torrenting box?
 
 
 
