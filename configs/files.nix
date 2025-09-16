@@ -227,17 +227,17 @@ in
       "provider": {
         "ollama": {
           "npm": "@ai-sdk/openai-compatible",
-          "name": "Ollama (local)",
           "options": {
             "baseURL": "http://192.168.1.6:11434/v1"
           },
           "models": {
-            "deepseek-coder:6.7b": {
-              "name": "DeepSeek Coder 6.7B"
+            "qwen3:14b": {
+              "tools":true,
+              "reasoning": true
             },
-            "deepseek-coder-v2:16b": {
-              "name": "DeepSeek Coder V2 16B"
-            }
+            "kirito1/qwen3-coder:latest": {
+              "tools":true
+            },
           }
         }
       }
