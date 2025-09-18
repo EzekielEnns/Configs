@@ -18,14 +18,13 @@ return {
 		provider = "ollama",
 		providers = {
 			ollama = {
-				endpoint = "http://127.0.0.1:11434/v1",
-
+				endpoint = "http://192.168.1.6:11434",
 				-- 👇 Pick ONE default model here (keep the others for quick switching)
 				-- All are <=14B and known good for local coding/chat:
 				--   - llama3.1:8b-instruct         (fast + reliable tool-following)
 				--   - qwen2.5-coder:14b-instruct   (strong coder, bigger context helps)
 				--   - qwen2.5:14b-instruct         (general instruct, good coding)
-				model = "deepseek-coder-v2:16b",
+				model = "qwen2.5-coder:7b",
 
 				timeout = 30000, -- ms
 				-- These map to OpenAI-compatible fields; Ollama ignores some (e.g. max_tokens)
