@@ -40,7 +40,7 @@ in
         keybind = ctrl+a>h=toggle_window_decorations
         font-size = 15
         font-family = "Monofur Nerd Font Mono"
-        theme = gruvbox-material
+        theme = Gruvbox Dark
         quit-after-last-window-closed = true
         cursor-style = block
         cursor-style-blink = false

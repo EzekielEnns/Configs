@@ -63,10 +63,12 @@ in {
         curl
         gcc
         
-        # Custom packages
-        myNeovim
-        pkgs-unstable.claude-code
         pkgs-unstable.rustup
         pkgs-unstable.omnisharp-roslyn
+        pkgs-unstable.bun
+        myNeovim
+        # ai
+        pkgs-unstable.claude-code
+        pkgs-unstable.aider-chat
     ];
 }

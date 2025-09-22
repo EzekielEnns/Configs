@@ -10,19 +10,20 @@
             settings = {
                 add_newline = false;
                 command_timeout = 10000;
-                format ="$all[$time]($style) $cmd_duration$line_break[>>](bold blue) ";
+                format ="$all$time$line_break[>>](bold blue) ";
                 time = {
                     disabled = false;
-                    time_format = "%Y-%m-%d %H:%M:%S"; 
-                    format = "$time";                
-                    style = "bold dimmed";
+                    time_format = "%T"; 
+                    format = "[$time]($style)";                
+                    style = "italic dimmed white";
                 };
 
                 cmd_duration = {
                     min_time = 0;                      
-                    format = "took [$duration]($style)";
+                    format = "[$duration]($style)";
                     show_milliseconds = true;
-                    style = "italic";
+                    style = "italic dimmed white";
+                    #                    style = "italic";
                 };
                 character = {
                     success_symbol ="";
