@@ -58,7 +58,7 @@
       i18n.defaultLocale = "en_CA.UTF-8";
 
       services.blueman.enable = true;
-      hardware.pulseaudio.enable = false;
+      services.pulseaudio.enable = false;
       security.rtkit.enable = true;
       services.pipewire = {
         enable = true;

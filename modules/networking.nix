@@ -8,14 +8,6 @@
       # networking
       networking.networkmanager.enable = true;
       networking.wireless.userControlled.enable = true;
-      services.openssh = {
-          enable = true;
-          settings = {
-              PasswordAuthentication = true;
-              PermitRootLogin = "yes";
-              X11Forwarding = true;
-          };
-      };
       networking.firewall.enable = false;
       networking.enableIPv6 = false;
 }
