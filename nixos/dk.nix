@@ -85,7 +85,7 @@ default_doi_resolver: "doi.org"
             ai = {
                 image = "ghcr.io/open-webui/open-webui:main";
                 extraOptions = [ "--network=host" ];
-                volumes = [ "/var/lib/ai:/app/backend/data" ];
+                volumes = [ "/var/lib/openwebui:/app/backend/data" ];
                 environment = { 
                     RAG_WEB_SEARCH_ENGINE = "xng";
                     RAG_WEB_SEARCH_RESULT_COUNT = "3";
@@ -107,9 +107,7 @@ default_doi_resolver: "doi.org"
         recommendedProxySettings = true;
         virtualHosts = {
             "xng.lan" = {
-                # Use a unique local domain name for each service
                 serverName = "xng.lan";
-                # Define the proxy pass to the internal port
                 locations."/" = {
                     proxyPass = "http://127.0.0.1:8088";
                 };
@@ -118,7 +116,6 @@ default_doi_resolver: "doi.org"
                 serverName = "ai.lan";
                 locations."/" = {
                     proxyPass = "http://127.0.0.1:8080";
-                    # Required for WebSocket connections used by Open WebUI
                     proxyWebsockets = true;
                 };
             };
@@ -136,19 +133,26 @@ default_doi_resolver: "doi.org"
             };
         };
     };
-    #on mac you need to add the server to dns under settings-> network -> details
-    #then do sudo mkdir -p /etc/resolver && sudo nvim /etc/resolver/lan 
-    #add nameserver 192.168.1.6
+    /*
+    on mac you need to add the server to dns under settings-> network -> details
+    then do sudo mkdir -p /etc/resolver && sudo nvim /etc/resolver/lan 
+    add nameserver 192.168.1.6
+    use this to test
+    scutil --dns | grep lan -A3
+    dig ai.lan
+    curl ai.lan
+    remebmer to add the dns to the router, also browsers require http://*.lan they will not auto fill
+    */
     services.dnsmasq = {
         enable = true;
 
-        resolveLocalQueries = false;  # prevents touching resolv.conf
+        resolveLocalQueries = false; 
 
         settings = {
             # Bind on loopback + your LAN IP
             "listen-address" = [ "127.0.0.1" "192.168.1.6" ];
 
-            # Upstream resolvers (Cloudflare)
+            # Upstream resolvers (Cloudflare) -> lets you check online with real dns
             server = [ "1.1.1.1" "1.0.0.1" ];
 
             # Pin local names to your host's LAN IP
@@ -162,11 +166,9 @@ default_doi_resolver: "doi.org"
             # Sensible DNS hygiene
             "domain-needed" = true;
             "bogus-priv"   = true;
-            # "bind-interfaces" = true;  # uncomment if you want strict binding
         };
     };
 
-    # If other devices on your LAN should use this box for DNS:
     networking.interfaces.enp6s0.wakeOnLan = {
         enable = true;
     };
