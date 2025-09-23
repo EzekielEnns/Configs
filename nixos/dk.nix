@@ -2,7 +2,7 @@
 {
     services.step-ca = {
         enable = true;
-        address = "127.0.0.1:9000";  # local only
+        address = "127.0.0.1:9000";  
     };
 
     # Use NixOS ACME client against your private step-ca ACME directory
@@ -28,42 +28,38 @@
         enable = true;
         recommendedProxySettings = true;
         recommendedTlsSettings = true;
-        # Nginx will automatically serve the ACME webroot at /.well-known/acme-challenge
-        # when you use useACMEHost/enableACME.
+
         virtualHosts = {
-            #reserved domain, actually pretty cool
-            #https://en.wikipedia.org/wiki/.arpa#Residential_networking
             "xng.home.arpa" = {
-                forceSSL = true;
-                # Use a unique local domain name for each service
                 serverName = "xng.home.arpa";
-                # Define the proxy pass to the internal port
-                locations."/" = {
-                    proxyPass = "http://127.0.0.1:8088";
-                };
+                forceSSL = true;
+                enableACME = true;
+                useACMEHost = "xng.home.arpa";
+                locations."/" = { proxyPass = "http://127.0.0.1:8088"; };
             };
             "ai.home.arpa" = {
                 serverName = "ai.home.arpa";
                 forceSSL = true;
+                enableACME = true;
+                useACMEHost = "ai.home.arpa";
                 locations."/" = {
                     proxyPass = "http://127.0.0.1:8080";
-                    # Required for WebSocket connections used by Open WebUI
                     proxyWebsockets = true;
                 };
             };
             "mm.home.arpa" = {
                 serverName = "mm.home.arpa";
                 forceSSL = true;
-                locations."/" = {
-                    proxyPass = "http://127.0.0.1:5230";
-                };
+                enableACME = true;
+                useACMEHost = "mm.home.arpa";
+                locations."/" = { proxyPass = "http://127.0.0.1:5230"; };
             };
             "jf.home.arpa" = {
                 serverName = "jf.home.arpa";
                 forceSSL = true;
-                locations."/" = {
-                    proxyPass = "http://127.0.0.1:8096";
-                };
+                enableACME = true;
+                useACMEHost = "jf.home.arpa";
+                locations."/" = { proxyPass = "http://127.0.0.1:8096"; };
             };
         };
     };
