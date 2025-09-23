@@ -1,5 +1,111 @@
 { config, pkgs,  ... }:
 {
+    services.step-ca = {
+        enable = true;
+        address = "127.0.0.1:9000";  # local only
+    };
+
+    # Use NixOS ACME client against your private step-ca ACME directory
+    # URL format: https://<ca-host>:<port>/acme/<provisioner-name>/directory
+    security.acme = {
+        acceptTerms = true;
+        defaults = {
+            email = "zeek.enns@pm.me";
+            server = "https://127.0.0.1:9000/acme/acme/directory";
+            # Let NixOS place HTTP-01 challenges under a shared webroot nginx will serve
+            webroot = "/var/lib/acme/.well-known";
+            group = "nginx";
+        };
+        certs = {
+            "xng.home.arpa" = { domain = "xng.home.arpa"; };
+            "ai.home.arpa"  = { domain = "ai.home.arpa"; };
+            "mm.home.arpa"  = { domain = "mm.home.arpa"; };
+            "jf.home.arpa"  = { domain = "jf.home.arpa"; };
+        };
+    };
+
+    services.nginx = {
+        enable = true;
+        recommendedProxySettings = true;
+        recommendedTlsSettings = true;
+        # Nginx will automatically serve the ACME webroot at /.well-known/acme-challenge
+        # when you use useACMEHost/enableACME.
+        virtualHosts = {
+            #reserved domain, actually pretty cool
+            #https://en.wikipedia.org/wiki/.arpa#Residential_networking
+            "xng.home.arpa" = {
+                forceSSL = true;
+                # Use a unique local domain name for each service
+                serverName = "xng.home.arpa";
+                # Define the proxy pass to the internal port
+                locations."/" = {
+                    proxyPass = "http://127.0.0.1:8088";
+                };
+            };
+            "ai.home.arpa" = {
+                serverName = "ai.home.arpa";
+                forceSSL = true;
+                locations."/" = {
+                    proxyPass = "http://127.0.0.1:8080";
+                    # Required for WebSocket connections used by Open WebUI
+                    proxyWebsockets = true;
+                };
+            };
+            "mm.home.arpa" = {
+                serverName = "mm.home.arpa";
+                forceSSL = true;
+                locations."/" = {
+                    proxyPass = "http://127.0.0.1:5230";
+                };
+            };
+            "jf.home.arpa" = {
+                serverName = "jf.home.arpa";
+                forceSSL = true;
+                locations."/" = {
+                    proxyPass = "http://127.0.0.1:8096";
+                };
+            };
+        };
+    };
+    #Note on macos you need to set this as your dns ..... fml i hate macos
+    services.dnsmasq = {
+        enable = true;
+
+        # Don't point this host at itself unless you want local DNS resolution
+        # via /etc/resolv.conf. Most folks keep this off.
+        resolveLocalQueries = false;  # prevents touching resolv.conf
+
+        settings = {
+            # Bind on loopback + your LAN IP
+            "listen-address" = [ "127.0.0.1" "192.168.1.6" ];
+
+            # Upstream resolvers (Cloudflare)
+            server = [ "1.1.1.1" "1.0.0.1" ];
+
+            # Pin local names to your host's LAN IP
+            address = [
+                "/ca.home.arpa/192.168.1.6"
+                "/xng.home.arpa/192.168.1.6"
+                "/ai.home.arpa/192.168.1.6"
+                "/mm.home.arpa/192.168.1.6"
+                "/jf.home.arpa/192.168.1.6"
+            ];
+
+            # Sensible DNS hygiene
+            "domain-needed" = true;
+            "bogus-priv"   = true;
+            # "bind-interfaces" = true;  # uncomment if you want strict binding
+        };
+    };
+
+    # If other devices on your LAN should use this box for DNS:
+    networking.interfaces.enp6s0.wakeOnLan = {
+        enable = true;
+    };
+    networking.networkmanager.enable = true;
+    networking.networkmanager.unmanaged = ["enp6s0"];
+    networking.firewall.allowedUDPPorts = [ 53 ];
+    networking.firewall.allowedTCPPorts = [ 53 8096  22 80 443 11434 8554 9000  ];
 
     services.ollama = {
         enable = true;
@@ -102,76 +208,6 @@ default_doi_resolver: "doi.org"
         };
     };
 
-    services.nginx = {
-        enable = true;
-        recommendedProxySettings = true;
-        virtualHosts = {
-            "searxng.local" = {
-                # Use a unique local domain name for each service
-                serverName = "searxng.local";
-                # Define the proxy pass to the internal port
-                locations."/" = {
-                    proxyPass = "http://127.0.0.1:8088";
-                };
-            };
-            "openwebui.local" = {
-                serverName = "openwebui.local";
-                locations."/" = {
-                    proxyPass = "http://127.0.0.1:8080";
-                    # Required for WebSocket connections used by Open WebUI
-                    proxyWebsockets = true;
-                };
-            };
-            "memos.local" = {
-                serverName = "memos.local";
-                locations."/" = {
-                    proxyPass = "http://127.0.0.1:5230";
-                };
-            };
-            "jellyfin.local" = {
-                serverName = "jellyfin.local";
-                locations."/" = {
-                    proxyPass = "http://127.0.0.1:8096";
-                };
-            };
-        };
-    };
-    services.dnsmasq = {
-        enable = true;
 
-        # Don't point this host at itself unless you want local DNS resolution
-        # via /etc/resolv.conf. Most folks keep this off.
-        resolveLocalQueries = false;  # prevents touching resolv.conf
-
-        settings = {
-            # Bind on loopback + your LAN IP
-            "listen-address" = [ "127.0.0.1" "192.168.1.6" ];
-
-            # Upstream resolvers (Cloudflare)
-            server = [ "1.1.1.1" "1.0.0.1" ];
-
-            # Pin local names to your host's LAN IP
-            address = [
-                "/searxng.local/192.168.1.6"
-                "/openwebui.local/192.168.1.6"
-                "/memos.local/192.168.1.6"
-                "/jellyfin.local/192.168.1.6"
-            ];
-
-            # Sensible DNS hygiene
-            "domain-needed" = true;
-            "bogus-priv"   = true;
-            # "bind-interfaces" = true;  # uncomment if you want strict binding
-        };
-    };
-
-    # If other devices on your LAN should use this box for DNS:
-    networking.interfaces.enp6s0.wakeOnLan = {
-        enable = true;
-    };
-    networking.networkmanager.enable = true;
-    networking.networkmanager.unmanaged = ["enp6s0"];
-    networking.firewall.allowedUDPPorts = [ 53 ];
-    networking.firewall.allowedTCPPorts = [ 53 8096  22 80 443 11434 8554 ];
 }
 
