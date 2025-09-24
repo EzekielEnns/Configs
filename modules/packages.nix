@@ -35,7 +35,7 @@
     pavucontrol
     udisks
     ripgrep
-    terminus-nerdfont
+    nerd-fonts.terminess-ttf
     tldr
     trash-cli
     unzip
