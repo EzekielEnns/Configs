@@ -50,7 +50,7 @@ nix store prefetch-file --hash-type sha256 --json \
             };
             nvidia-container-toolkit.enable=true;
             steam-hardware.enable = true;
-            #show gpu temps nvidia-smi
+            #show gpu temps  watch -n0.5 nvidia-smi
             # nix-shell -p pciutils --run "lspci | grep -E 'VGA|3D'"
             nvidia = {
                 modesetting.enable = true;
