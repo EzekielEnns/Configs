@@ -58,8 +58,12 @@ in
           "silly" = {
             aliases = [ "stheno-8b" "st" "silly" ];
             cmd = "${llamaServer} --host 127.0.0.1 --port \${PORT} "
-              + "-m /var/lib/llama-cpp/models/L3-8B-Stheno-v3.2-Q4_K_S.gguf "
-              + "-ngl 99 -c 3072 -b 1024 --parallel 1";
+              + "-m /var/lib/llama-cpp/models/MN-12B-Mag-Mell-Q4_K_M.gguf "
+              + "-ngl 999 -c 8192 -b 1024 --parallel 1";
+            # aliases = [ "stheno-8b" "st" "silly" ];
+            # cmd = "${llamaServer} --host 127.0.0.1 --port \${PORT} "
+            #   + "-m /var/lib/llama-cpp/models/L3-8B-Stheno-v3.2-Q4_K_S.gguf "
+            #   + "-ngl 99 -c 3072 -b 1024 --parallel 1";
           };
 
         };
@@ -162,12 +166,14 @@ in
         };
         #TODO make account
         qbittorrent = {
+          extraOptions = [ "--network=host" ];
           image = "lscr.io/linuxserver/qbittorrent:latest";
-          ports = [ "8083:8080" "6881:6881" "6881:6881/udp" ];
+          #ports = [ "8083:8080" "6881:6881" "6881:6881/udp" ];
           volumes = [
             "/srv/media/torrents:/downloads" # downloads land here
             "/var/qbit/config:/config"
           ];
+          environment = { WEBUI_PORT = "8083"; };
         };
 
         silverBullet = {
