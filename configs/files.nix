@@ -1,18 +1,19 @@
-{ config, pkgs, ... }: 
+{ config, pkgs, ... }:
 let
   zellijAutolock = pkgs.fetchurl {
-    url = "https://github.com/fresh2dev/zellij-autolock/releases/download/0.2.2/zellij-autolock.wasm";
+    url =
+      "https://github.com/fresh2dev/zellij-autolock/releases/download/0.2.2/zellij-autolock.wasm";
     sha256 = "194fgd421w2j77jbpnq994y2ma03qzdlz932cxfhfznrpw3mdjb9";
   };
 in
 {
   config = {
 
-#TODO move cause this is a bad spot for it
-   programs.zoxide = {
-       enable = true;
-       enableZshIntegration = true;
-   };
+    #TODO move cause this is a bad spot for it
+    programs.zoxide = {
+      enable = true;
+      enableZshIntegration = true;
+    };
     home.file.".ideavimrc" = {
       source = ./../misc/.ideavimrc;
       recursive = true;
@@ -54,7 +55,7 @@ in
     };
 
     home.file.".config/zellij/config.kdl" = {
-        text = ''
+      text = ''
             plugins {
                     tab-bar location="zellij:tab-bar"
                     status-bar location="zellij:status-bar"
@@ -212,49 +213,46 @@ in
         }
 
         layout_dir "${config.home.homeDirectory}/.config/zellij/layouts"
-            '';
-        force = true;
+      '';
+      force = true;
     };
 
     home.file."config/nvim/mcpservers.json" = {
-        force = true;
-            text =''
-
-{
-  "docs": {
-    "url": "http://192.168.1.6:6280",
-    "capabilities": ["tools", "resources"]
-  }
-}
-                '';
-    };
-    home.file.".config/zellij/layouts/.keep" = {
-        text = "keep";
-    };
-        home.file.".config/opencode/opencode.json" = {
-            force = true;
-            text = ''
-    {
-      "$schema": "https://opencode.ai/config.json",
-      "provider": {
-        "ollama": {
-          "npm": "@ai-sdk/openai-compatible",
-          "options": {
-            "baseURL": "http://192.168.1.6:11434/v1"
-          },
-          "models": {
-            "qwen3:14b": {
-              "tools":true,
-              "reasoning": true
-            },
-            "kirito1/qwen3-coder:latest": {
-              "tools":true
-            },
+      force = true;
+      text = ''
+        {
+          "docs": {
+            "url": "http://192.168.1.6:6280",
+            "capabilities": ["tools", "resources"]
           }
         }
-      }
-    }
-            '';
-        };
+      '';
+    };
+    home.file.".config/zellij/layouts/.keep" = { text = "keep"; };
+    home.file.".config/opencode/opencode.json" = {
+      force = true;
+      text = ''
+        {
+          "$schema": "https://opencode.ai/config.json",
+          "provider": {
+            "ollama": {
+              "npm": "@ai-sdk/openai-compatible",
+              "options": {
+                "baseURL": "http://192.168.1.6:11434/v1"
+              },
+              "models": {
+                "qwen3:14b": {
+                  "tools":true,
+                  "reasoning": true
+                },
+                "kirito1/qwen3-coder:latest": {
+                  "tools":true
+                },
+              }
+            }
+          }
+        }
+      '';
+    };
   };
 }

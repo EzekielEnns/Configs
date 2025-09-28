@@ -3,9 +3,9 @@ return {
 	dependencies = { "nvim-lua/plenary.nvim", "nvim-treesitter/nvim-treesitter" },
 	opts = {
 		provider = "openai",
-		openai_api_key = "local", -- any non-empty string
-		openai_api_base = "http://192.168.1.6:9001/v1", -- your coding endpoint
-		model = "gpt-3.5-turbo", -- llama.cpp ignores name when 1 model is loaded
+		openai_api_key = "local",
+		openai_api_base = "http://ai.lan/v1", -- your coding endpoint
+		model = "code",
 		behaviour = { auto_suggestions = false },
 		strategies = {
 			chat = {

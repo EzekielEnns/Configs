@@ -3,8 +3,8 @@ return {
 	build = "npm i -g mcp-hub@latest",
 	config = function()
 		require("mcphub").setup({
-			--TODO change port
-			port = 4000,
+			--cant use port 3000 what do i do
+			port = 3333,
 			config = vim.fn.expand("~/.config/nvim/mcpservers.json"),
 		})
 	end,

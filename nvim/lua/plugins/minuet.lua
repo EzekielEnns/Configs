@@ -4,8 +4,8 @@ return {
 	build = "make",
 	opts = {
 		provider = "openai_fim",
-		remote_url = "http://192.168.1.6:9001", -- llama.cpp base
-		model = "gpt-3.5-turbo",
+		remote_url = "http://ai.lan", -- llama.cpp base
+		model = "code",
 		request_params = { temperature = 0.1, max_tokens = 128 },
 	},
 }
