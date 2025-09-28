@@ -216,6 +216,18 @@ in
         force = true;
     };
 
+    home.file."config/nvim/mcpservers.json" = {
+        force = true;
+            text =''
+
+{
+  "docs": {
+    "url": "http://192.168.1.6:6280",
+    "capabilities": ["tools", "resources"]
+  }
+}
+                '';
+    };
     home.file.".config/zellij/layouts/.keep" = {
         text = "keep";
     };
