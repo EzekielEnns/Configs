@@ -70,5 +70,8 @@ in {
         # ai
         pkgs-unstable.claude-code
         pkgs-unstable.aider-chat
+        alejandra      # very popular, opinionated
+        nixfmt         # RFC-style formatter
+        nixpkgs-fmt    # nixpkgs style
     ];
 }
