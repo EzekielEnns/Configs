@@ -3,9 +3,17 @@ return {
 	dependencies = { "nvim-lua/plenary.nvim" },
 	build = "make",
 	opts = {
-		provider = "openai_fim",
-		remote_url = "http://ai.lan", -- llama.cpp base
-		model = "code",
-		request_params = { temperature = 0.1, max_tokens = 128 },
+
+		provider = "openai_compatible",
+		provider_options = {
+			openai_compatible = {
+				name = "llama-swap",
+				end_point = "http://ai.lan/v1/chat/completions",
+				api_key = "OPENAI_API_KEY",
+				model = "code",
+				stream = true,
+				optional = { temperature = 0.2, max_tokens = 96 },
+			},
+		},
 	},
 }

@@ -77,7 +77,7 @@ in
     pkgs-unstable.claude-code
     pkgs-unstable.aider-chat
     alejandra # very popular, opinionated
-    nixfmt # RFC-style formatter
+    nixfmt-rfc-style
     nixpkgs-fmt # nixpkgs style
     mcp-hub
   ];
