@@ -1,4 +1,9 @@
-{ config, pkgs, pkgs-unstable, lib, ... }:
+{ config
+, pkgs
+, pkgs-unstable
+, lib
+, ...
+}:
 let
   myConfig = pkgs.vimUtils.buildVimPlugin {
     name = "my-config";
@@ -44,6 +49,12 @@ let
   };
 in
 {
+
+  environment.variables = {
+    OPENAI_API_BASE = "http://ai.lan:9292/v1";
+    OPENAI_API_KEY = "nope";
+    AIDER_MODEL = "openai/code";
+  };
   environment.systemPackages = with pkgs; [
     # Language servers and tools
     efm-langserver

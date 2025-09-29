@@ -1,8 +1,7 @@
 { config, pkgs, ... }:
 let
   zellijAutolock = pkgs.fetchurl {
-    url =
-      "https://github.com/fresh2dev/zellij-autolock/releases/download/0.2.2/zellij-autolock.wasm";
+    url = "https://github.com/fresh2dev/zellij-autolock/releases/download/0.2.2/zellij-autolock.wasm";
     sha256 = "194fgd421w2j77jbpnq994y2ma03qzdlz932cxfhfznrpw3mdjb9";
   };
 in
@@ -228,26 +227,38 @@ in
         }
       '';
     };
-    home.file.".config/zellij/layouts/.keep" = { text = "keep"; };
+    home.file.".config/zellij/layouts/.keep" = {
+      text = "keep";
+    };
     home.file.".config/opencode/opencode.json" = {
       force = true;
       text = ''
         {
           "$schema": "https://opencode.ai/config.json",
           "provider": {
-            "ollama": {
+            "llama-swap": {
               "npm": "@ai-sdk/openai-compatible",
               "options": {
-                "baseURL": "http://192.168.1.6:11434/v1"
+                "baseURL": "http://ai.lan/v1",
+                "apiKey": "local"
               },
               "models": {
-                "qwen3:14b": {
-                  "tools":true,
-                  "reasoning": true
+                "code": {
+                  "tools": false,
+                  "stream": true
                 },
-                "kirito1/qwen3-coder:latest": {
-                  "tools":true
+                "code-tools": {
+                  "tools": true,
+                  "stream": false
                 },
+                "silly": {
+                  "tools": false,
+                  "stream": true
+                },
+                "silly-tools": {
+                  "tools": true,
+                  "stream": false
+                }
               }
             }
           }

@@ -1,12 +1,17 @@
-{ lib, config, inputs, pkgs, pkgs-unstable, ... }:
+{ lib
+, config
+, inputs
+, pkgs
+, pkgs-unstable
+, ...
+}:
 let
   llamaCuda = pkgs.llama-cpp.override { cudaSupport = true; };
   llamaServer = lib.getExe' llamaCuda "llama-server";
 in
 {
   imports = [
-    (import
-      "${inputs.nixpkgs-unstable}/nixos/modules/services/networking/llama-swap.nix")
+    (import "${inputs.nixpkgs-unstable}/nixos/modules/services/networking/llama-swap.nix")
   ];
   config = {
     environment.systemPackages = [ llamaCuda ];
@@ -47,18 +52,29 @@ in
         models = {
           # Coding model (your old services.llama-cpp @9001)
           "code" = {
-            aliases = [ "devstral" "coding" ];
+            aliases = [
+              "devstral"
+              "coding"
+            ];
             # NOTE: \${PORT} must be escaped so llama-swap can inject a free port
-            cmd = "${llamaServer} --host 127.0.0.1 --port \${PORT} "
+            cmd =
+              "${llamaServer} --host 127.0.0.1 --port \${PORT} "
               + "-m /var/lib/llama-cpp/models/Devstral-Small-2505-Q3_K_M.gguf "
+              + "--jinja "
               + "-ngl 99 -c 4096 -b 1024  --parallel 1";
           };
 
           # SillyTavern model (your old llama-st @9003) – Stheno 8B, tuned to fit with other services
           "silly" = {
-            aliases = [ "stheno-8b" "st" "silly" ];
-            cmd = "${llamaServer} --host 127.0.0.1 --port \${PORT} "
+            aliases = [
+              "stheno-8b"
+              "st"
+              "silly"
+            ];
+            cmd =
+              "${llamaServer} --host 127.0.0.1 --port \${PORT} "
               + "-m /var/lib/llama-cpp/models/MN-12B-Mag-Mell-Q4_K_M.gguf "
+              + "--jinja "
               + "-ngl 999 -c 8192 -b 1024 --parallel 1";
             # aliases = [ "stheno-8b" "st" "silly" ];
             # cmd = "${llamaServer} --host 127.0.0.1 --port \${PORT} "
@@ -126,11 +142,16 @@ in
         };
       };
     };
-    services.xserver.videoDrivers = [ "amdgpu" "nvidia" ];
+    services.xserver.videoDrivers = [
+      "amdgpu"
+      "nvidia"
+    ];
     virtualisation.docker.enable = true;
     virtualisation.docker.enableOnBoot = true;
 
-    virtualisation.docker.daemon.settings = { features.cdi = true; };
+    virtualisation.docker.daemon.settings = {
+      features.cdi = true;
+    };
     virtualisation.oci-containers = {
       backend = "docker";
       containers = {
@@ -173,7 +194,9 @@ in
             "/srv/media/torrents:/downloads" # downloads land here
             "/var/qbit/config:/config"
           ];
-          environment = { WEBUI_PORT = "8083"; };
+          environment = {
+            WEBUI_PORT = "8083";
+          };
         };
 
         silverBullet = {
@@ -249,14 +272,15 @@ in
         };
       };
     };
-    /* on mac you need to add the server to dns under settings-> network -> details
-         then do sudo mkdir -p /etc/resolver && sudo nvim /etc/resolver/lan
-         add nameserver 192.168.1.6
-         use this to test
-         scutil --dns | grep lan -A3
-         dig ai.lan
-         curl ai.lan
-         remebmer to add the dns to the router, also browsers require http://*.lan they will not auto fill
+    /*
+      on mac you need to add the server to dns under settings-> network -> details
+        then do sudo mkdir -p /etc/resolver && sudo nvim /etc/resolver/lan
+        add nameserver 192.168.1.6
+        use this to test
+        scutil --dns | grep lan -A3
+        dig ai.lan
+        curl ai.lan
+        remebmer to add the dns to the router, also browsers require http://*.lan they will not auto fill
     */
     services.dnsmasq = {
       enable = true;
@@ -265,10 +289,16 @@ in
 
       settings = {
         # Bind on loopback + your LAN IP
-        "listen-address" = [ "127.0.0.1" "192.168.1.6" ];
+        "listen-address" = [
+          "127.0.0.1"
+          "192.168.1.6"
+        ];
 
         # Upstream resolvers (Cloudflare) -> lets you check online with real dns
-        server = [ "1.1.1.1" "1.0.0.1" ];
+        server = [
+          "1.1.1.1"
+          "1.0.0.1"
+        ];
 
         # Pin local names to your host's LAN IP
         address = [
@@ -290,10 +320,15 @@ in
       };
     };
 
-    networking.interfaces.enp6s0.wakeOnLan = { enable = true; };
+    networking.interfaces.enp6s0.wakeOnLan = {
+      enable = true;
+    };
     networking.networkmanager.enable = true;
     networking.networkmanager.unmanaged = [ "enp6s0" ];
-    networking.firewall.allowedUDPPorts = [ 53 6881 ];
+    networking.firewall.allowedUDPPorts = [
+      53
+      6881
+    ];
     networking.firewall.allowedTCPPorts = [
       #dns
       53
@@ -313,4 +348,3 @@ in
     ];
   };
 }
-
