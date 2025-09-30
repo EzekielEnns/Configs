@@ -14,7 +14,13 @@ in
     (import "${inputs.nixpkgs-unstable}/nixos/modules/services/networking/llama-swap.nix")
   ];
   config = {
-    environment.systemPackages = [ llamaCuda ];
+    environment.systemPackages = [
+      llamaCuda
+      pkgs.lm_sensors
+      pkgs.glances
+      pkgs.htop
+      pkgs.nvtopPackages.full
+    ];
     systemd.services.llama-embed = {
       description = "llama.cpp Embedding Model Server";
       after = [ "network.target" ];
