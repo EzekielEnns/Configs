@@ -1,7 +1,6 @@
 return {
-	"seblyng/roslyn.nvim",
-	ft = { "cs" },
-	opts = {
-		--		filewatching = "roslyn",
-	},
+	-- "seblyng/roslyn.nvim",
+	-- opts = {
+	-- 	filewatching = "roslyn",
+	-- },
 }

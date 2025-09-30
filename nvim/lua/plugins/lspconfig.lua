@@ -104,33 +104,55 @@ return {
 				},
 			},
 		})
-		--config for roslyn changed based on os
 		local home = vim.uv.os_homedir()
-		local roslyn_exe = home
-			.. "/.local/share/roslyn-ls/content/LanguageServer/osx-x64/Microsoft.CodeAnalysis.LanguageServer"
+		local roslyn = home
+			.. "/.local/share/roslyn-ls/content/LanguageServer/neutral/Microsoft.CodeAnalysis.LanguageServer.dll"
 		vim.env.DOTNET_ROOT = home .. "/.dotnet/x64"
-		local function roslyn_root(fname)
-			return vim.fs.root(fname, { "server-app.sln" })
-				or vim.fs.root(fname, { "*.sln", "*.csproj", "global.json", ".git" })
-				or vim.fs.dirname(fname)
-		end
+		-- local function roslyn_root(fname)
+		-- 	return vim.fs.root(fname, { "server-app.sln" })
+		-- 		or vim.fs.root(fname, { "*.sln", "*.csproj", "global.json", ".git" })
+		-- 		or vim.fs.dirname(fname)
+		-- end
 		local logdir = vim.fs.joinpath(vim.uv.os_tmpdir(), "roslyn_ls", "logs")
 		vim.fn.mkdir(logdir, "p")
-		vim.lsp.config("roslyn", {
+		vim.lsp.config("roslyn_ls", {
 			cmd = {
-				roslyn_exe,
-				"--logLevel",
+				"dotnet",
+				roslyn,
+				"--logLevel", -- this property is required by the server
 				"Information",
-				"--extensionLogDirectory",
+				"--extensionLogDirectory", -- this property is required by the server
 				logdir,
 				"--stdio",
 			},
-			cmd_env = {
-				DOTNET_ROOT = home .. "/.dotnet/x64", -- your x64 runtime
-				DOTNET_ROLL_FORWARD = "Major",
+
+			settings = {
+				["csharp|background_analysis"] = {
+					dotnet_compiler_diagnostics_scope = "openFiles",
+					dotnet_analyzer_diagnostics_scope = "openFiles",
+				},
+			},
+			handlers = {
+				["workspace/_roslyn_projectNeedsRestore"] = function(err, params, ctx, _)
+					-- run restores fire-and-forget
+					local function find_proj(dir)
+						return vim.fs.find({ "*.sln", "*.csproj" }, { path = dir, upward = true })[1]
+					end
+					local seen = {}
+					for _, p in ipairs(params.paths or {}) do
+						local target = find_proj(p) or find_proj(vim.fs.dirname(p))
+						if target and not seen[target] then
+							seen[target] = true
+							vim.fn.jobstart({ "dotnet", "restore", target }, { detach = true })
+						end
+					end
+					-- IMPORTANT: reply to the server so Neovim doesn't error
+					return vim.NIL -- sends JSON null as the result
+				end,
 			},
 		})
 
+		vim.lsp.enable("roslyn_ls")
 		vim.lsp.enable({
 			"gdscript",
 			"gopls",

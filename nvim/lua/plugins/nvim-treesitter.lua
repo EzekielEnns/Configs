@@ -1,14 +1,10 @@
 return {
-
-	"nvim-treesitter/nvim-treesitter",
-	branch = "main", -- or "main" once they switch
-	lazy = false, -- 👈 important
-	build = ":TSUpdate",
-	dependencies = {
-		"nvim-treesitter/nvim-treesitter-textobjects",
-	},
-	config = function()
-		require("nvim-treesitter.configs").setup({
+	{
+		"nvim-treesitter/nvim-treesitter",
+		-- branch = "master", -- not needed; remove the wrong "main"
+		lazy = false,
+		build = ":TSUpdate",
+		opts = {
 			ensure_installed = {
 				"lua",
 				"vim",
@@ -40,35 +36,13 @@ return {
 					node_decremental = "grm",
 				},
 			},
+			-- This section is fine even if the plugin loads later
 			textobjects = { enable = true },
-		})
-	end,
-	-- "nvim-treesitter/nvim-treesitter",
-	-- event = { "BufReadPost", "BufNewFile" },
-	-- build = ":TSUpdate",
-	-- dependencies = {
-	--   "nvim-treesitter/nvim-treesitter-textobjects",
-	-- },
-	-- config = function()
-	--   require("nvim-treesitter.configs").setup({
-	--     highlight = {
-	--       enable = true,
-	--     },
-	--     ensure_installed = {
-	--       "lua",
-	--       "javascript",
-	--       "typescript",
-	--       "go",
-	--       "python",
-	--       "rust",
-	--       "html",
-	--       "css",
-	--       "json",
-	--       "yaml",
-	--       "markdown",
-	--       "bash",
-	--     },
-	--     auto_install = true,
-	--   })
-	-- end,
+		},
+	},
+	{
+		"nvim-treesitter/nvim-treesitter-textobjects",
+		dependencies = { "nvim-treesitter/nvim-treesitter" },
+		event = "VeryLazy",
+	},
 }
