@@ -104,52 +104,35 @@ return {
 				},
 			},
 		})
-		-- vim.lsp.config("rust_analyzer", {
-		-- 	settings = {
-		-- 		["rust-analyzer"] = {
-		-- 			diagnostics = {
-		-- 				enable = false,
-		-- 			},
-		-- 		},
-		-- 	},
-		-- })
-
-		local pid = vim.fn.getpid()
-		vim.lsp.config("omnisharp", {
+		--config for roslyn changed based on os
+		local roslyn_exe = vim.fn.expand(
+			"~/.local/share/roslyn-ls/content/LanguageServer/osx-x64/Microsoft.CodeAnalysis.LanguageServer"
+		)
+		vim.env.DOTNET_ROOT = (vim.uv or vim.loop).os_homedir() .. "/.dotnet/x64"
+		local logdir = vim.fs.joinpath(vim.uv.os_tmpdir(), "roslyn_ls", "logs")
+		vim.fn.mkdir(logdir, "p")
+		vim.lsp.config("roslyn", {
 			cmd = {
-				"OmniSharp",
-				"--languageserver",
-				"--hostPID",
-				tostring(pid),
-				"DotNet:enablePackageRestore=false",
-				"--encoding",
-				"utf-8",
+				roslyn_exe,
+				"--logLevel",
+				"Information",
+				"--extensionLogDirectory",
+				logdir,
+				"--stdio",
 			},
-			handlers = {
-				["textDocument/definition"] = require("omnisharp_extended").definition_handler,
-				["textDocument/typeDefinition"] = require("omnisharp_extended").type_definition_handler,
-				["textDocument/references"] = require("omnisharp_extended").references_handler,
-				["textDocument/implementation"] = require("omnisharp_extended").implementation_handler,
-			},
-			on_init = function(client)
-				client.server_capabilities.semanticTokensProvider = nil
-			end,
 			settings = {
-				RoslynExtensionsOptions = {
-					EnableAnalyzersSupport = false,
-					EnableImportCompletion = false,
+				["csharp|inlay_hints"] = {
+					csharp_enable_inlay_hints_for_implicit_object_creation = true,
+					csharp_enable_inlay_hints_for_implicit_variable_types = true,
 				},
-				MsBuild = {
-					LoadProjectsOnDemand = true,
-				},
-				Sdk = {
-					IncludePrerelease = true,
+				["csharp|code_lens"] = {
+					dotnet_enable_references_code_lens = true,
 				},
 			},
 		})
 
 		vim.lsp.enable({
-			"omnisharp",
+			"roslyn_ls",
 			"gdscript",
 			"gopls",
 			"terraformls",
