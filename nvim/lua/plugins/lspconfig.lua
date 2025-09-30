@@ -9,7 +9,7 @@ return {
 	priority = 1000,
 	config = function()
 		vim.diagnostic.config({ virtual_text = true })
-		vim.lsp.set_log_level("off")
+		vim.lsp.set_log_level("DEBUG")
 
 		vim.api.nvim_create_autocmd("LspAttach", {
 			desc = "LSP actions",
@@ -105,14 +105,18 @@ return {
 			},
 		})
 		--config for roslyn changed based on os
-		local roslyn_exe = vim.fn.expand(
-			"~/.local/share/roslyn-ls/content/LanguageServer/osx-x64/Microsoft.CodeAnalysis.LanguageServer"
-		)
-		vim.env.DOTNET_ROOT = (vim.uv or vim.loop).os_homedir() .. "/.dotnet/x64"
+		local home = vim.uv.os_homedir()
+		local roslyn_exe = home
+			.. "/.local/share/roslyn-ls/content/LanguageServer/osx-x64/Microsoft.CodeAnalysis.LanguageServer"
+		vim.env.DOTNET_ROOT = home .. "/.dotnet/x64"
+		local function roslyn_root(fname)
+			return vim.fs.root(fname, { "server-app.sln" })
+				or vim.fs.root(fname, { "*.sln", "*.csproj", "global.json", ".git" })
+				or vim.fs.dirname(fname)
+		end
 		local logdir = vim.fs.joinpath(vim.uv.os_tmpdir(), "roslyn_ls", "logs")
 		vim.fn.mkdir(logdir, "p")
 		vim.lsp.config("roslyn", {
-			offset_encoding = "utf-8",
 			cmd = {
 				roslyn_exe,
 				"--logLevel",
@@ -121,48 +125,19 @@ return {
 				logdir,
 				"--stdio",
 			},
-			settings = {
-				["csharp|background_analysis"] = {
-					dotnet_analyzer_diagnostics_scope = "fullSolution",
-					dotnet_compiler_diagnostics_scope = "fullSolution",
-				},
-				["csharp|code_lens"] = {
-					dotnet_enable_references_code_lens = true,
-				},
-				["csharp|completion"] = {
-					dotnet_provide_regex_completions = true,
-					dotnet_show_completion_items_from_unimported_namespaces = true,
-					dotnet_show_name_completion_suggestions = true,
-				},
-				["csharp|inlay_hints"] = {
-					csharp_enable_inlay_hints_for_implicit_object_creation = true,
-					csharp_enable_inlay_hints_for_implicit_variable_types = true,
-					csharp_enable_inlay_hints_for_lambda_parameter_types = true,
-					csharp_enable_inlay_hints_for_types = true,
-					dotnet_enable_inlay_hints_for_indexer_parameters = true,
-					dotnet_enable_inlay_hints_for_literal_parameters = true,
-					dotnet_enable_inlay_hints_for_object_creation_parameters = true,
-					dotnet_enable_inlay_hints_for_other_parameters = true,
-					dotnet_enable_inlay_hints_for_parameters = true,
-					dotnet_suppress_inlay_hints_for_parameters_that_differ_only_by_suffix = true,
-					dotnet_suppress_inlay_hints_for_parameters_that_match_argument_name = true,
-					dotnet_suppress_inlay_hints_for_parameters_that_match_method_intent = true,
-				},
-				["csharp|symbol_search"] = {
-					dotnet_search_reference_assemblies = true,
-				},
+			cmd_env = {
+				DOTNET_ROOT = home .. "/.dotnet/x64", -- your x64 runtime
+				DOTNET_ROLL_FORWARD = "Major",
 			},
 		})
 
 		vim.lsp.enable({
-			"roslyn_ls",
 			"gdscript",
 			"gopls",
 			"terraformls",
 			"efm",
 			"lua_ls",
 			"rust_analyzer",
-			"csharp_ls",
 			"cssls",
 			"html",
 			"eslint",

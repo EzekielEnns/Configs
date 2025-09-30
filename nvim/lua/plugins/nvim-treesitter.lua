@@ -26,6 +26,7 @@ return {
 				"css",
 				"json",
 				"yaml",
+				"c_sharp",
 			},
 			auto_install = true,
 			highlight = { enable = true },
