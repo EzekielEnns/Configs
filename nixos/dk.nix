@@ -48,38 +48,97 @@ in
       # This mirrors llama-swap's config.yaml, but as Nix attrs
       settings = {
         healthCheckTimeout = 60;
-
         models = {
           # Coding model (your old services.llama-cpp @9001)
-          "code" = {
+          "Devstral-Small-2507" = {
             aliases = [
-              "devstral"
-              "coding"
+              "code"
             ];
-            # NOTE: \${PORT} must be escaped so llama-swap can inject a free port
             cmd =
               "${llamaServer} --host 127.0.0.1 --port \${PORT} "
-              + "-m /var/lib/llama-cpp/models/Devstral-Small-2505-Q3_K_M.gguf "
+              + "-m /var/lib/llama-cpp/models/Devstral-Small-2507-UD-Q4_K_XL.gguf "
               + "--jinja "
               + "-ngl 99 -c 4096 -b 1024  --parallel 1";
           };
-
-          # SillyTavern model (your old llama-st @9003) – Stheno 8B, tuned to fit with other services
-          "silly" = {
+          "pivot-10.7b-mistral-v0.2-rp.8" = {
             aliases = [
-              "stheno-8b"
-              "st"
-              "silly"
+              #"silly"
+            ];
+            cmd =
+              "${llamaServer} --host 127.0.0.1 --port \${PORT} "
+              + "-m /var/lib/llama-cpp/models/pivot-10.7b-mistral-v0.2-rp.Q8_0.gguf "
+              + "--jinja "
+              + "-ngl 999 -c 8192 -b 1024 --parallel 1";
+          };
+          "mythomax-l2-13b.Q8_K_M" = {
+            aliases = [
+              #"silly"
+            ];
+            cmd =
+              "${llamaServer} --host 127.0.0.1 --port \${PORT} "
+              + "-m /var/lib/llama-cpp/models/mythomax-l2-13b.Q8_0.gguf "
+              + "--jinja "
+              + "-ngl 999 -c 8192 -b 1024 --parallel 1";
+          };
+          "mythomax-l2-13b.Q4_K_M" = {
+            aliases = [
+              #"silly"
+            ];
+            cmd =
+              "${llamaServer} --host 127.0.0.1 --port \${PORT} "
+              + "-m /var/lib/llama-cpp/models/mythomax-l2-13b.Q4_K_M.gguf "
+              + "--jinja "
+              + "-ngl 999 -c 8192 -b 1024 --parallel 1";
+          };
+          "MN-12B-Mag-Mell-Q4_K_M" = {
+            aliases = [
+              #"silly"
             ];
             cmd =
               "${llamaServer} --host 127.0.0.1 --port \${PORT} "
               + "-m /var/lib/llama-cpp/models/MN-12B-Mag-Mell-Q4_K_M.gguf "
               + "--jinja "
               + "-ngl 999 -c 8192 -b 1024 --parallel 1";
-            # aliases = [ "stheno-8b" "st" "silly" ];
-            # cmd = "${llamaServer} --host 127.0.0.1 --port \${PORT} "
-            #   + "-m /var/lib/llama-cpp/models/L3-8B-Stheno-v3.2-Q4_K_S.gguf "
-            #   + "-ngl 99 -c 3072 -b 1024 --parallel 1";
+          };
+          "Llama3Tadashinu.Q4_K_M" = {
+            aliases = [
+              #"silly"
+            ];
+            cmd =
+              "${llamaServer} --host 127.0.0.1 --port \${PORT} "
+              + "-m /var/lib/llama-cpp/models/Llama3Tadashinu.Q4_K_M.gguf "
+              + "--jinja "
+              + "-ngl 999 -c 8192 -b 1024 --parallel 1";
+          };
+          "Dark-Champion-Inst-18.4B-Q4_k_m" = {
+            aliases = [
+              #"silly"
+            ];
+            cmd =
+              "${llamaServer} --host 127.0.0.1 --port \${PORT} "
+              + "-m /var/lib/llama-cpp/models/L3.2-8X3B-MOE-Dark-Champion-Inst-18.4B-uncen-ablit_D_AU-Q4_k_m.gguf "
+              + "--jinja "
+              + "-ngl 999 -c 8192 -b 1024 --parallel 1";
+          };
+          "Hermes-3-Llama-3.1-8B-Q8_0" = {
+            aliases = [
+              #"silly"
+            ];
+            cmd =
+              "${llamaServer} --host 127.0.0.1 --port \${PORT} "
+              + "-m /var/lib/llama-cpp/models/Hermes-3-Llama-3.1-8B-Q8_0.gguf "
+              + "--jinja "
+              + "-ngl 999 -c 8192 -b 1024 --parallel 1";
+          };
+          "DarkIdol" = {
+            aliases = [
+              #"silly"
+            ];
+            cmd =
+              "${llamaServer} --host 127.0.0.1 --port \${PORT} "
+              + "-m /var/lib/llama-cpp/models/DarkIdol-Llama-3.1-8B-Instruct-1.2-Uncensored.Q8_0.gguf "
+              + "--jinja "
+              + "-ngl 999 -c 8192 -b 1024 --parallel 1";
           };
 
         };
