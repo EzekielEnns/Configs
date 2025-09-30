@@ -10,7 +10,7 @@ bash /tmp/dotnet-install.sh --channel 9.0 --runtime dotnet --architecture x64 --
 3. install the sdk via brew (way easier & no conflicts)
 brew install dotnet-sdk
 
-4. download the nuget package from source
+4. download the nuget package from source netrual only!!!
 [mac](https://dev.azure.com/azure-public/vside/_artifacts/feed/vs-impl/NuGet/Microsoft.CodeAnalysis.LanguageServer.osx-x64/overview)
 [linux](https://dev.azure.com/azure-public/vside/_artifacts/feed/vs-impl/NuGet/Microsoft.CodeAnalysis.LanguageServer.linux-x64/overview)
 instructions from `:help lspconfig-all`

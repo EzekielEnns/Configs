@@ -108,20 +108,15 @@ return {
 		local roslyn = home
 			.. "/.local/share/roslyn-ls/content/LanguageServer/neutral/Microsoft.CodeAnalysis.LanguageServer.dll"
 		vim.env.DOTNET_ROOT = home .. "/.dotnet/x64"
-		-- local function roslyn_root(fname)
-		-- 	return vim.fs.root(fname, { "server-app.sln" })
-		-- 		or vim.fs.root(fname, { "*.sln", "*.csproj", "global.json", ".git" })
-		-- 		or vim.fs.dirname(fname)
-		-- end
 		local logdir = vim.fs.joinpath(vim.uv.os_tmpdir(), "roslyn_ls", "logs")
 		vim.fn.mkdir(logdir, "p")
 		vim.lsp.config("roslyn_ls", {
 			cmd = {
 				"dotnet",
 				roslyn,
-				"--logLevel", -- this property is required by the server
+				"--logLevel",
 				"Information",
-				"--extensionLogDirectory", -- this property is required by the server
+				"--extensionLogDirectory",
 				logdir,
 				"--stdio",
 			},
