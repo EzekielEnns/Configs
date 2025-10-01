@@ -1,5 +1,5 @@
-- open ssh locally
-- open a note editor (obsidion?) or some kinda scratch box
-- open the search tool
-- setup some kind of torrenting box setup at night?
-- setup starship to show time
+setup micro bin https://hub.docker.com/r/danielszabo99/microbin
+docker pull danielszabo99/microbin
+
+
+setup ez dotnet https://github.com/GustavEikaas/easy-dotnet.nvim
