@@ -127,6 +127,15 @@ return {
 					dotnet_analyzer_diagnostics_scope = "openFiles",
 				},
 			},
+			-- on_init = function(client)
+			-- 	local selected_file_for_init = find_csproj_or_sln()
+			-- 	local uri = vim.uri_from_fname(selected_file_for_init)
+			-- 	if selected_file_for_init:match("%.slnx?$") then
+			-- 		client:notify("solution/open", { solution = uri })
+			-- 	elseif selected_file_for_init:match("%.csproj$") then
+			-- 		client:notify("project/open", { projects = { uri } })
+			-- 	end
+			-- end,
 			handlers = {
 				["workspace/_roslyn_projectNeedsRestore"] = function(err, params, ctx, _)
 					-- run restores fire-and-forget
