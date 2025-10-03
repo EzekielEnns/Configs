@@ -1,0 +1,35 @@
+Mistral-Small-3.2-24B-Instruct-2506
+- worked well Q4_K_S
+- worked great Q4_K_M 14432MiB
+- Q4_K_XL 14636MiB (way faster then bigger models)
+- worked alright a bit slower Q5_K_M 16694MiB
+- worked alright a bit slower Q6_K   19046MiB (close to maxing)
+
+
+Gemma-3-27b Q5 (DELETE)
+- will not load gets up just above buffer size
+
+
+dark idol
+- pretty good took up 9gb of vram (more human like)
+
+pivot 10.7 minstral rp.8 
+- pretty good needs testing in silly tavern has promise
+
+mythomax 12 13b  (DELETE)
+- q8 dose not booto
+- q4 : 14gb vram ---- wtf why dose it just talk to its self god dam, it keeps going
+
+
+mn 12b mag mell q4 14ish g (Del)
+- kinda mid
+
+llama3Tadashinu (keep wtf )
+- desgined to be a personable robot/ai friend
+
+Hermes -3 - 8b q8 -> 9gb vram (potential)
+- promising so far the easists ai to work with
+
+
+dark champion 18b   -> 12gb of vram (Del)
+- kinda lame a but better with rp but meh

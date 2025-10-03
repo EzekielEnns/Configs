@@ -21,31 +21,31 @@ in
       pkgs.htop
       pkgs.nvtopPackages.full
     ];
-    systemd.services.llama-embed = {
-      description = "llama.cpp Embedding Model Server";
-      after = [ "network.target" ];
-      wantedBy = [ "multi-user.target" ];
-
-      # Run as a safe user that can read the model file
-      serviceConfig = {
-        User = "nobody";
-        Group = "nogroup";
-
-        ExecStart = lib.mkForce ''
-          ${llamaCuda}/bin/llama-server \
-            -m /var/lib/llama-cpp/models/Qwen3-Embedding-0.6B-Q8_0.gguf \
-            --host 0.0.0.0 \
-            --port 9002 \
-            --embedding \
-            -ngl 0 \
-            -c 2048 \
-            --pooling cls
-        '';
-
-        # Optional: set a safe working dir
-        WorkingDirectory = "/var/lib/llama-cpp";
-      };
-    };
+    # systemd.services.llama-embed = {
+    #   description = "llama.cpp Embedding Model Server";
+    #   after = [ "network.target" ];
+    #   wantedBy = [ "multi-user.target" ];
+    #
+    #   # Run as a safe user that can read the model file
+    #   serviceConfig = {
+    #     User = "nobody";
+    #     Group = "nogroup";
+    #
+    #     ExecStart = lib.mkForce ''
+    #       ${llamaCuda}/bin/llama-server \
+    #         -m /var/lib/llama-cpp/models/Qwen3-Embedding-0.6B-Q8_0.gguf \
+    #         --host 0.0.0.0 \
+    #         --port 9002 \
+    #         --embedding \
+    #         -ngl 0 \
+    #         -c 2048 \
+    #         --pooling cls
+    #     '';
+    #
+    #     # Optional: set a safe working dir
+    #     WorkingDirectory = "/var/lib/llama-cpp";
+    #   };
+    # };
     services.llama-swap = {
       enable = true;
       port = 9292; # single public endpoint for all models
@@ -55,7 +55,6 @@ in
       settings = {
         healthCheckTimeout = 60;
         models = {
-          # Coding model (your old services.llama-cpp @9001)
           "Devstral-Small-2507" = {
             aliases = [
               "code"
@@ -66,49 +65,9 @@ in
               + "--jinja "
               + "-ngl 99 -c 4096 -b 1024  --parallel 1";
           };
-          "pivot-10.7b-mistral-v0.2-rp.8" = {
-            aliases = [
-              #"silly"
-            ];
-            cmd =
-              "${llamaServer} --host 127.0.0.1 --port \${PORT} "
-              + "-m /var/lib/llama-cpp/models/pivot-10.7b-mistral-v0.2-rp.Q8_0.gguf "
-              + "--jinja "
-              + "-ngl 999 -c 8192 -b 1024 --parallel 1";
-          };
-          "mythomax-l2-13b.Q8_K_M" = {
-            aliases = [
-              #"silly"
-            ];
-            cmd =
-              "${llamaServer} --host 127.0.0.1 --port \${PORT} "
-              + "-m /var/lib/llama-cpp/models/mythomax-l2-13b.Q8_0.gguf "
-              + "--jinja "
-              + "-ngl 999 -c 8192 -b 1024 --parallel 1";
-          };
-          "mythomax-l2-13b.Q4_K_M" = {
-            aliases = [
-              #"silly"
-            ];
-            cmd =
-              "${llamaServer} --host 127.0.0.1 --port \${PORT} "
-              + "-m /var/lib/llama-cpp/models/mythomax-l2-13b.Q4_K_M.gguf "
-              + "--jinja "
-              + "-ngl 999 -c 8192 -b 1024 --parallel 1";
-          };
-          "MN-12B-Mag-Mell-Q4_K_M" = {
-            aliases = [
-              #"silly"
-            ];
-            cmd =
-              "${llamaServer} --host 127.0.0.1 --port \${PORT} "
-              + "-m /var/lib/llama-cpp/models/MN-12B-Mag-Mell-Q4_K_M.gguf "
-              + "--jinja "
-              + "-ngl 999 -c 8192 -b 1024 --parallel 1";
-          };
           "Llama3Tadashinu.Q4_K_M" = {
             aliases = [
-              #"silly"
+              "friend"
             ];
             cmd =
               "${llamaServer} --host 127.0.0.1 --port \${PORT} "
@@ -116,33 +75,86 @@ in
               + "--jinja "
               + "-ngl 999 -c 8192 -b 1024 --parallel 1";
           };
-          "Dark-Champion-Inst-18.4B-Q4_k_m" = {
+          "DarkIdol" = {
             aliases = [
-              #"silly"
+              "smutty"
+            ];
+            #https://huggingface.co/QuantFactory/DarkIdol-Llama-3.1-8B-Instruct-1.2-Uncensored-GGUF
+            cmd = # takes up 9gb of vram
+              "${llamaServer} --host 127.0.0.1 --port \${PORT} "
+              + "-m /var/lib/llama-cpp/models/DarkIdol-Llama-3.1-8B-Instruct-1.2-Uncensored.Q8_0.gguf "
+              + "--jinja "
+              + "-ngl 999 -c 8192 -b 1024 --parallel 1";
+          };
+          "baronllm-llama3.1-v1-q6_k" = {
+            aliases = [
+              "hacking"
             ];
             cmd =
               "${llamaServer} --host 127.0.0.1 --port \${PORT} "
-              + "-m /var/lib/llama-cpp/models/L3.2-8X3B-MOE-Dark-Champion-Inst-18.4B-uncen-ablit_D_AU-Q4_k_m.gguf "
+              + "-m /var/lib/llama-cpp/models/baronllm-llama3.1-v1-q6_k.gguf "
+              + "--jinja "
+              + "-ngl 99 -c 4096 -b 1024  --parallel 1";
+          };
+          #TODO test how good these are
+          "Mistral-Small-3.2-24B-Instruct-2506-Q4_K_M" = {
+            aliases = [
+              "g-4m"
+            ];
+            cmd =
+              "${llamaServer} --host 127.0.0.1 --port \${PORT} "
+              + "-m /var/lib/llama-cpp/models/Mistral-Small-3.2-24B-Instruct-2506-Q4_K_M.gguf "
+              + "--jinja "
+              + "-ngl 99 -c 4096 -b 1024  --parallel 1";
+          };
+          "Mistral-Small-3.2-24B-Instruct-2506-Q4_K_S" = {
+            aliases = [
+              "g-4s"
+            ];
+            cmd =
+              "${llamaServer} --host 127.0.0.1 --port \${PORT} "
+              + "-m /var/lib/llama-cpp/models/Mistral-Small-3.2-24B-Instruct-2506-Q4_K_S.gguf "
+              + "--jinja "
+              + "-ngl 99 -c 4096 -b 1024  --parallel 1";
+          };
+          "Mistral-Small-3.2-24B-Instruct-2506-Q5_K_M" = {
+            aliases = [
+              "g-5m"
+            ];
+            cmd =
+              "${llamaServer} --host 127.0.0.1 --port \${PORT} "
+              + "-m /var/lib/llama-cpp/models/Mistral-Small-3.2-24B-Instruct-2506-Q5_K_M.gguf "
+              + "--jinja "
+              + "-ngl 99 -c 4096 -b 1024  --parallel 1";
+          };
+          "Mistral-Small-3.2-24B-Instruct-2506-Q4_K_XL" = {
+            aliases = [
+              "g-4xl"
+            ];
+            cmd =
+              "${llamaServer} --host 127.0.0.1 --port \${PORT} "
+              + "-m /var/lib/llama-cpp/models/Mistral-Small-3.2-24B-Instruct-2506-UD-Q4_K_XL.gguf "
+              + "--jinja "
+              + "-ngl 99 -c 4096 -b 1024  --parallel 1";
+          };
+          #TODO Test
+          "pivot-10.7b-mistral-v0.2-rp.8" = {
+            aliases = [
+              "t1"
+            ];
+            cmd =
+              "${llamaServer} --host 127.0.0.1 --port \${PORT} "
+              + "-m /var/lib/llama-cpp/models/pivot-10.7b-mistral-v0.2-rp.Q8_0.gguf "
               + "--jinja "
               + "-ngl 999 -c 8192 -b 1024 --parallel 1";
           };
           "Hermes-3-Llama-3.1-8B-Q8_0" = {
             aliases = [
-              #"silly"
+              "t2"
             ];
             cmd =
               "${llamaServer} --host 127.0.0.1 --port \${PORT} "
               + "-m /var/lib/llama-cpp/models/Hermes-3-Llama-3.1-8B-Q8_0.gguf "
-              + "--jinja "
-              + "-ngl 999 -c 8192 -b 1024 --parallel 1";
-          };
-          "DarkIdol" = {
-            aliases = [
-              #"silly"
-            ];
-            cmd =
-              "${llamaServer} --host 127.0.0.1 --port \${PORT} "
-              + "-m /var/lib/llama-cpp/models/DarkIdol-Llama-3.1-8B-Instruct-1.2-Uncensored.Q8_0.gguf "
               + "--jinja "
               + "-ngl 999 -c 8192 -b 1024 --parallel 1";
           };
@@ -220,6 +232,11 @@ in
     virtualisation.oci-containers = {
       backend = "docker";
       containers = {
+        owui = {
+          ports = [ "127.0.0.1:8088:8080" ];
+          image = "ghcr.io/open-webui/open-webui:main";
+          volumes = [ "/var/lib/openwebui:/app/backend/data" ];
+        };
         docsMcp = {
           image = "ghcr.io/arabold/docs-mcp-server:latest";
           # Host networking = no need for ports mapping, and the container can use 127.0.0.1:9002
@@ -307,6 +324,13 @@ in
             proxyWebsockets = true;
           };
         };
+        "wui.lan" = {
+          serverName = "wui.lan";
+          locations."/" = {
+            proxyPass = "http://127.0.0.1:8088";
+            proxyWebsockets = true;
+          };
+        };
         "st.lan" = {
           serverName = "st.lan";
           locations."/" = {
@@ -377,6 +401,7 @@ in
           "/jf.lan/192.168.1.6"
           "/dc.lan/192.168.1.6"
           "/ai.lan/192.168.1.6"
+          "/wui.lan/192.168.1.6"
         ];
 
         # Sensible DNS hygiene
