@@ -21,31 +21,6 @@ in
       pkgs.htop
       pkgs.nvtopPackages.full
     ];
-    # systemd.services.llama-embed = {
-    #   description = "llama.cpp Embedding Model Server";
-    #   after = [ "network.target" ];
-    #   wantedBy = [ "multi-user.target" ];
-    #
-    #   # Run as a safe user that can read the model file
-    #   serviceConfig = {
-    #     User = "nobody";
-    #     Group = "nogroup";
-    #
-    #     ExecStart = lib.mkForce ''
-    #       ${llamaCuda}/bin/llama-server \
-    #         -m /var/lib/llama-cpp/models/Qwen3-Embedding-0.6B-Q8_0.gguf \
-    #         --host 0.0.0.0 \
-    #         --port 9002 \
-    #         --embedding \
-    #         -ngl 0 \
-    #         -c 2048 \
-    #         --pooling cls
-    #     '';
-    #
-    #     # Optional: set a safe working dir
-    #     WorkingDirectory = "/var/lib/llama-cpp";
-    #   };
-    # };
     services.llama-swap = {
       enable = true;
       port = 9292; # single public endpoint for all models
@@ -96,7 +71,6 @@ in
               + "--jinja "
               + "-ngl 99 -c 4096 -b 1024  --parallel 1";
           };
-          #TODO test how good these are
           "Mistral-Small-3.2-24B-Instruct-2506-Q4_K_M" = {
             aliases = [
               "g-4m"
@@ -117,16 +91,6 @@ in
               + "--jinja "
               + "-ngl 99 -c 4096 -b 1024  --parallel 1";
           };
-          "Mistral-Small-3.2-24B-Instruct-2506-Q5_K_M" = {
-            aliases = [
-              "g-5m"
-            ];
-            cmd =
-              "${llamaServer} --host 127.0.0.1 --port \${PORT} "
-              + "-m /var/lib/llama-cpp/models/Mistral-Small-3.2-24B-Instruct-2506-Q5_K_M.gguf "
-              + "--jinja "
-              + "-ngl 99 -c 4096 -b 1024  --parallel 1";
-          };
           "Mistral-Small-3.2-24B-Instruct-2506-Q4_K_XL" = {
             aliases = [
               "g-4xl"
@@ -137,7 +101,6 @@ in
               + "--jinja "
               + "-ngl 99 -c 4096 -b 1024  --parallel 1";
           };
-          #TODO Test
           "pivot-10.7b-mistral-v0.2-rp.8" = {
             aliases = [
               "t1"
@@ -267,11 +230,10 @@ in
             "--no-telemetry"
           ];
         };
-        #TODO make account
+
         qbittorrent = {
           extraOptions = [ "--network=host" ];
           image = "lscr.io/linuxserver/qbittorrent:latest";
-          #ports = [ "8083:8080" "6881:6881" "6881:6881/udp" ];
           volumes = [
             "/srv/media/torrents:/downloads" # downloads land here
             "/var/qbit/config:/config"
@@ -280,7 +242,16 @@ in
             WEBUI_PORT = "8083";
           };
         };
-
+        microbin = {
+          ports = [ "127.0.0.1:8084:8080" ];
+          image = "danielszabo99/microbin";
+          volumes = [ "/var/lib/microbin:/app/microbin_data" ];
+        };
+        beaver = {
+          ports = [ "127.0.0.1:8083:8080" ];
+          image = "daya0576/beaverhabits:latest";
+          volumes = [ "/var/lib/beaver:/app/.user/" ];
+        };
         silverBullet = {
           ports = [ "127.0.0.1:8082:3000" ];
           image = "ghcr.io/silverbulletmd/silverbullet:latest";
@@ -305,6 +276,20 @@ in
       virtualHosts = {
         "qb.lan" = {
           serverName = "qb.lan";
+          locations."/" = {
+            proxyPass = "http://127.0.0.1:8083";
+            proxyWebsockets = true;
+          };
+        };
+        "mb.lan" = {
+          serverName = "mb.lan";
+          locations."/" = {
+            proxyPass = "http://127.0.0.1:8084";
+            proxyWebsockets = true;
+          };
+        };
+        "bh.lan" = {
+          serverName = "bh.lan";
           locations."/" = {
             proxyPass = "http://127.0.0.1:8083";
             proxyWebsockets = true;
@@ -402,6 +387,8 @@ in
           "/dc.lan/192.168.1.6"
           "/ai.lan/192.168.1.6"
           "/wui.lan/192.168.1.6"
+          "/bh.lan/192.168.1.6"
+          "/mb.lan/192.168.1.6"
         ];
 
         # Sensible DNS hygiene

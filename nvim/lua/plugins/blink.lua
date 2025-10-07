@@ -16,11 +16,11 @@ return {
 					cmp.show()
 				end,
 			},
-			-- ["<C-space>"] = {
-			-- 	function(cmp)
-			-- 		cmp.show({ providers = { "minuet" } })
-			-- 	end,
-			-- },
+			["<C-space>"] = {
+				function(cmp)
+					cmp.show({ providers = { "minuet" } })
+				end,
+			},
 		},
 		appearance = { nerd_font_variant = "mono" },
 		completion = {
@@ -71,17 +71,17 @@ return {
 				"snippets",
 			},
 			providers = {
-				-- minuet = {
-				-- 	name = "minuet",
-				-- 	module = "minuet.blink",
-				-- 	async = true, -- 👈 let it fetch without blocking UI
-				-- 	timeout_ms = 5000, -- 👈 give llama.cpp a little time
-				-- 	-- async = true,
-				-- 	-- -- Should match minuet.config.request_timeout * 1000,
-				-- 	-- -- since minuet.config.request_timeout is in seconds
-				-- 	-- timeout_ms = 3000,
-				-- 	-- score_offset = 50, -- Gives minuet higher priority among suggestions
-				-- },
+				minuet = {
+					name = "minuet",
+					module = "minuet.blink",
+					score_offset = 50, -- Gives minuet higher priority among suggestions
+					async = true, -- 👈 let it fetch without blocking UI
+					timeout_ms = 5000, -- 👈 give llama.cpp a little time
+					-- async = true,
+					-- -- Should match minuet.config.request_timeout * 1000,
+					-- -- since minuet.config.request_timeout is in seconds
+					-- timeout_ms = 3000,
+				},
 			},
 		},
 		fuzzy = {
