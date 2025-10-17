@@ -134,21 +134,20 @@ in
     users.groups.media = { };
     users.users.ezekiel.extraGroups = [ "media" ];
     systemd.tmpfiles.rules = [
-      "d /srv/media         2775 root    media - -"
-      "Z /srv/media         2775 root    media - -"
+      # top-level media dir + common subdirs (world-writable, setgid)
+      "d /srv/media                 2777 root    media - -"
+      "Z /srv/media                 2777 root    media - -"
 
-      "d /srv/media/movies  2775 root    media - -"
-      "d /srv/media/tv      2775 root    media - -"
-      "d /srv/media/anime   2775 root    media - -"
-      "d /srv/media/shows   2775 root    media - -"
-      "d /var/lib/llama-cpp/models   2775 root    media - -"
+      "d /srv/media/movies          2777 root    media - -"
+      "d /srv/media/tv              2777 root    media - -"
+      "d /srv/media/anime           2777 root    media - -"
+      "d /srv/media/shows           2777 root    media - -"
 
-      "d /srv/media/torrents 2775 ezekiel media - -"
+      # llama models (you asked for all of these to be open too)
+      "d /var/lib/llama-cpp/models  2777 root    media - -"
 
-      "A /srv/media          -    -       -    - g:media:rwx"
-      "A /srv/media          -    -       -    - d:g:media:rwx"
-      "A /srv/media/torrents - - - - g:media:rwx"
-      "A /srv/media/torrents - - - - d:g:media:rwx"
+      # torrents landing dir — fully open
+      "d /srv/media/torrents        2777 root    media - -"
     ];
 
     services.openssh = {
@@ -244,7 +243,7 @@ in
         };
         microbin = {
           ports = [ "127.0.0.1:8084:8080" ];
-          image = "danielszabo99/microbin";
+          image = "danielszabo99/microbin:latest";
           volumes = [ "/var/lib/microbin:/app/microbin_data" ];
         };
         beaver = {
