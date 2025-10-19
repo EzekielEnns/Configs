@@ -357,27 +357,19 @@ in
     */
     services.dnsmasq = {
       enable = true;
-
       resolveLocalQueries = false;
 
       settings = {
-        # Bind on loopback + your LAN IP
+        # keep your existing settings ↓
         "listen-address" = [
           "127.0.0.1"
           "192.168.1.6"
         ];
-
-        # Upstream resolvers (Cloudflare) -> lets you check online with real dns
         server = [
           "1.1.1.1"
           "1.0.0.1"
         ];
-
-        # Pin local names to your host's LAN IP
         address = [
-          #"/xng.lan/192.168.1.6"
-          #"/ai.lan/192.168.1.6"
-          #"/mm.lan/192.168.1.6"
           "/qb.lan/192.168.1.6"
           "/sb.lan/192.168.1.6"
           "/st.lan/192.168.1.6"
@@ -388,11 +380,33 @@ in
           "/wui.lan/192.168.1.6"
           "/bh.lan/192.168.1.6"
           "/mb.lan/192.168.1.6"
+          # add a name for your HTTP iPXE vhost
+          "/ipxe.lan/192.168.1.6"
         ];
-
-        # Sensible DNS hygiene
         "domain-needed" = true;
         "bogus-priv" = true;
+
+        # === PXE/iPXE bits ===
+        enable-tftp = true;
+        tftp-root = "/srv/tftp";
+
+        # Tag requests by architecture (0 = BIOS, 7/9 = x86_64 UEFI)
+        # (This matches iPXE docs; we’ll serve the right binary per arch.) :contentReference[oaicite:1]{index=1}
+        "dhcp-match" = [
+          "set:bios,option:client-arch,0"
+          "set:efi64,option:client-arch,7"
+          "set:efi64,option:client-arch,9"
+        ];
+
+        # Tag requests that are ALREADY iPXE (DHCP user class 77 = "iPXE") :contentReference[oaicite:2]{index=2}
+        "dhcp-userclass" = [ "set:ipxe,iPXE" ];
+
+        # If it's iPXE, give it the HTTP script; otherwise chainload iPXE via TFTP
+        "dhcp-boot" = [
+          "tag:ipxe,http://ipxe.lan/boot.ipxe"
+          "tag:bios,undionly.kpxe"
+          "tag:efi64,ipxe.efi"
+        ];
       };
     };
 

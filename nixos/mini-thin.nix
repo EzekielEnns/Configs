@@ -1,53 +1,51 @@
-# nixos/mini-thin.nix
 { config
 , pkgs
 , lib
 , modulesPath
 , ...
 }:
+let
+  # A tiny "session package" that the DM can recognize
+  thinX2GoSession = pkgs.stdenv.mkDerivation {
+    name = "thin-x2go-session";
+    phases = [ "installPhase" ];
+    installPhase = ''
+            mkdir -p "$out/share/xsessions"
+            cat > "$out/share/xsessions/thin-x2go.desktop" <<'EOF'
+      [Desktop Entry]
+      Name=Thin X2Go
+      Comment=Auto-connect to dk via X2Go
+      Exec=${pkgs.x2goclient}/bin/x2goclient --thinclient --fullscreen --geometry=auto --link=lan --clipboard --sound=alsa --username=ezekiel --host=192.168.1.6
+      Type=Application
+      EOF
+    '';
+    passthru.providedSessions = [ "thin-x2go" ];
+  };
+in
 {
   imports = [
-    # give us kernel+initrd outputs suitable for netboot-style images
     (modulesPath + "/installer/netboot/netboot-minimal.nix")
   ];
 
-  # keep it minimal and fast to boot
-  networking.hostName = "mini-thin";
+  system.stateVersion = "25.05"; # silence the warning; pin to your channel
 
-  # graphics + a tiny X session that runs only X2Go client
-  services.xserver = {
-    enable = true;
-    displayManager.lightdm.enable = true; # tiny DM, boots straight into a session
-    desktopManager.xterm.enable = true; # minimal fallback
-    # Autologin -> custom session runs x2goclient
-    displayManager.autoLogin.enable = true;
-    displayManager.autoLogin.user = "ezekiel";
-    desktopManager.session = [
-      {
-        name = "thin-x2go";
-        start = ''
-          #!${pkgs.runtimeShell}
-          # Launch x2go client full screen to your desktop (dk)
-          ${pkgs.x2goclient}/bin/x2goclient \
-            --thinclient \
-            --fullscreen \
-            --geometry=auto \
-            --session="dk" \
-            --add-to-known-hosts \
-            --sound=alsa \
-            --clipboard \
-            --dpi=auto \
-            --link=lan \
-            --ssh-port=22 \
-            --username=ezekiel \
-            --passwdfile=/etc/x2go/pass \
-            --host=192.168.1.6
-        '';
-      }
-    ];
-  };
+  networking.hostName = lib.mkForce "mini-thin";
 
-  # Autologin user
+  services.xserver.enable = true;
+
+  # LightDM (enable path lives under xserver)
+  services.xserver.displayManager.lightdm.enable = true;
+
+  # Autologin lives under services.displayManager.*
+  services.displayManager.autoLogin.enable = true;
+  services.displayManager.autoLogin.user = "ezekiel";
+
+  # Tell the DM what session we provide and set it as the default
+  services.displayManager.sessionPackages = [ thinX2GoSession ];
+  services.displayManager.defaultSession = "thin-x2go"; # must match the .desktop name
+
+  networking.networkmanager.enable = true;
+
   users.users.ezekiel = {
     isNormalUser = true;
     extraGroups = [
@@ -57,23 +55,13 @@
       "input"
       "networkmanager"
     ];
-    # For first boot, set a throwaway; you can switch to ssh-key auth later
     initialPassword = "change-me-now";
   };
 
-  # Let NetworkManager manage the link (easy wifi if you want later)
-  networking.networkmanager.enable = true;
-
-  # X2Go client + small extras
   environment.systemPackages = with pkgs; [ x2goclient ];
 
-  # Optional: disable the bulk of docs to keep image tiny
+  # keep tiny
   documentation.enable = lib.mkForce false;
-
-  # If you *also* want to NFS-mount /home from dk for local editors, add:
-  # fileSystems."/home/ezekiel" = {
-  #   device = "192.168.1.6:/srv/home/ezekiel";
-  #   fsType = "nfs";
-  #   options = [ "noatime" "vers=3" ];
-  # };
+  documentation.nixos.enable = lib.mkForce false;
+  documentation.man.enable = lib.mkForce false;
 }

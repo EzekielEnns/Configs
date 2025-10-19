@@ -168,22 +168,26 @@
             ];
           };
 
-          # flake.nix (inside nixosConfigurations = { ... };)
-          mini-thin = mkHost {
-            name = "mini-thin";
+          mini-thin = nixpkgs.lib.nixosSystem {
             system = "x86_64-linux";
-            hw = ./nixos/hardware/mini.nix; # you can create a simple stub or reuse a generic hw file
-            host = ./nixos/mini-thin.nix;
-            hmUser = "ezekiel";
-            hmImports = [ ./configs/users.nix ];
+            modules = [
+              ./nixos/mini-thin.nix
+              # optionally a minimal hardware file if you want:
+              # ./nixos/hardware/mini.nix
+            ];
           };
         };
 
       # flake.nix (near your other packages outputs)
+      # flake.nix (inside outputs.packages.x86_64-linux)
       packages.x86_64-linux.netboot-mini-thin =
         let
           pkgs = import nixpkgs { system = "x86_64-linux"; };
           build = self.nixosConfigurations.mini-thin.config.system.build;
+
+          vmlinuz = build.kernel; # file or dir with bzImage
+          initrd = build.netbootRamdisk; # file or dir with initrd
+
           ipxeScript = pkgs.writeText "boot.ipxe" ''
             #!ipxe
             dhcp
@@ -193,13 +197,25 @@
             boot
           '';
         in
-        pkgs.symlinkJoin {
-          name = "netboot-mini-thin";
-          paths = [
-            build.kernel
-            build.netbootRamdisk
-            ipxeScript
-          ];
-        };
+        pkgs.runCommand "netboot-mini-thin" { } ''
+          set -e
+          mkdir -p "$out"
+
+          # kernel: file or directory containing bzImage
+          if [ -d ${vmlinuz} ]; then
+            cp ${vmlinuz}/bzImage "$out/vmlinuz"
+          else
+            cp ${vmlinuz} "$out/vmlinuz"
+          fi
+
+          # initrd: file or directory containing initrd
+          if [ -d ${initrd} ]; then
+            cp ${initrd}/initrd "$out/initrd"
+          else
+            cp ${initrd} "$out/initrd"
+          fi
+
+          cp ${ipxeScript} "$out/boot.ipxe"
+        '';
     };
 }
