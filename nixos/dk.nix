@@ -148,6 +148,9 @@ in
 
       # torrents landing dir — fully open
       "d /srv/media/torrents        2777 root    media - -"
+
+      "d /srv/tftp 0755 root root -"
+      "d /var/www/ipxe 0755 root root -"
     ];
 
     services.openssh = {
@@ -247,7 +250,7 @@ in
           volumes = [ "/var/lib/microbin:/app/microbin_data" ];
         };
         beaver = {
-          ports = [ "127.0.0.1:8083:8080" ];
+          ports = [ "127.0.0.1:8085:8080" ];
           image = "daya0576/beaverhabits:latest";
           volumes = [ "/var/lib/beaver:/app/.user/" ];
         };
@@ -343,8 +346,16 @@ in
             proxyWebsockets = true;
           };
         };
+        "ipxe.lan" = {
+          serverName = "ipxe.lan";
+          locations."/" = {
+            root = "/var/www/ipxe";
+            index = "index.html";
+          };
+        };
       };
     };
+
     /*
       on mac you need to add the server to dns under settings-> network -> details
         then do sudo mkdir -p /etc/resolver && sudo nvim /etc/resolver/lan
@@ -418,6 +429,8 @@ in
     networking.firewall.allowedUDPPorts = [
       53
       6881
+      67
+      69
     ];
     networking.firewall.allowedTCPPorts = [
       #dns
