@@ -1,4 +1,8 @@
-{ config, pkgs, ... }:
+{ config
+, pkgs
+, lib
+, ...
+}:
 {
   networking.hostName = "mini";
 
@@ -30,5 +34,5 @@
   };
 
   # Keep the image svelte for a weak client
-  documentation.enable = false;
+  documentation.enable = lib.mkForce false;
 }
