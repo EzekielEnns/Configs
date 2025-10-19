@@ -4,7 +4,6 @@
 
   # Enable early networking & NFS in initrd so we can mount root over NFS
   boot.initrd.network.enable = true;
-  boot.initrd.network.nfs.enable = true;
   boot.supportedFilesystems = [ "nfs" ];
 
   # Adjust IP/path to your dk server & export path below
