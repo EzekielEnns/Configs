@@ -345,6 +345,9 @@ in
         };
       };
     };
+
+    #pxe
+
     /*
       on mac you need to add the server to dns under settings-> network -> details
         then do sudo mkdir -p /etc/resolver && sudo nvim /etc/resolver/lan
