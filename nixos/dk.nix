@@ -20,6 +20,7 @@ in
       pkgs.glances
       pkgs.htop
       pkgs.nvtopPackages.full
+      pkgs.btop
     ];
     services.llama-swap = {
       enable = true;
@@ -198,7 +199,8 @@ in
       backend = "docker";
       containers = {
         owui = {
-          ports = [ "127.0.0.1:8088:8080" ];
+          extraOptions = [ "--network=host" ];
+          ports = [ "8080" ];
           image = "ghcr.io/open-webui/open-webui:main";
           volumes = [ "/var/lib/openwebui:/app/backend/data" ];
         };
@@ -249,10 +251,10 @@ in
           image = "danielszabo99/microbin:latest";
           volumes = [ "/var/lib/microbin:/app/microbin_data" ];
         };
-        beaver = {
-          ports = [ "127.0.0.1:8085:8080" ];
-          image = "daya0576/beaverhabits:latest";
-          volumes = [ "/var/lib/beaver:/app/.user/" ];
+        excalidraw = {
+          ports = [ "127.0.0.1:8085:80" ];
+          image = "excalidraw/excalidraw:latest";
+          volumes = [ "/var/lib/excalidraw:/data" ];
         };
         silverBullet = {
           ports = [ "127.0.0.1:8082:3000" ];
@@ -290,10 +292,10 @@ in
             proxyWebsockets = true;
           };
         };
-        "bh.lan" = {
-          serverName = "bh.lan";
+        "ex.lan" = {
+          serverName = "ex.lan";
           locations."/" = {
-            proxyPass = "http://127.0.0.1:8083";
+            proxyPass = "http://127.0.0.1:8085";
             proxyWebsockets = true;
           };
         };
@@ -314,7 +316,7 @@ in
         "wui.lan" = {
           serverName = "wui.lan";
           locations."/" = {
-            proxyPass = "http://127.0.0.1:8088";
+            proxyPass = "http://127.0.0.1:8080";
             proxyWebsockets = true;
           };
         };
@@ -322,13 +324,6 @@ in
           serverName = "st.lan";
           locations."/" = {
             proxyPass = "http://127.0.0.1:8081";
-            proxyWebsockets = true;
-          };
-        };
-        "la.lan" = {
-          serverName = "la.lan";
-          locations."/" = {
-            proxyPass = "http://127.0.0.1:8080";
             proxyWebsockets = true;
           };
         };
@@ -384,12 +379,11 @@ in
           "/qb.lan/192.168.1.6"
           "/sb.lan/192.168.1.6"
           "/st.lan/192.168.1.6"
-          "/la.lan/192.168.1.6"
           "/jf.lan/192.168.1.6"
           "/dc.lan/192.168.1.6"
           "/ai.lan/192.168.1.6"
           "/wui.lan/192.168.1.6"
-          "/bh.lan/192.168.1.6"
+          "/ex.lan/192.168.1.6"
           "/mb.lan/192.168.1.6"
           # add a name for your HTTP iPXE vhost
           "/ipxe.lan/192.168.1.6"
