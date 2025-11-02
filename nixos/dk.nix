@@ -33,34 +33,60 @@ in
         models = {
           "Devstral-Small-2507" = {
             aliases = [
-              "code"
+              "coding"
             ];
             cmd =
               "${llamaServer} --host 127.0.0.1 --port \${PORT} "
               + "-m /var/lib/llama-cpp/models/Devstral-Small-2507-UD-Q4_K_XL.gguf "
-              + "--jinja "
-              + "-ngl 99 -c 4096 -b 1024  --parallel 1";
+              + "--flash-attn "
+              + "--mlock "
+              + "--cont-batching "
+              + "--gpu-layers 999 ";
           };
-          "Llama3Tadashinu.Q4_K_M" = {
-            aliases = [
-              "friend"
-            ];
+          "Sauske" = {
             cmd =
               "${llamaServer} --host 127.0.0.1 --port \${PORT} "
               + "-m /var/lib/llama-cpp/models/Llama3Tadashinu.Q4_K_M.gguf "
-              + "--jinja "
-              + "-ngl 999 -c 8192 -b 1024 --parallel 1";
+              + "--flash-attn "
+              + "--mlock "
+              + "--cont-batching "
+              + "--gpu-layers 999 ";
+          };
+          "Cloe-Llama3" = {
+            cmd =
+              "${llamaServer} --host 127.0.0.1 --port \${PORT} "
+              + "-m /var/lib/llama-cpp/models/Meta-Llama-3-8B.Q8_0.gguf "
+              + "--flash-attn "
+              + "--mlock "
+              + "--cont-batching "
+              + "--gpu-layers 999 ";
+          };
+          "Cloe-dolphin-Solth-Llama3" = {
+            cmd =
+              "${llamaServer} --host 127.0.0.1 --port \${PORT} "
+              + "-m /var/lib/llama-cpp/models/dolphin-llama3-zh-cn-uncensored-unsloth.Q8_0.gguf "
+              + "--flash-attn "
+              + "--mlock "
+              + "--cont-batching "
+              + "--gpu-layers 999 ";
           };
           "DarkIdol" = {
-            aliases = [
-              "smutty"
-            ];
-            #https://huggingface.co/QuantFactory/DarkIdol-Llama-3.1-8B-Instruct-1.2-Uncensored-GGUF
-            cmd = # takes up 9gb of vram
+            cmd =
               "${llamaServer} --host 127.0.0.1 --port \${PORT} "
               + "-m /var/lib/llama-cpp/models/DarkIdol-Llama-3.1-8B-Instruct-1.2-Uncensored.Q8_0.gguf "
-              + "--jinja "
-              + "-ngl 999 -c 8192 -b 1024 --parallel 1";
+              + "--flash-attn "
+              + "--mlock "
+              + "--cont-batching "
+              + "--gpu-layers 999 ";
+          };
+          "Cloe-pivot-10.7b-mistral-v0.2-rp.8" = {
+            cmd =
+              "${llamaServer} --host 127.0.0.1 --port \${PORT} "
+              + "-m /var/lib/llama-cpp/models/pivot-10.7b-mistral-v0.2-rp.Q8_0.gguf "
+              + "--flash-attn "
+              + "--mlock "
+              + "--cont-batching "
+              + "--gpu-layers 999 ";
           };
           "baronllm-llama3.1-v1-q6_k" = {
             aliases = [
@@ -69,60 +95,11 @@ in
             cmd =
               "${llamaServer} --host 127.0.0.1 --port \${PORT} "
               + "-m /var/lib/llama-cpp/models/baronllm-llama3.1-v1-q6_k.gguf "
-              + "--jinja "
-              + "-ngl 99 -c 4096 -b 1024  --parallel 1";
+              + "--flash-attn "
+              + "--mlock "
+              + "--cont-batching "
+              + "--gpu-layers 999 ";
           };
-          "Mistral-Small-3.2-24B-Instruct-2506-Q4_K_M" = {
-            aliases = [
-              "g-4m"
-            ];
-            cmd =
-              "${llamaServer} --host 127.0.0.1 --port \${PORT} "
-              + "-m /var/lib/llama-cpp/models/Mistral-Small-3.2-24B-Instruct-2506-Q4_K_M.gguf "
-              + "--jinja "
-              + "-ngl 99 -c 4096 -b 1024  --parallel 1";
-          };
-          "Mistral-Small-3.2-24B-Instruct-2506-Q4_K_S" = {
-            aliases = [
-              "g-4s"
-            ];
-            cmd =
-              "${llamaServer} --host 127.0.0.1 --port \${PORT} "
-              + "-m /var/lib/llama-cpp/models/Mistral-Small-3.2-24B-Instruct-2506-Q4_K_S.gguf "
-              + "--jinja "
-              + "-ngl 99 -c 4096 -b 1024  --parallel 1";
-          };
-          "Mistral-Small-3.2-24B-Instruct-2506-Q4_K_XL" = {
-            aliases = [
-              "g-4xl"
-            ];
-            cmd =
-              "${llamaServer} --host 127.0.0.1 --port \${PORT} "
-              + "-m /var/lib/llama-cpp/models/Mistral-Small-3.2-24B-Instruct-2506-UD-Q4_K_XL.gguf "
-              + "--jinja "
-              + "-ngl 99 -c 4096 -b 1024  --parallel 1";
-          };
-          "pivot-10.7b-mistral-v0.2-rp.8" = {
-            aliases = [
-              "t1"
-            ];
-            cmd =
-              "${llamaServer} --host 127.0.0.1 --port \${PORT} "
-              + "-m /var/lib/llama-cpp/models/pivot-10.7b-mistral-v0.2-rp.Q8_0.gguf "
-              + "--jinja "
-              + "-ngl 999 -c 8192 -b 1024 --parallel 1";
-          };
-          "Hermes-3-Llama-3.1-8B-Q8_0" = {
-            aliases = [
-              "t2"
-            ];
-            cmd =
-              "${llamaServer} --host 127.0.0.1 --port \${PORT} "
-              + "-m /var/lib/llama-cpp/models/Hermes-3-Llama-3.1-8B-Q8_0.gguf "
-              + "--jinja "
-              + "-ngl 999 -c 8192 -b 1024 --parallel 1";
-          };
-
         };
       };
     };
@@ -203,6 +180,10 @@ in
           ports = [ "8080" ];
           image = "ghcr.io/open-webui/open-webui:main";
           volumes = [ "/var/lib/openwebui:/app/backend/data" ];
+          environment = {
+            WEBUI_AUTH = "false";
+            OPENAI_API_BASE_URL = "http://ai.lan/v1";
+          };
         };
         docsMcp = {
           image = "ghcr.io/arabold/docs-mcp-server:latest";
@@ -241,6 +222,11 @@ in
           volumes = [
             "/srv/media/torrents:/downloads" # downloads land here
             "/var/qbit/config:/config"
+          ];
+          ports = [
+            "8083:8083"
+            "6881:6881"
+            "6881:6881/udp"
           ];
           environment = {
             WEBUI_PORT = "8083";
@@ -372,6 +358,8 @@ in
           "192.168.1.6"
         ];
         server = [
+          "208.67.222.222"
+          "208.67.222.220"
           "1.1.1.1"
           "1.0.0.1"
         ];
@@ -419,7 +407,6 @@ in
       enable = true;
     };
     networking.networkmanager.enable = true;
-    networking.networkmanager.unmanaged = [ "enp6s0" ];
     networking.firewall.allowedUDPPorts = [
       53
       6881
@@ -443,5 +430,14 @@ in
       #docs mcp
       6280
     ];
+
+    networking.interfaces.enp6s0.ipv4.addresses = [
+      {
+        address = "192.168.1.6";
+        prefixLength = 24;
+      }
+    ];
+
+    networking.networkmanager.unmanaged = [ "enp6s0" ];
   };
 }

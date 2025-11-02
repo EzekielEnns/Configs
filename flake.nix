@@ -17,6 +17,11 @@
     zellij.url = "github:a-kenji/zellij-nix";
     ghostty.inputs.nixpkgs.follows = "nixpkgs";
     zellij.inputs.nixpkgs.follows = "nixpkgs";
+
+    zig-overlay = {
+      url = "github:mitchellh/zig-overlay";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
   };
 
   # NOTE: bring `ghostty` & `zellij` into scope by using `inputs.<name>` inside
@@ -27,6 +32,7 @@
     , nixpkgs-unstable
     , home-manager
     , nix-darwin
+    , zig-overlay
     , ...
     }@inputs:
     let
@@ -40,7 +46,7 @@
         };
 
       latestPkgs = system: {
-        ghostty = inputs.ghostty.packages.${system}.default;
+        # ghostty = inputs.ghostty.packages.${system}.default;
         zellij = inputs.zellij.packages.${system}.default;
       };
 
@@ -72,7 +78,7 @@
         in
         {
           environment.systemPackages = [
-            lp.ghostty
+            # lp.ghostty
             lp.zellij
           ];
         };
@@ -122,6 +128,17 @@
                 hw
                 host
                 ./modules/general.nix
+                # 👇 Add the Zig overlay here
+                # {
+                #   nixpkgs.overlays = [ inputs.zig-overlay.overlays.default ];
+
+                #   # 👇 Optional: stub for missing zig_0_15 (safety)
+                #   nixpkgs.config = {
+                #     packageOverrides = pkgs: {
+                #       zig_0_15 = inputs.zig-overlay.packages.${system}.latest or pkgs.zig_0_12;
+                #     };
+                #   };
+                # }
               ]
               ++ (hmModule {
                 inherit system;
