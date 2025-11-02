@@ -57,6 +57,8 @@ in
   };
   environment.systemPackages = with pkgs; [
     # Language servers and tools
+    pkgs-unstable.basedpyright
+    pkgs-unstable.ruff
     efm-langserver
     tree-sitter
     nodejs_24

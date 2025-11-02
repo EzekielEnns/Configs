@@ -55,7 +55,44 @@ return {
 			{ "<leader>yy", '"+yy', desc = "yank line to clip", mode = { "v", "n" } },
 			{ "<leader>Y", '"+yg_', desc = "yank line", mode = { "v", "n" } },
 			{
+				"<leader>cf",
+				function()
+					-- Base name (filename only)
+					local base = vim.fn.expand("%:t")
+					vim.fn.setreg("+", base)
+					vim.notify("Copied file name:\n" .. base)
+				end,
+				desc = "copy base file name",
+			},
+
+			{
+				"<leader>cp",
+				function()
+					-- Base path (directory), relative to cwd (same logic as your snippet)
+					local root = vim.fn.getcwd()
+					local dir = vim.fn.expand("%:p:h")
+					local rel = vim.fn.fnamemodify(dir, ":~:.")
+					if dir:find(root, 1, true) == 1 then
+						rel = dir:sub(#root + 2)
+					end
+					vim.fn.setreg("+", rel)
+					vim.notify("Copied directory path:\n" .. rel)
+				end,
+				desc = "copy base path (directory) relative to root",
+			},
+
+			{
 				"<leader>cl",
+				function()
+					-- Line number only
+					local line = tostring(vim.fn.line("."))
+					vim.fn.setreg("+", line)
+					vim.notify("Copied line number:\n" .. line)
+				end,
+				desc = "copy line number",
+			},
+			{
+				"<leader>cr",
 				function()
 					local root = vim.fn.getcwd()
 					local file = vim.fn.expand("%:p")

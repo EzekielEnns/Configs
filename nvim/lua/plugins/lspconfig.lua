@@ -169,6 +169,8 @@ return {
 			"eslint",
 			"jsonls",
 			"tailwindcss",
+			"basedpyright",
+			"ruff",
 		})
 	end,
 }

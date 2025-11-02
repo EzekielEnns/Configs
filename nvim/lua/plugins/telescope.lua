@@ -3,21 +3,47 @@ return {
 	tag = "0.1.8",
 	dependencies = { "nvim-lua/plenary.nvim", "debugloop/telescope-undo.nvim" },
 	config = function()
+		local actions = require("telescope.actions")
 		require("telescope").setup({
+			-- Global defaults for ALL pickers
 			defaults = {
-				pickers = {
-					buffer = {
-						mappings = {
-							n = {
-								["<c-c>"] = require("telescope.actions").delete_buffer,
-							},
-							i = {
-								["<c-c>"] = require("telescope.actions").delete_buffer,
-							},
-						},
+				prompt_prefix = "   ",
+				selection_caret = " ",
+				sorting_strategy = "ascending",
+
+				-- 👇 change layout here
+				layout_strategy = "vertical",
+				layout_config = {
+					vertical = {
+						width = 0.55, -- 55% of screen width
+						height = 0.95, -- almost full height
+						prompt_position = "top",
+						preview_cutoff = 10, -- never hide preview unless really tiny
+						mirror = false,
+					},
+					-- Fallbacks (used by 'flex' or others if you switch later)
+					horizontal = { preview_width = 0.6, prompt_position = "top" },
+					center = { width = 0.5, height = 0.5, preview_cutoff = 0 },
+					cursor = { width = 0.5, height = 0.35 },
+				},
+
+				mappings = {
+					i = {
+						["<Esc>"] = actions.close,
+					},
+					n = {},
+				},
+			},
+
+			-- Per-picker tweaks (buffer list gets quick delete + same layout)
+			pickers = {
+				buffers = {
+					sort_lastused = true,
+					mappings = {
+						i = { ["<C-c>"] = actions.delete_buffer },
+						n = { ["<C-c>"] = actions.delete_buffer },
 					},
 				},
-				mappings = {},
 			},
 		})
 		require("telescope").load_extension("undo")

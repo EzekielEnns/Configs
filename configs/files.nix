@@ -106,17 +106,10 @@ in
                 bind "Alt n" { NewPane "Right"; SwitchToMode "Normal"; }
                 bind "Alt m" { NewPane "Down"; SwitchToMode "Normal"; }
 
-                // Quick actions - always available
                 bind "Alt x" { CloseFocus; SwitchToMode "Normal"; }
-                //TODO add things like toggle foucs full screen
-                //TODO add toggle tab
                 bind "Alt f" { ToggleFloatingPanes; }
                 bind "Alt e" { TogglePaneEmbedOrFloating; }
-
-                // Tab management - always available
                 bind "Alt ." { NewTab; SwitchToMode "Normal"; }
-                bind "Alt Shift /" { SwitchToMode "RenameTab"; TabNameInput 0; }
-
                 bind "Alt s" {
                     LaunchOrFocusPlugin "session-manager" { 
                         floating true
@@ -144,8 +137,9 @@ in
 
                 bind "Alt l" { GoToNextTab; }
                 bind "Alt h" { GoToPreviousTab; }
-                bind "Alt j" { GoToNextTab;}
-                bind "Alt k" { GoToPreviousTab; }
+                bind "Alt j" { MovePane "Up";}
+                bind "Alt k" { MovePane "Down"; }
+                bind "Alt r" { NextSwapLayout; }
             }
 
             shared {
