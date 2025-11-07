@@ -374,22 +374,43 @@ in
         curl ai.lan
         remebmer to add the dns to the router, also browsers require http://*.lan they will not auto fill
     */
+    systemd.services.dnsmasq.after = [ "dnscrypt-proxy2.service" ];
+    systemd.services.dnsmasq.requires = [ "dnscrypt-proxy2.service" ];
+    services.dnscrypt-proxy2 = {
+      enable = true;
+      settings = {
+        listen_addresses = [ "127.0.0.1:5053" ];
+        require_dnssec = true;
+        # Pick resolvers that support DoH/DoT — Cloudflare, Google, Quad9, etc.
+        server_names = [
+          "cloudflare"
+          "google"
+        ];
+        # Optional but recommended
+        cache = true;
+      };
+    };
     services.dnsmasq = {
       enable = true;
-      resolveLocalQueries = false;
+      resolveLocalQueries = true;
 
       settings = {
-        # keep your existing settings ↓
-        "listen-address" = [
+        no-resolv = true;
+        strict-order = true;
+        domain-needed = true;
+        bogus-priv = true;
+        enable-tftp = true;
+        tftp-root = "/srv/tftp";
+        expand-hosts = true;
+        listen-address = [
           "127.0.0.1"
           "192.168.1.6"
         ];
         server = [
-          "208.67.222.222"
-          "208.67.222.220"
-          "1.1.1.1"
-          "1.0.0.1"
+          "127.0.0.1#5053"
+          #          "/lan/" # resolves to local domain
         ];
+        local = [ "/lan/" ];
         address = [
           "/qb.lan/192.168.1.6"
           "/sb.lan/192.168.1.6"
@@ -403,12 +424,6 @@ in
           # add a name for your HTTP iPXE vhost
           "/ipxe.lan/192.168.1.6"
         ];
-        "domain-needed" = true;
-        "bogus-priv" = true;
-
-        # === PXE/iPXE bits ===
-        enable-tftp = true;
-        tftp-root = "/srv/tftp";
 
         # Tag requests by architecture (0 = BIOS, 7/9 = x86_64 UEFI)
         # (This matches iPXE docs; we’ll serve the right binary per arch.) :contentReference[oaicite:1]{index=1}
