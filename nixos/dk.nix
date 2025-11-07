@@ -20,6 +20,7 @@ in
       pkgs.glances
       pkgs.htop
       pkgs.nvtopPackages.full
+      pkgs.btop
     ];
     services.llama-swap = {
       enable = true;
@@ -32,34 +33,87 @@ in
         models = {
           "Devstral-Small-2507" = {
             aliases = [
-              "code"
+              "coding"
             ];
             cmd =
               "${llamaServer} --host 127.0.0.1 --port \${PORT} "
               + "-m /var/lib/llama-cpp/models/Devstral-Small-2507-UD-Q4_K_XL.gguf "
-              + "--jinja "
-              + "-ngl 99 -c 4096 -b 1024  --parallel 1";
+              + "--flash-attn "
+              + "--mlock "
+              + "--cont-batching "
+              + "--gpu-layers 999 ";
           };
-          "Llama3Tadashinu.Q4_K_M" = {
-            aliases = [
-              "friend"
-            ];
+          "Sauske" = {
             cmd =
               "${llamaServer} --host 127.0.0.1 --port \${PORT} "
               + "-m /var/lib/llama-cpp/models/Llama3Tadashinu.Q4_K_M.gguf "
-              + "--jinja "
-              + "-ngl 999 -c 8192 -b 1024 --parallel 1";
+              + "--flash-attn "
+              + "--mlock "
+              + "--cont-batching "
+              + "--gpu-layers 999 ";
+          };
+          "Cloe-horror" = {
+            cmd =
+              "${llamaServer} --host 127.0.0.1 --port \${PORT} "
+              + "-m /var/lib/llama-cpp/models/Gemma-3-12b-it-MAX-HORROR-D_AU-Q8_0-imat.gguf "
+              + "--flash-attn "
+              + "--mlock "
+              + "--cont-batching "
+              + "--gpu-layers 999 ";
+          };
+          "Cloe-hero" = {
+            cmd =
+              "${llamaServer} --host 127.0.0.1 --port \${PORT} "
+              + "-m /var/lib/llama-cpp/models/L3.1-RP-Hero-BigTalker-8B-D_AU-Q8_0.gguf "
+              + "--flash-attn "
+              + "--mlock "
+              + "--cont-batching "
+              + "--gpu-layers 999 ";
+          };
+          "Cloe-NemoBigThot" = {
+            cmd =
+              "${llamaServer} --host 127.0.0.1 --port \${PORT} "
+              + "-m /var/lib/llama-cpp/models/Llama-3.1-Nemotron-Nano-8B-v1-BF16.gguf "
+              + "--flash-attn "
+              + "--mlock "
+              + "--cont-batching "
+              + "--gpu-layers 999 ";
+          };
+          "Cloe-NemoLessThot" = {
+            cmd =
+              "${llamaServer} --host 127.0.0.1 --port \${PORT} "
+              + "-m /var/lib/llama-cpp/models/Llama-3.1-Nemotron-Nano-8B-v1-UD-Q8_K_XL.gguf "
+              + "--flash-attn "
+              + "--mlock "
+              + "--cont-batching "
+              + "--gpu-layers 999 ";
+          };
+          "Cloe-dolphin-Solth-Llama3" = {
+            cmd =
+              "${llamaServer} --host 127.0.0.1 --port \${PORT} "
+              + "-m /var/lib/llama-cpp/models/dolphin-llama3-zh-cn-uncensored-unsloth.Q8_0.gguf "
+              + "--flash-attn "
+              + "--mlock "
+              + "--cont-batching "
+              + "--gpu-layers 999 ";
           };
           "DarkIdol" = {
-            aliases = [
-              "smutty"
-            ];
-            #https://huggingface.co/QuantFactory/DarkIdol-Llama-3.1-8B-Instruct-1.2-Uncensored-GGUF
-            cmd = # takes up 9gb of vram
+            cmd =
               "${llamaServer} --host 127.0.0.1 --port \${PORT} "
               + "-m /var/lib/llama-cpp/models/DarkIdol-Llama-3.1-8B-Instruct-1.2-Uncensored.Q8_0.gguf "
-              + "--jinja "
-              + "-ngl 999 -c 8192 -b 1024 --parallel 1";
+              + "--flash-attn "
+              + "--mlock "
+              + "--cont-batching "
+              + "--gpu-layers 999 ";
+          };
+          "Cloe-pivot-10.7b-mistral-v0.2-rp.8" = {
+            cmd =
+              "${llamaServer} --host 127.0.0.1 --port \${PORT} "
+              + "-m /var/lib/llama-cpp/models/pivot-10.7b-mistral-v0.2-rp.Q8_0.gguf "
+              + "--flash-attn "
+              + "--mlock "
+              + "--cont-batching "
+              + "--gpu-layers 999 ";
           };
           "baronllm-llama3.1-v1-q6_k" = {
             aliases = [
@@ -68,60 +122,11 @@ in
             cmd =
               "${llamaServer} --host 127.0.0.1 --port \${PORT} "
               + "-m /var/lib/llama-cpp/models/baronllm-llama3.1-v1-q6_k.gguf "
-              + "--jinja "
-              + "-ngl 99 -c 4096 -b 1024  --parallel 1";
+              + "--flash-attn "
+              + "--mlock "
+              + "--cont-batching "
+              + "--gpu-layers 999 ";
           };
-          "Mistral-Small-3.2-24B-Instruct-2506-Q4_K_M" = {
-            aliases = [
-              "g-4m"
-            ];
-            cmd =
-              "${llamaServer} --host 127.0.0.1 --port \${PORT} "
-              + "-m /var/lib/llama-cpp/models/Mistral-Small-3.2-24B-Instruct-2506-Q4_K_M.gguf "
-              + "--jinja "
-              + "-ngl 99 -c 4096 -b 1024  --parallel 1";
-          };
-          "Mistral-Small-3.2-24B-Instruct-2506-Q4_K_S" = {
-            aliases = [
-              "g-4s"
-            ];
-            cmd =
-              "${llamaServer} --host 127.0.0.1 --port \${PORT} "
-              + "-m /var/lib/llama-cpp/models/Mistral-Small-3.2-24B-Instruct-2506-Q4_K_S.gguf "
-              + "--jinja "
-              + "-ngl 99 -c 4096 -b 1024  --parallel 1";
-          };
-          "Mistral-Small-3.2-24B-Instruct-2506-Q4_K_XL" = {
-            aliases = [
-              "g-4xl"
-            ];
-            cmd =
-              "${llamaServer} --host 127.0.0.1 --port \${PORT} "
-              + "-m /var/lib/llama-cpp/models/Mistral-Small-3.2-24B-Instruct-2506-UD-Q4_K_XL.gguf "
-              + "--jinja "
-              + "-ngl 99 -c 4096 -b 1024  --parallel 1";
-          };
-          "pivot-10.7b-mistral-v0.2-rp.8" = {
-            aliases = [
-              "t1"
-            ];
-            cmd =
-              "${llamaServer} --host 127.0.0.1 --port \${PORT} "
-              + "-m /var/lib/llama-cpp/models/pivot-10.7b-mistral-v0.2-rp.Q8_0.gguf "
-              + "--jinja "
-              + "-ngl 999 -c 8192 -b 1024 --parallel 1";
-          };
-          "Hermes-3-Llama-3.1-8B-Q8_0" = {
-            aliases = [
-              "t2"
-            ];
-            cmd =
-              "${llamaServer} --host 127.0.0.1 --port \${PORT} "
-              + "-m /var/lib/llama-cpp/models/Hermes-3-Llama-3.1-8B-Q8_0.gguf "
-              + "--jinja "
-              + "-ngl 999 -c 8192 -b 1024 --parallel 1";
-          };
-
         };
       };
     };
@@ -148,6 +153,9 @@ in
 
       # torrents landing dir — fully open
       "d /srv/media/torrents        2777 root    media - -"
+
+      "d /srv/tftp 0755 root root -"
+      "d /var/www/ipxe 0755 root root -"
     ];
 
     services.openssh = {
@@ -195,9 +203,14 @@ in
       backend = "docker";
       containers = {
         owui = {
-          ports = [ "127.0.0.1:8088:8080" ];
+          extraOptions = [ "--network=host" ];
+          ports = [ "8080" ];
           image = "ghcr.io/open-webui/open-webui:main";
           volumes = [ "/var/lib/openwebui:/app/backend/data" ];
+          environment = {
+            WEBUI_AUTH = "false";
+            OPENAI_API_BASE_URL = "http://ai.lan/v1";
+          };
         };
         docsMcp = {
           image = "ghcr.io/arabold/docs-mcp-server:latest";
@@ -237,6 +250,11 @@ in
             "/srv/media/torrents:/downloads" # downloads land here
             "/var/qbit/config:/config"
           ];
+          ports = [
+            "8083:8083"
+            "6881:6881"
+            "6881:6881/udp"
+          ];
           environment = {
             WEBUI_PORT = "8083";
           };
@@ -246,10 +264,10 @@ in
           image = "danielszabo99/microbin:latest";
           volumes = [ "/var/lib/microbin:/app/microbin_data" ];
         };
-        beaver = {
-          ports = [ "127.0.0.1:8083:8080" ];
-          image = "daya0576/beaverhabits:latest";
-          volumes = [ "/var/lib/beaver:/app/.user/" ];
+        excalidraw = {
+          ports = [ "127.0.0.1:8085:80" ];
+          image = "excalidraw/excalidraw:latest";
+          volumes = [ "/var/lib/excalidraw:/data" ];
         };
         silverBullet = {
           ports = [ "127.0.0.1:8082:3000" ];
@@ -287,10 +305,10 @@ in
             proxyWebsockets = true;
           };
         };
-        "bh.lan" = {
-          serverName = "bh.lan";
+        "ex.lan" = {
+          serverName = "ex.lan";
           locations."/" = {
-            proxyPass = "http://127.0.0.1:8083";
+            proxyPass = "http://127.0.0.1:8085";
             proxyWebsockets = true;
           };
         };
@@ -311,7 +329,7 @@ in
         "wui.lan" = {
           serverName = "wui.lan";
           locations."/" = {
-            proxyPass = "http://127.0.0.1:8088";
+            proxyPass = "http://127.0.0.1:8080";
             proxyWebsockets = true;
           };
         };
@@ -319,13 +337,6 @@ in
           serverName = "st.lan";
           locations."/" = {
             proxyPass = "http://127.0.0.1:8081";
-            proxyWebsockets = true;
-          };
-        };
-        "la.lan" = {
-          serverName = "la.lan";
-          locations."/" = {
-            proxyPass = "http://127.0.0.1:8080";
             proxyWebsockets = true;
           };
         };
@@ -343,8 +354,16 @@ in
             proxyWebsockets = true;
           };
         };
+        "ipxe.lan" = {
+          serverName = "ipxe.lan";
+          locations."/" = {
+            root = "/var/www/ipxe";
+            index = "index.html";
+          };
+        };
       };
     };
+
     /*
       on mac you need to add the server to dns under settings-> network -> details
         then do sudo mkdir -p /etc/resolver && sudo nvim /etc/resolver/lan
@@ -357,42 +376,57 @@ in
     */
     services.dnsmasq = {
       enable = true;
-
       resolveLocalQueries = false;
 
       settings = {
-        # Bind on loopback + your LAN IP
+        # keep your existing settings ↓
         "listen-address" = [
           "127.0.0.1"
           "192.168.1.6"
         ];
-
-        # Upstream resolvers (Cloudflare) -> lets you check online with real dns
         server = [
+          "208.67.222.222"
+          "208.67.222.220"
           "1.1.1.1"
           "1.0.0.1"
         ];
-
-        # Pin local names to your host's LAN IP
         address = [
-          #"/xng.lan/192.168.1.6"
-          #"/ai.lan/192.168.1.6"
-          #"/mm.lan/192.168.1.6"
           "/qb.lan/192.168.1.6"
           "/sb.lan/192.168.1.6"
           "/st.lan/192.168.1.6"
-          "/la.lan/192.168.1.6"
           "/jf.lan/192.168.1.6"
           "/dc.lan/192.168.1.6"
           "/ai.lan/192.168.1.6"
           "/wui.lan/192.168.1.6"
-          "/bh.lan/192.168.1.6"
+          "/ex.lan/192.168.1.6"
           "/mb.lan/192.168.1.6"
+          # add a name for your HTTP iPXE vhost
+          "/ipxe.lan/192.168.1.6"
         ];
-
-        # Sensible DNS hygiene
         "domain-needed" = true;
         "bogus-priv" = true;
+
+        # === PXE/iPXE bits ===
+        enable-tftp = true;
+        tftp-root = "/srv/tftp";
+
+        # Tag requests by architecture (0 = BIOS, 7/9 = x86_64 UEFI)
+        # (This matches iPXE docs; we’ll serve the right binary per arch.) :contentReference[oaicite:1]{index=1}
+        "dhcp-match" = [
+          "set:bios,option:client-arch,0"
+          "set:efi64,option:client-arch,7"
+          "set:efi64,option:client-arch,9"
+        ];
+
+        # Tag requests that are ALREADY iPXE (DHCP user class 77 = "iPXE") :contentReference[oaicite:2]{index=2}
+        "dhcp-userclass" = [ "set:ipxe,iPXE" ];
+
+        # If it's iPXE, give it the HTTP script; otherwise chainload iPXE via TFTP
+        "dhcp-boot" = [
+          "tag:ipxe,http://ipxe.lan/boot.ipxe"
+          "tag:bios,undionly.kpxe"
+          "tag:efi64,ipxe.efi"
+        ];
       };
     };
 
@@ -400,10 +434,11 @@ in
       enable = true;
     };
     networking.networkmanager.enable = true;
-    networking.networkmanager.unmanaged = [ "enp6s0" ];
     networking.firewall.allowedUDPPorts = [
       53
       6881
+      67
+      69
     ];
     networking.firewall.allowedTCPPorts = [
       #dns
@@ -422,5 +457,14 @@ in
       #docs mcp
       6280
     ];
+
+    networking.interfaces.enp6s0.ipv4.addresses = [
+      {
+        address = "192.168.1.6";
+        prefixLength = 24;
+      }
+    ];
+
+    networking.networkmanager.unmanaged = [ "enp6s0" ];
   };
 }
