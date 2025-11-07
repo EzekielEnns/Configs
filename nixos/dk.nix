@@ -52,10 +52,37 @@ in
               + "--cont-batching "
               + "--gpu-layers 999 ";
           };
-          "Cloe-Llama3" = {
+          "Cloe-horror" = {
             cmd =
               "${llamaServer} --host 127.0.0.1 --port \${PORT} "
-              + "-m /var/lib/llama-cpp/models/Meta-Llama-3-8B.Q8_0.gguf "
+              + "-m /var/lib/llama-cpp/models/Gemma-3-12b-it-MAX-HORROR-D_AU-Q8_0-imat.gguf "
+              + "--flash-attn "
+              + "--mlock "
+              + "--cont-batching "
+              + "--gpu-layers 999 ";
+          };
+          "Cloe-hero" = {
+            cmd =
+              "${llamaServer} --host 127.0.0.1 --port \${PORT} "
+              + "-m /var/lib/llama-cpp/models/L3.1-RP-Hero-BigTalker-8B-D_AU-Q8_0.gguf "
+              + "--flash-attn "
+              + "--mlock "
+              + "--cont-batching "
+              + "--gpu-layers 999 ";
+          };
+          "Cloe-NemoBigThot" = {
+            cmd =
+              "${llamaServer} --host 127.0.0.1 --port \${PORT} "
+              + "-m /var/lib/llama-cpp/models/Llama-3.1-Nemotron-Nano-8B-v1-BF16.gguf "
+              + "--flash-attn "
+              + "--mlock "
+              + "--cont-batching "
+              + "--gpu-layers 999 ";
+          };
+          "Cloe-NemoLessThot" = {
+            cmd =
+              "${llamaServer} --host 127.0.0.1 --port \${PORT} "
+              + "-m /var/lib/llama-cpp/models/Llama-3.1-Nemotron-Nano-8B-v1-UD-Q8_K_XL.gguf "
               + "--flash-attn "
               + "--mlock "
               + "--cont-batching "
