@@ -9,7 +9,7 @@ return {
 	priority = 1000,
 	config = function()
 		vim.diagnostic.config({ virtual_text = true })
-		vim.lsp.set_log_level("DEBUG")
+		vim.lsp.set_log_level("OFF")
 
 		vim.api.nvim_create_autocmd("LspAttach", {
 			desc = "LSP actions",
@@ -153,6 +153,22 @@ return {
 					-- IMPORTANT: reply to the server so Neovim doesn't error
 					return vim.NIL -- sends JSON null as the result
 				end,
+			},
+		})
+
+		-- shared capabilities (fixes offsetEncoding conflict)
+		local capabilities = vim.lsp.protocol.make_client_capabilities()
+		capabilities.offsetEncoding = { "utf-16" }
+
+		vim.lsp.config("ruff", {
+			capabilities = capabilities,
+			init_options = {
+				settings = {
+					-- OPTIONAL: disable hover so basedpyright handles it
+					hover = {
+						enabled = false,
+					},
+				},
 			},
 		})
 
