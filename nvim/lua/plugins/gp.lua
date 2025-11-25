@@ -1,4 +1,3 @@
--- lua/plugins/gp.lua
 return {
 	"robitx/gp.nvim",
 	config = function()

@@ -14,7 +14,8 @@ return {
 		wk.add({
 			--nav
 			{ "<leader>f", "<cmd>Telescope find_files<CR>", desc = "find files" },
-			{ "<leader>s", "<cmd>WinResizerStartResize<cr>", desc = "Resize window" },
+			{ "<leader><C-w>", "<cmd>WinResizerStartResize<cr>", desc = "Resize window" },
+			{ "<leader>s", "<cmd>Telescope git_status<CR>", desc = "find buffers" },
 			{ "<leader>w", "<cmd>set list!<CR>", desc = "toggle white space" },
 			{ "<leader>b", "<cmd>Telescope buffers<CR>", desc = "find buffers" },
 			{ "<leader>/", "<cmd>Telescope live_grep<CR>", desc = "find text" },
@@ -38,7 +39,6 @@ return {
 			{ "<leader>gb", "<cmd>GitBlameToggle<CR>", desc = "git blame" },
 			{ "<leader>gd", "<cmd>DiffviewOpen<CR>", desc = "git diff open" },
 			{ "<leader>gc", "<cmd>DiffviewClose<CR>", desc = "git diff close" },
-			{ "<leader>gf", "<cmd>Telescope git_status<CR>", desc = "find buffers" },
 
 			{ "<leader>h", "<cmd>lua vim.lsp.buf.signature_help()<cr>", desc = "lsp sig help" },
 			{ "<leader>lh", "<cmd>lua vim.lsp.buf.hover()<cr>", desc = "hover" },
@@ -50,6 +50,8 @@ return {
 			{ "<leader>[", "<cmd>lua vim.diagnostic.goto_next()<cr>", desc = "next diagnostic" },
 
 			--helpful
+			{ "<leader>tr", "<cmd>setlocal relativenumber!<CR>", desc = "toggle relative lines", mode = { "v", "n" } },
+			{ "<leader>nh", "<cmd>nohlsearch<CR>", desc = "toggle highlight", mode = { "v", "n" } },
 			{ "<leader>p", '"+p', desc = "paste from clip", mode = { "v", "n" } },
 			{ "<leader>P", '"+P', desc = "paste from clip", mode = { "v", "n" } },
 			{ "<leader>y", '"+y', desc = "yank to clip", mode = { "v", "n" } },
@@ -153,25 +155,21 @@ return {
 				end,
 				desc = "chop line at 100 chars",
 			},
-			--toggles
-			{ "<leader>tr", "<cmd>setlocal relativenumber!<CR>", desc = "toggle relative lines", mode = { "v", "n" } },
-
-			-- AI/Copilot bindings
-			{
-				"<leader>at",
-				function()
-					if vim.g.copilot_enabled == false then
-						vim.cmd("Copilot enable")
-						vim.g.copilot_enabled = true
-						vim.notify("Copilot enabled")
-					else
-						vim.cmd("Copilot disable")
-						vim.g.copilot_enabled = false
-						vim.notify("Copilot disabled")
-					end
-				end,
-				desc = "toggle copilot",
-			},
+			-- {
+			-- 	"<leader>at",
+			-- 	function()
+			-- 		if vim.g.copilot_enabled == false then
+			-- 			vim.cmd("Copilot enable")
+			-- 			vim.g.copilot_enabled = true
+			-- 			vim.notify("Copilot enabled")
+			-- 		else
+			-- 			vim.cmd("Copilot disable")
+			-- 			vim.g.copilot_enabled = false
+			-- 			vim.notify("Copilot disabled")
+			-- 		end
+			-- 	end,
+			-- 	desc = "toggle copilot",
+			-- },
 		})
 	end,
 }

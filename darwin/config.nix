@@ -82,7 +82,6 @@
   environment.shells = [ pkgs.zsh ];
 
   homebrew = {
-    #this is where you put your repos (think apt repos) "koekeishiya/formulae")
     taps = [
       "koekeishiya/formulae"
     ];
@@ -97,12 +96,11 @@
       "slack"
       "ghostty"
       "obs"
+      "tailscale-app"
     ];
-    #this is where you would put a app from the repo "koekeishiya/formulae/skhd"
     brews = [
       "zellij"
       "direnv"
-      "koekeishiya/formulae/yabai"
     ];
   };
 }

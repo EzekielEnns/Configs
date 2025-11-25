@@ -8,10 +8,18 @@ return {
 				"ruff_organize_imports",
 			},
 			lua = { "stylua" },
-			javascript = { "prettierd", "prettier", stop_after_first = true },
-			typescript = { "prettierd", "prettier", stop_after_first = true },
-			typescriptreact = { "prettierd", "prettier", stop_after_first = true },
-			javascriptreact = { "prettierd", "prettier", stop_after_first = true },
+			javascript = {
+				"prettierd",
+				"prettier",
+				"eslint_d", --[[ stop_after_first = true ]]
+			},
+			typescript = {
+				"prettierd",
+				"prettier",
+				"eslint_d",--[[ stop_after_first = true ]]
+			},
+			typescriptreact = { "prettierd", "prettier", "eslint_d", stop_after_first = true },
+			javascriptreact = { "prettierd", "prettier", "eslint_d", stop_after_first = true },
 			rust = { "rustfmt" },
 			nix = { "alejandra", "nixfmt", "nixpkgs_fmt" },
 		},
