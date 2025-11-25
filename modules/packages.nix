@@ -29,7 +29,7 @@
     git
     vim
     wget
-    neofetch
+    fastfetch
     openssl
     pavucontrol
     udisks

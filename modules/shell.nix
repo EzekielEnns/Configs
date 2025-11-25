@@ -4,7 +4,7 @@
   config = {
     environment.systemPackages = with pkgs; [
       fzf
-      neofetch
+      fastfetch
       ripgrep
       fzf-git-sh
       bat

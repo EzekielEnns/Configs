@@ -31,6 +31,15 @@ in
       settings = {
         healthCheckTimeout = 60;
         models = {
+          "Rp-Test" = {
+            cmd =
+              "${llamaServer} --host 127.0.0.1 --port \${PORT} "
+              + "-m /var/lib/llama-cpp/models/test.gguf "
+              + "--flash-attn "
+              + "--mlock "
+              + "--cont-batching "
+              + "--gpu-layers 999 ";
+          };
           "Devstral-Small-2507" = {
             aliases = [
               "coding"
@@ -153,6 +162,7 @@ in
 
       # torrents landing dir — fully open
       "d /srv/media/torrents        2777 root    media - -"
+      "d /srv/music                 2777 root    media - -"
 
       "d /srv/tftp 0755 root root -"
       "d /var/www/ipxe 0755 root root -"
@@ -202,6 +212,22 @@ in
     virtualisation.oci-containers = {
       backend = "docker";
       containers = {
+        navidrome = {
+          image = "deluan/navidrome:latest";
+          ports = [ "4533:4533" ];
+
+          environment = {
+            ND_LOGLEVEL = "info";
+            ND_BASEURL = "http://music.lan"; # set if you’re behind a reverse proxy
+            ND_ENABLETRANSCODINGCONFIG = "false";
+          };
+
+          volumes = [
+            "/srv/music:/music" # your music directory
+            "/var/lib/navidrome:/data" # Navidrome app data
+          ];
+        };
+
         owui = {
           extraOptions = [ "--network=host" ];
           ports = [ "8080" ];
@@ -211,36 +237,6 @@ in
             WEBUI_AUTH = "false";
             OPENAI_API_BASE_URL = "http://ai.lan/v1";
           };
-        };
-        docsMcp = {
-          image = "ghcr.io/arabold/docs-mcp-server:latest";
-          # Host networking = no need for ports mapping, and the container can use 127.0.0.1:9002
-          extraOptions = [ "--network=host" ];
-
-          ports = [ "6280:6280" ];
-          # Persist the index
-          volumes = [ "/var/lib/docs-mcp:/data" ];
-
-          # Env to use your local llama.cpp embeddings server
-          environment = {
-            DOCS_MCP_HOST = "0.0.0.0";
-            DOCS_MCP_PORT = "6280";
-            OPENAI_API_BASE = "http://127.0.0.1:9002/v1";
-            OPENAI_API_KEY = "none";
-            DOCS_MCP_EMBEDDING_MODEL = "embed";
-            NODE_ENV = "production";
-          };
-
-          # Same flags you had in docker run (+no telemetry)
-          cmd = [
-            "--protocol"
-            "http"
-            "--host"
-            "0.0.0.0"
-            "--port"
-            "6280"
-            "--no-telemetry"
-          ];
         };
 
         qbittorrent = {
@@ -273,16 +269,6 @@ in
           ports = [ "127.0.0.1:8082:3000" ];
           image = "ghcr.io/silverbulletmd/silverbullet:latest";
           volumes = [ "/var/lib/silver:/space" ];
-        };
-        sillyTavern = {
-          image = "ghcr.io/sillytavern/sillytavern:latest";
-          volumes = [
-            "/var/lib/silly/config:/home/node/app/config:rw"
-            "/var/lib/silly/app/data:/home/node/app/data:rw"
-            "/var/lib/silly/extensions:/home/node/app/public/scripts/extensions/third-party:rw"
-            "/var/lib/silly/plugins:/home/node/app/plugins:rw"
-          ];
-          ports = [ "127.0.0.1:8081:8000" ];
         };
       };
     };
@@ -333,15 +319,8 @@ in
             proxyWebsockets = true;
           };
         };
-        "st.lan" = {
-          serverName = "st.lan";
-          locations."/" = {
-            proxyPass = "http://127.0.0.1:8081";
-            proxyWebsockets = true;
-          };
-        };
-        "jf.lan" = {
-          serverName = "jf.lan";
+        "tv.lan" = {
+          serverName = "tv.lan";
           locations."/" = {
             proxyPass = "http://127.0.0.1:8096";
             proxyWebsockets = true;
@@ -361,18 +340,25 @@ in
             index = "index.html";
           };
         };
+        "music.lan" = {
+          serverName = "music.lan";
+          locations."/" = {
+            proxyPass = "http://127.0.0.1:4533";
+            proxyWebsockets = true;
+          };
+        };
       };
     };
 
     /*
-      on mac you need to add the server to dns under settings-> network -> details
-        then do sudo mkdir -p /etc/resolver && sudo nvim /etc/resolver/lan
-        add nameserver 192.168.1.6
-        use this to test
-        scutil --dns | grep lan -A3
-        dig ai.lan
-        curl ai.lan
-        remebmer to add the dns to the router, also browsers require http://*.lan they will not auto fill
+            on mac you need to add the server to dns under settings-> network -> details
+              then do sudo mkdir -p /etc/resolver && sudo nvim /etc/resolver/lan
+              add nameserver 192.168.1.6
+              use this to test
+              scutil --dns | grep lan -A3
+              dig ai.lan
+              curl ai.lan
+              remebmer to add the dns to the router, also browsers require http://*.lan they will not auto fill
     */
     systemd.services.dnsmasq.after = [ "dnscrypt-proxy2.service" ];
     systemd.services.dnsmasq.requires = [ "dnscrypt-proxy2.service" ];
@@ -414,8 +400,8 @@ in
         address = [
           "/qb.lan/192.168.1.6"
           "/sb.lan/192.168.1.6"
-          "/st.lan/192.168.1.6"
-          "/jf.lan/192.168.1.6"
+          "/tv.lan/192.168.1.6"
+          "/music.lan/192.168.1.6"
           "/dc.lan/192.168.1.6"
           "/ai.lan/192.168.1.6"
           "/wui.lan/192.168.1.6"
@@ -481,5 +467,18 @@ in
     ];
 
     networking.networkmanager.unmanaged = [ "enp6s0" ];
+
+    services.tailscale = {
+      enable = true;
+      openFirewall = true; # let tailscale traffic in/out
+      useRoutingFeatures = "server"; # turns this box into a subnet router
+      extraUpFlags = [
+        "--advertise-routes=192.168.1.0/24" # <- change if your LAN is different
+        "--ssh" # optional, enables Tailscale SSH
+      ];
+    };
+
+    # Optional but recommended: trust Tailscale interface in your firewall
+    networking.firewall.trustedInterfaces = [ "tailscale0" ];
   };
 }

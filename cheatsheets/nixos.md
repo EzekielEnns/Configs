@@ -66,3 +66,8 @@ to update flakes you need to do two things
 
 
 fun fact as of v24.05 nix develop envs go to all tmux sessions/ it dose some funky stuff
+
+
+
+to make a iso
+sudo nix build .#nixosConfigurations.desktop.config.system.build.isoImage
