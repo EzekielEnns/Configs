@@ -82,9 +82,6 @@
   environment.shells = [ pkgs.zsh ];
 
   homebrew = {
-    taps = [
-      "koekeishiya/formulae"
-    ];
     enable = true;
     global.autoUpdate = true;
     casks = [
@@ -92,10 +89,8 @@
       "chromium"
       "raycast"
       "zen-browser"
-      "microsoft-azure-storage-explorer"
       "slack"
       "ghostty"
-      "obs"
       "tailscale-app"
     ];
     brews = [
