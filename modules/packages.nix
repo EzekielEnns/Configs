@@ -1,10 +1,12 @@
 { pkgs, pkgs-unstable, ... }:
 {
   environment.systemPackages = with pkgs; [
-    #TODO find a way to make these as new as possible
-    pkgs-unstable.ghostty
-    pkgs-unstable.zellij
+    #media
+    yt-dlp
+    scdl
+    ffmpeg
     mpv
+    #utils
     font-awesome_5
     pulseaudio
     playerctl
@@ -15,7 +17,7 @@
     chromium
     tokei
     yazi
-    du-dust
+    dust
     #work
     slack
     libreoffice-qt
@@ -24,7 +26,6 @@
     jmtpfs
     autorandr
     #terminal
-    yt-dlp
     termdown
     git
     vim

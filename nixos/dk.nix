@@ -10,9 +10,9 @@ let
   llamaServer = lib.getExe' llamaCuda "llama-server";
 in
 {
-  imports = [
-    (import "${inputs.nixpkgs-unstable}/nixos/modules/services/networking/llama-swap.nix")
-  ];
+  # imports = [
+  #   (import "${inputs.nixpkgs-unstable}/nixos/modules/services/networking/llama-swap.nix")
+  # ];
   config = {
     environment.systemPackages = [
       llamaCuda
@@ -362,7 +362,7 @@ in
     */
     systemd.services.dnsmasq.after = [ "dnscrypt-proxy2.service" ];
     systemd.services.dnsmasq.requires = [ "dnscrypt-proxy2.service" ];
-    services.dnscrypt-proxy2 = {
+    services.dnscrypt-proxy = {
       enable = true;
       settings = {
         listen_addresses = [ "127.0.0.1:5053" ];

@@ -1,11 +1,19 @@
-{config,pkgs,pkgs-unstable,inputs,...}:
+{ config
+, pkgs
+, pkgs-unstable
+, inputs
+, ...
+}:
 let
-  veikk_driver = (pkgs.callPackage ./veikkDriver.nix {});
-in {
+  veikk_driver = (pkgs.callPackage ./veikkDriver.nix { });
+in
+{
   # Desktop
   services.xserver.enable = true;
-  services.xserver.desktopManager = { xterm.enable = false; };
- # services.displayManager = { defaultSession = "none+i3"; };
+  services.xserver.desktopManager = {
+    xterm.enable = false;
+  };
+  # services.displayManager = { defaultSession = "none+i3"; };
   nixpkgs.config.permittedInsecurePackages = [
     "electron-25.9.0"
   ];
@@ -18,18 +26,25 @@ in {
     xkb.layout = "us";
     xkb.variant = "";
   };
-  services.xserver.displayManager = {
-    lightdm.enable = true;
-  };
-
-  services.displayManager = {
+  # services.displayManager = {
+  #   lightdm.enable = true;
+  # };
+  services.xserver.displayManager.gdm = {
+    enable = true;
     autoLogin = {
-      enable = true;
       user = "ezekiel";
+      enable = true;
     };
   };
-  services.displayManager.defaultSession = "gnome";
-services.xserver.desktopManager.gnome.enable = true;
+
+  # services.displayManager = {
+  #   autoLogin = {
+  #     enable = true;
+  #     user = "ezekiel";
+  #   };
+  # };
+  # services.displayManager.defaultSession = "gnome";
+  services.desktopManager.gnome.enable = true;
   services.xserver.windowManager.i3 = {
     enable = false;
     extraPackages = with pkgs; [
@@ -37,7 +52,7 @@ services.xserver.desktopManager.gnome.enable = true;
       veikk_driver
       xournalpp
       gromit-mpx
-#TODO find a new torrent 
+      #TODO find a new torrent
       #qbittorrent
       mpv
       font-awesome_5

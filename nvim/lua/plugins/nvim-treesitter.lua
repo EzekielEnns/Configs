@@ -2,6 +2,7 @@ return {
 	{
 		"nvim-treesitter/nvim-treesitter",
 		-- branch = "master", -- not needed; remove the wrong "main"
+		version = "v0.9.2", -- Known to work with 0.25 CLI
 		lazy = false,
 		build = ":TSUpdate",
 		opts = {

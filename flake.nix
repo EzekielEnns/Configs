@@ -21,6 +21,11 @@
       url = "github:a-kenji/zellij-nix";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+
+    zen-browser = {
+      url = "github:youwen5/zen-browser-flake";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
   };
 
   # NOTE: bring `ghostty` & `zellij` into scope by using `inputs.<name>` inside
@@ -51,6 +56,7 @@
       latestPkgs = system: {
         ghostty = inputs.ghostty.packages.${system}.default;
         zellij = inputs.zellij.packages.${system}.default;
+        zen = inputs.zellij.packages.${system}.default;
       };
 
       hmModule =
@@ -83,6 +89,7 @@
           environment.systemPackages = [
             lp.ghostty
             lp.zellij
+            lp.zen
           ];
         };
     in

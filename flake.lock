@@ -79,11 +79,11 @@
         "zon2nix": "zon2nix"
       },
       "locked": {
-        "lastModified": 1765644088,
-        "narHash": "sha256-GLeGfeCVPX+Jf2+BOKOXMYlvePG7Zm3i+LYcJ6lMCR0=",
+        "lastModified": 1765665640,
+        "narHash": "sha256-wFtPo6tfFSnN8gstbREmTPyTZ/Wb7F4gTswLuWrh7Es=",
         "owner": "ghostty-org",
         "repo": "ghostty",
-        "rev": "1805a9cb87aa08a721575842389e426e15bbada2",
+        "rev": "2cc7341b08ca66d9efdfdd97b1ab3d49898d2677",
         "type": "github"
       },
       "original": {
@@ -152,11 +152,11 @@
     },
     "nixpkgs": {
       "locked": {
-        "lastModified": 1765311797,
-        "narHash": "sha256-mSD5Ob7a+T2RNjvPvOA1dkJHGVrNVl8ZOrAwBjKBDQo=",
+        "lastModified": 1765608474,
+        "narHash": "sha256-9Wx53UK0z8Di5iesJID0tS1dRKwGxI4i7tsSanOHhF0=",
         "owner": "NixOS",
         "repo": "nixpkgs",
-        "rev": "09eb77e94fa25202af8f3e81ddc7353d9970ac1b",
+        "rev": "28bb483c11a1214a73f9fd2d9928a6e2ea86ec71",
         "type": "github"
       },
       "original": {
@@ -189,7 +189,8 @@
         "nix-darwin": "nix-darwin",
         "nixpkgs": "nixpkgs",
         "nixpkgs-unstable": "nixpkgs-unstable",
-        "zellij": "zellij"
+        "zellij": "zellij",
+        "zen-browser": "zen-browser"
       }
     },
     "rust-overlay": {
@@ -200,11 +201,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1765075567,
-        "narHash": "sha256-KFDCdQcHJ0hE3Nt5Gm5enRIhmtEifAjpxgUQ3mzSJpA=",
+        "lastModified": 1765680428,
+        "narHash": "sha256-fyPmRof9SZeI14ChPk5rVPOm7ISiiGkwGCunkhM+eUg=",
         "owner": "oxalica",
         "repo": "rust-overlay",
-        "rev": "769156779b41e8787a46ca3d7d76443aaf68be6f",
+        "rev": "eb3898d8ef143d4bf0f7f2229105fc51c7731b2f",
         "type": "github"
       },
       "original": {
@@ -255,11 +256,11 @@
         "zellij": "zellij_2"
       },
       "locked": {
-        "lastModified": 1765091944,
-        "narHash": "sha256-0BoPElJB3Je2IdeeifEMl29UFdab8k005rfHFPy/3uk=",
+        "lastModified": 1765697879,
+        "narHash": "sha256-fQ+6FcSoDetFm0xijK2eUnYOtys2Fm4WaAiClEX95Eo=",
         "owner": "a-kenji",
         "repo": "zellij-nix",
-        "rev": "54f4a3f243958b3612443a8cf40da7be61686e15",
+        "rev": "103086b6bf2b926e7c4be7f801d1f6988e0cf911",
         "type": "github"
       },
       "original": {
@@ -281,6 +282,26 @@
       "original": {
         "owner": "zellij-org",
         "repo": "zellij",
+        "type": "github"
+      }
+    },
+    "zen-browser": {
+      "inputs": {
+        "nixpkgs": [
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "lastModified": 1765598946,
+        "narHash": "sha256-rWU7YexLhbsAhjj1b7nAsnVjXaEo3NuecK1WBfNarbA=",
+        "owner": "youwen5",
+        "repo": "zen-browser-flake",
+        "rev": "26057e4ccdc3f2b268f8abcc68996e4645fa3ada",
+        "type": "github"
+      },
+      "original": {
+        "owner": "youwen5",
+        "repo": "zen-browser-flake",
         "type": "github"
       }
     },

@@ -60,7 +60,7 @@ in
     pkgs-unstable.basedpyright
     pkgs-unstable.ruff
     efm-langserver
-    tree-sitter
+    pkgs-unstable.vimPlugins.nvim-treesitter
     nodejs_24
     eslint_d
     typescript-language-server
