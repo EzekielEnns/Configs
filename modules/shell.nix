@@ -10,6 +10,7 @@
       bat
       bashInteractive
       lsd
+      zoxide
     ];
     environment.variables = {
       EDITOR = "nvim";
@@ -17,6 +18,11 @@
       VISUAL = "nvim";
       NIXPKGS_ALLOW_UNFREE = "1";
       FZF_CTRL_T_OPTS = "--walker-skip .git,node_modules,target --preview 'bat -n --color=always {}' --bind 'ctrl-/:change-preview-window(down|hidden|)'";
+    };
+    environment.shellAliases = {
+      cd = "z";
+      ls = "lsd";
+      cat = "bat";
     };
     programs.zsh = {
       enable = true;

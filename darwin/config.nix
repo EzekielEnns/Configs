@@ -24,11 +24,11 @@
     findutils
     #dotnet-sdk
   ];
-  users.users.ezekielenns = {
-    name = "ezekielenns";
-    home = "/Users/ezekielenns";
+  users.users.ezekiel = {
+    name = "ezekiel";
+    home = "/Users/ezekiel";
   };
-  system.primaryUser = "ezekielenns";
+  system.primaryUser = "ezekiel";
   fonts.packages = [
     pkgs.nerd-fonts.monofur
   ];

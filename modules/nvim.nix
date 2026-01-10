@@ -81,6 +81,7 @@ in
     git
     curl
     gcc
+    kotlin-language-server
 
     pkgs-unstable.rustup
     #    pkgs-unstable.omnisharp-roslyn

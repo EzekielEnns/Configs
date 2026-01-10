@@ -173,6 +173,20 @@ return {
 		})
 
 		vim.lsp.enable("roslyn_ls")
+
+		vim.lsp.config("kotlin-laguage-server", {
+			capabilities = capabilities,
+			cmd = "kotlin-language-server",
+			filetypes = { "kotlin" },
+			root_markers = {
+				"settings.gradle",
+				"settings.gradle.kts",
+				"build.xml",
+				"pom.xml",
+				"build.gradle",
+				"build.gradle.kts",
+			},
+		})
 		vim.lsp.enable({
 			"gdscript",
 			"gopls",
@@ -187,6 +201,7 @@ return {
 			"tailwindcss",
 			"basedpyright",
 			"ruff",
+			"kotlin-laguage-server",
 		})
 	end,
 }

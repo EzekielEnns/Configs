@@ -106,7 +106,7 @@
           {
             home-manager.useGlobalPkgs = true;
             home-manager.useUserPackages = true;
-            home-manager.users.ezekielenns = {
+            home-manager.users.ezekiel = {
               imports = [ ./darwin/home.nix ];
             };
           }

@@ -178,7 +178,7 @@ plugins {
         welcome_screen true
     }
     filepicker location="zellij:strider" {
-        cwd "/Users/ezekielenns/Documents/repos/"
+        cwd "/Users/ezekiel/Documents/repos/"
     }
     configuration location="zellij:configuration"
     plugin-manager location="zellij:plugin-manager"
