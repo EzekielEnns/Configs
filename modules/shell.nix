@@ -19,10 +19,14 @@
       NIXPKGS_ALLOW_UNFREE = "1";
       FZF_CTRL_T_OPTS = "--walker-skip .git,node_modules,target --preview 'bat -n --color=always {}' --bind 'ctrl-/:change-preview-window(down|hidden|)'";
     };
+    programs.zoxide = {
+      enable = true;
+      enableZshIntegration = true;
+    };
     environment.shellAliases = {
-      cd = "z";
       ls = "lsd";
       cat = "bat";
+      cd = "z";
     };
     programs.zsh = {
       enable = true;

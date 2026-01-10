@@ -8,11 +8,6 @@ in
 {
   config = {
 
-    #TODO move cause this is a bad spot for it
-    programs.zoxide = {
-      enable = true;
-      enableZshIntegration = true;
-    };
     home.file.".ideavimrc" = {
       source = ./../misc/.ideavimrc;
       recursive = true;

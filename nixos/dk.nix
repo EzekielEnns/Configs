@@ -2,143 +2,17 @@
 , config
 , inputs
 , pkgs
-, pkgs-unstable
 , ...
 }:
-let
-  llamaCuda = pkgs.llama-cpp.override { cudaSupport = true; };
-  llamaServer = lib.getExe' llamaCuda "llama-server";
-in
 {
-  # imports = [
-  #   (import "${inputs.nixpkgs-unstable}/nixos/modules/services/networking/llama-swap.nix")
-  # ];
   config = {
     environment.systemPackages = [
-      llamaCuda
       pkgs.lm_sensors
       pkgs.glances
       pkgs.htop
       pkgs.nvtopPackages.full
       pkgs.btop
     ];
-    services.llama-swap = {
-      enable = true;
-      port = 9292; # single public endpoint for all models
-      package = pkgs-unstable.llama-swap;
-
-      # This mirrors llama-swap's config.yaml, but as Nix attrs
-      settings = {
-        healthCheckTimeout = 60;
-        models = {
-          "Rp-Test" = {
-            cmd =
-              "${llamaServer} --host 127.0.0.1 --port \${PORT} "
-              + "-m /var/lib/llama-cpp/models/test.gguf "
-              + "--flash-attn "
-              + "--mlock "
-              + "--cont-batching "
-              + "--gpu-layers 999 ";
-          };
-          "Devstral-Small-2507" = {
-            aliases = [
-              "coding"
-            ];
-            cmd =
-              "${llamaServer} --host 127.0.0.1 --port \${PORT} "
-              + "-m /var/lib/llama-cpp/models/Devstral-Small-2507-UD-Q4_K_XL.gguf "
-              + "--flash-attn "
-              + "--mlock "
-              + "--cont-batching "
-              + "--gpu-layers 999 ";
-          };
-          "Sauske" = {
-            cmd =
-              "${llamaServer} --host 127.0.0.1 --port \${PORT} "
-              + "-m /var/lib/llama-cpp/models/Llama3Tadashinu.Q4_K_M.gguf "
-              + "--flash-attn "
-              + "--mlock "
-              + "--cont-batching "
-              + "--gpu-layers 999 ";
-          };
-          "Cloe-horror" = {
-            cmd =
-              "${llamaServer} --host 127.0.0.1 --port \${PORT} "
-              + "-m /var/lib/llama-cpp/models/Gemma-3-12b-it-MAX-HORROR-D_AU-Q8_0-imat.gguf "
-              + "--flash-attn "
-              + "--mlock "
-              + "--cont-batching "
-              + "--gpu-layers 999 ";
-          };
-          "Cloe-hero" = {
-            cmd =
-              "${llamaServer} --host 127.0.0.1 --port \${PORT} "
-              + "-m /var/lib/llama-cpp/models/L3.1-RP-Hero-BigTalker-8B-D_AU-Q8_0.gguf "
-              + "--flash-attn "
-              + "--mlock "
-              + "--cont-batching "
-              + "--gpu-layers 999 ";
-          };
-          "Cloe-NemoBigThot" = {
-            cmd =
-              "${llamaServer} --host 127.0.0.1 --port \${PORT} "
-              + "-m /var/lib/llama-cpp/models/Llama-3.1-Nemotron-Nano-8B-v1-BF16.gguf "
-              + "--flash-attn "
-              + "--mlock "
-              + "--cont-batching "
-              + "--gpu-layers 999 ";
-          };
-          "Cloe-NemoLessThot" = {
-            cmd =
-              "${llamaServer} --host 127.0.0.1 --port \${PORT} "
-              + "-m /var/lib/llama-cpp/models/Llama-3.1-Nemotron-Nano-8B-v1-UD-Q8_K_XL.gguf "
-              + "--flash-attn "
-              + "--mlock "
-              + "--cont-batching "
-              + "--gpu-layers 999 ";
-          };
-          "Cloe-dolphin-Solth-Llama3" = {
-            cmd =
-              "${llamaServer} --host 127.0.0.1 --port \${PORT} "
-              + "-m /var/lib/llama-cpp/models/dolphin-llama3-zh-cn-uncensored-unsloth.Q8_0.gguf "
-              + "--flash-attn "
-              + "--mlock "
-              + "--cont-batching "
-              + "--gpu-layers 999 ";
-          };
-          "DarkIdol" = {
-            cmd =
-              "${llamaServer} --host 127.0.0.1 --port \${PORT} "
-              + "-m /var/lib/llama-cpp/models/DarkIdol-Llama-3.1-8B-Instruct-1.2-Uncensored.Q8_0.gguf "
-              + "--flash-attn "
-              + "--mlock "
-              + "--cont-batching "
-              + "--gpu-layers 999 ";
-          };
-          "Cloe-pivot-10.7b-mistral-v0.2-rp.8" = {
-            cmd =
-              "${llamaServer} --host 127.0.0.1 --port \${PORT} "
-              + "-m /var/lib/llama-cpp/models/pivot-10.7b-mistral-v0.2-rp.Q8_0.gguf "
-              + "--flash-attn "
-              + "--mlock "
-              + "--cont-batching "
-              + "--gpu-layers 999 ";
-          };
-          "baronllm-llama3.1-v1-q6_k" = {
-            aliases = [
-              "hacking"
-            ];
-            cmd =
-              "${llamaServer} --host 127.0.0.1 --port \${PORT} "
-              + "-m /var/lib/llama-cpp/models/baronllm-llama3.1-v1-q6_k.gguf "
-              + "--flash-attn "
-              + "--mlock "
-              + "--cont-batching "
-              + "--gpu-layers 999 ";
-          };
-        };
-      };
-    };
 
     services.jellyfin = {
       enable = true;
@@ -147,6 +21,7 @@ in
 
     users.groups.media = { };
     users.users.ezekiel.extraGroups = [ "media" ];
+    #TODO move to harddrive
     systemd.tmpfiles.rules = [
       # top-level media dir + common subdirs (world-writable, setgid)
       "d /srv/media                 2777 root    media - -"
@@ -177,32 +52,6 @@ in
       };
     };
 
-    hardware = {
-      graphics = {
-        enable = true;
-        enable32Bit = true;
-      };
-      nvidia-container-toolkit.enable = true;
-      steam-hardware.enable = true;
-      #show gpu temps  watch -n0.5 nvidia-smi
-      # nix-shell -p pciutils --run "lspci | grep -E 'VGA|3D'"
-      nvidia = {
-        modesetting.enable = true;
-        powerManagement.enable = true;
-        open = false;
-        nvidiaSettings = true;
-        package = config.boot.kernelPackages.nvidiaPackages.production;
-        prime = {
-          offload.enable = true;
-          amdgpuBusId = "PCI:15:0:0"; # from 0f:00.0
-          nvidiaBusId = "PCI:1:0:0"; # from 01:00.0
-        };
-      };
-    };
-    services.xserver.videoDrivers = [
-      "amdgpu"
-      "nvidia"
-    ];
     virtualisation.docker.enable = true;
     virtualisation.docker.enableOnBoot = true;
 
@@ -223,20 +72,9 @@ in
           };
 
           volumes = [
-            "/srv/music:/music" # your music directory
-            "/var/lib/navidrome:/data" # Navidrome app data
+            "/srv/music:/music"
+            "/var/lib/navidrome:/data"
           ];
-        };
-
-        owui = {
-          extraOptions = [ "--network=host" ];
-          ports = [ "8080" ];
-          image = "ghcr.io/open-webui/open-webui:main";
-          volumes = [ "/var/lib/openwebui:/app/backend/data" ];
-          environment = {
-            WEBUI_AUTH = "false";
-            OPENAI_API_BASE_URL = "http://ai.lan/v1";
-          };
         };
 
         qbittorrent = {
@@ -312,24 +150,10 @@ in
             proxyWebsockets = true;
           };
         };
-        "wui.lan" = {
-          serverName = "wui.lan";
-          locations."/" = {
-            proxyPass = "http://127.0.0.1:8080";
-            proxyWebsockets = true;
-          };
-        };
         "tv.lan" = {
           serverName = "tv.lan";
           locations."/" = {
             proxyPass = "http://127.0.0.1:8096";
-            proxyWebsockets = true;
-          };
-        };
-        "ai.lan" = {
-          serverName = "ai.lan";
-          locations."/" = {
-            proxyPass = "http://127.0.0.1:9292";
             proxyWebsockets = true;
           };
         };
@@ -394,7 +218,6 @@ in
         ];
         server = [
           "127.0.0.1#5053"
-          #          "/lan/" # resolves to local domain
         ];
         local = [ "/lan/" ];
         address = [
@@ -403,11 +226,8 @@ in
           "/tv.lan/192.168.1.6"
           "/music.lan/192.168.1.6"
           "/dc.lan/192.168.1.6"
-          "/ai.lan/192.168.1.6"
-          "/wui.lan/192.168.1.6"
           "/ex.lan/192.168.1.6"
           "/mb.lan/192.168.1.6"
-          # add a name for your HTTP iPXE vhost
           "/ipxe.lan/192.168.1.6"
         ];
 
@@ -451,8 +271,6 @@ in
       #http
       80
       443
-      # 11434
-      # 8554
       #qbit
       6881
       #docs mcp

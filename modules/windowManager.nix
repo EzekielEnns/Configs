@@ -29,8 +29,10 @@ in
   # services.displayManager = {
   #   lightdm.enable = true;
   # };
-  services.xserver.displayManager.gdm = {
-    enable = true;
+  services.displayManager = {
+    gdm = {
+      enable = true;
+    };
     autoLogin = {
       user = "ezekiel";
       enable = true;
