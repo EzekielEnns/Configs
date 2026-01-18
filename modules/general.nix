@@ -1,10 +1,3 @@
-# Edit this configuration file to define what should be installed ongener
-# your system.  Help is available in the configuration.nix(5) man page
-# and in the NixOS manual (accessible by running ‘nixos-help’).
-#sudo cp nixos/desktop/configuration.nix nixos/general.nix /etc/nixos/
-#TODO get configs: kitty, i3status-rust. i3, starship, mpv, lf
-# in a state where packages with app maybe home manager?
-#TODO setup windows vm
 { config
 , pkgs
 , lib
@@ -15,12 +8,10 @@
 
   imports = [
     ./packages.nix
-    ./devCerts.nix
     ./windowManager.nix
     ./virtualization.nix
     ./networking.nix
     ./nvim.nix
-    ../configs/scripts.nix
     ../configs/bash.nix
     ./shell.nix
   ];
@@ -80,7 +71,6 @@
     # Define a user account. Don't forget to set a password with ‘passwd’.
     users.users.ezekiel = {
       isNormalUser = true;
-      shell = pkgs.zsh;
       description = "ezekiel";
       extraGroups = [
         "networkmanager"

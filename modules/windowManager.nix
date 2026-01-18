@@ -26,9 +26,6 @@ in
     xkb.layout = "us";
     xkb.variant = "";
   };
-  # services.displayManager = {
-  #   lightdm.enable = true;
-  # };
   services.displayManager = {
     gdm = {
       enable = true;
@@ -38,54 +35,6 @@ in
       enable = true;
     };
   };
-
-  # services.displayManager = {
-  #   autoLogin = {
-  #     enable = true;
-  #     user = "ezekiel";
-  #   };
-  # };
-  # services.displayManager.defaultSession = "gnome";
   services.desktopManager.gnome.enable = true;
-  services.xserver.windowManager.i3 = {
-    enable = false;
-    extraPackages = with pkgs; [
-      #inputs.ytermusic
-      veikk_driver
-      xournalpp
-      gromit-mpx
-      #TODO find a new torrent
-      #qbittorrent
-      mpv
-      font-awesome_5
-      #apps
-      lf
-      i3-cycle-focus
-      unclutter
-      maim
-      feh
-      i3status-rust
-      i3lock
-      networkmanagerapplet
-      arandr
-      find-cursor
-      dmenu
-      picom
-      xss-lock
-      lightdm
-      starship
-      kitty
-      fzf
-      #for i3 status
-      pipecontrol
-      ncpamixer
-      lm_sensors
-      #mapped to workspaces or key binds
-      pkgs-unstable.youtube-music
-      discord
-      firefox
-    ];
-
-  };
   services.udev.packages = [ veikk_driver ];
 }

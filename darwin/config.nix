@@ -8,7 +8,6 @@
   imports = [
     ../modules/nvim.nix
     ./zsh.nix
-    ./scripts.nix
   ];
   nix.settings.download-buffer-size = 524288000;
   system.stateVersion = 5;
@@ -18,11 +17,8 @@
   nix.settings.experimental-features = "nix-command flakes";
   environment.systemPackages = with pkgs; [
     zsh
-    pkgs-unstable.youtube-music
-    pkgs-unstable.jetbrains.rider
     #needed for bash script
     findutils
-    #dotnet-sdk
   ];
   users.users.ezekiel = {
     name = "ezekiel";
@@ -39,7 +35,6 @@
     dock = {
       autohide = true;
       mru-spaces = true;
-      #https://daiderd.com/nix-darwin/manual/index.html#opt-system.defaults.dock.wvous-bl-corner
       wvous-bl-corner = 1;
       wvous-br-corner = 1;
       expose-animation-duration = 0.0;

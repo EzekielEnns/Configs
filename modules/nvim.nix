@@ -94,5 +94,6 @@ in
     nixfmt-rfc-style
     nixpkgs-fmt # nixpkgs style
     mcp-hub
+    terraform
   ];
 }

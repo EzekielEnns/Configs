@@ -205,54 +205,8 @@ in
       force = true;
     };
 
-    home.file."config/nvim/mcpservers.json" = {
-      force = true;
-      text = ''
-        {
-          "docs": {
-            "url": "http://192.168.1.6:6280",
-            "capabilities": ["tools", "resources"]
-          }
-        }
-      '';
-    };
     home.file.".config/zellij/layouts/.keep" = {
       text = "keep";
-    };
-    home.file.".config/opencode/opencode.json" = {
-      force = true;
-      text = ''
-        {
-          "$schema": "https://opencode.ai/config.json",
-          "provider": {
-            "llama-swap": {
-              "npm": "@ai-sdk/openai-compatible",
-              "options": {
-                "baseURL": "http://ai.lan/v1",
-                "apiKey": "local"
-              },
-              "models": {
-                "code": {
-                  "tools": false,
-                  "stream": true
-                },
-                "code-tools": {
-                  "tools": true,
-                  "stream": false
-                },
-                "silly": {
-                  "tools": false,
-                  "stream": true
-                },
-                "silly-tools": {
-                  "tools": true,
-                  "stream": false
-                }
-              }
-            }
-          }
-        }
-      '';
     };
   };
 }

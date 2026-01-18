@@ -11,6 +11,16 @@
       bashInteractive
       lsd
       zoxide
+      tokei
+      dust
+      termdown
+      git
+      wget
+      fastfetch
+      unzip
+      p7zip
+      unrar
+      tldr
     ];
     environment.variables = {
       EDITOR = "nvim";
@@ -19,24 +29,10 @@
       NIXPKGS_ALLOW_UNFREE = "1";
       FZF_CTRL_T_OPTS = "--walker-skip .git,node_modules,target --preview 'bat -n --color=always {}' --bind 'ctrl-/:change-preview-window(down|hidden|)'";
     };
-    programs.zoxide = {
-      enable = true;
-      enableZshIntegration = true;
-    };
     environment.shellAliases = {
       ls = "lsd";
       cat = "bat";
       cd = "z";
-    };
-    programs.zsh = {
-      enable = true;
-      enableCompletion = true;
-      promptInit = ''
-        bindkey -v
-        eval "$(starship init zsh)"
-        eval "$(direnv hook zsh)"
-        eval "$(zoxide init zsh)"
-      '';
     };
   };
 }

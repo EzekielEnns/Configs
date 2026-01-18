@@ -106,7 +106,7 @@
           {
             home-manager.useGlobalPkgs = true;
             home-manager.useUserPackages = true;
-            home-manager.users.ezekiel = {
+            home-manager.users.ezekielenns = {
               imports = [ ./darwin/home.nix ];
             };
           }
@@ -147,31 +147,6 @@
             };
         in
         {
-          bk = mkHost {
-            name = "bk";
-            system = "x86_64-linux";
-            hw = ./nixos/hardware/bk.nix;
-            host = ./nixos/bk.nix;
-            hmUser = "ezekiel";
-            hmImports = [
-              ./configs/users.nix
-              ./configs/i3status-rust.nix
-            ];
-          };
-
-          laptop = mkHost {
-            name = "laptop";
-            system = "x86_64-linux";
-            hw = ./nixos/hardware/lp.nix;
-            host = ./nixos/lp.nix;
-            hmUser = "ezekiel";
-            hmImports = [
-              ./configs/users.nix
-              ./configs/i3status-rust.nix
-              ./configs/kitty-lp.nix
-            ];
-          };
-
           desktop = mkHost {
             name = "desktop";
             system = "x86_64-linux";
@@ -180,7 +155,6 @@
             hmUser = "ezekiel";
             hmImports = [
               ./configs/users.nix
-              ./configs/i3status-rust-dk.nix
             ];
           };
         };

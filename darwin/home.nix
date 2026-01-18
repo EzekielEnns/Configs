@@ -2,7 +2,6 @@
 {
   imports = [
     ../configs/starship.nix
-    ../configs/tmux.nix
     ../configs/git.nix
     ../configs/files.nix
   ];
