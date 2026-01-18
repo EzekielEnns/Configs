@@ -42,11 +42,6 @@ let
       };
     };
   };
-  mcp-hub = pkgs.writeShellApplication {
-    name = "mcp-hub";
-    runtimeInputs = [ pkgs.nodejs_20 ]; # brings node + npm/npx
-    text = ''exec npx --yes mcp-hub@latest "$@"'';
-  };
 in
 {
 
@@ -93,7 +88,6 @@ in
     alejandra # very popular, opinionated
     nixfmt-rfc-style
     nixpkgs-fmt # nixpkgs style
-    mcp-hub
     terraform
   ];
 }

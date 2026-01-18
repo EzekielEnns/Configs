@@ -1,14 +1,27 @@
 return {
 	"saghen/blink.cmp",
-	dependencies = {
-		"L3MON4D3/LuaSnip",
-		"nvim-tree/nvim-web-devicons",
-		"onsails/lspkind.nvim",
-		"giuxtaposition/blink-cmp-copilot",
-	},
+	-- optional: provides snippets for the snippet source
+	dependencies = { "rafamadriz/friendly-snippets" },
+
+	-- use a release tag to download pre-built binaries
 	version = "1.*",
+
+	---@module 'blink.cmp'
+	---@type blink.cmp.Config
 	opts = {
-		snippets = { preset = "default" },
+		-- 'default' (recommended) for mappings similar to built-in completions (C-y to accept)
+		-- 'super-tab' for mappings similar to vscode (tab to accept)
+		-- 'enter' for enter to accept
+		-- 'none' for no mappings
+		--
+		-- All presets have the following mappings:
+		-- C-space: Open menu or open docs if already open
+		-- C-n/C-p or Up/Down: Select next/previous item
+		-- C-e: Hide menu
+		-- C-k: Toggle signature help (if signature.enabled = true)
+		--
+		-- See :h blink-cmp-config-keymap for defining your own keymap
+		--		keymap = { preset = 'default' },
 		keymap = {
 			preset = "super-tab",
 			["<C-l>"] = {
@@ -16,79 +29,29 @@ return {
 					cmp.show()
 				end,
 			},
-			["<C-space>"] = {
-				function(cmp)
-					cmp.show({ providers = { "minuet" } })
-				end,
-			},
 		},
-		appearance = { nerd_font_variant = "mono" },
-		completion = {
-			trigger = { show_in_snippet = true },
-			documentation = { auto_show = true },
-			ghost_text = {
-				enabled = true,
-				show_with_menu = true,
-			},
-			menu = {
-				auto_show = true,
-				draw = {
-					components = {
-						kind_icon = {
-							text = function(ctx)
-								local icon = ctx.kind_icon
-								if vim.tbl_contains({ "Path" }, ctx.source_name) then
-									local dev_icon, _ = require("nvim-web-devicons").get_icon(ctx.label)
-									if dev_icon then
-										icon = dev_icon
-									end
-								else
-									icon = require("lspkind").symbolic(ctx.kind, { mode = "symbol" })
-								end
-								return icon .. ctx.icon_gap
-							end,
-							highlight = function(ctx)
-								local hl = ctx.kind_hl
-								if vim.tbl_contains({ "Path" }, ctx.source_name) then
-									local _, dev_hl = require("nvim-web-devicons").get_icon(ctx.label)
-									if dev_hl then
-										hl = dev_hl
-									end
-								end
-								return hl
-							end,
-						},
-					},
-				},
-			},
+
+		appearance = {
+			-- 'mono' (default) for 'Nerd Font Mono' or 'normal' for 'Nerd Font'
+			-- Adjusts spacing to ensure icons are aligned
+			nerd_font_variant = "mono",
 		},
-		signature = { enabled = true },
+
+		-- (Default) Only show the documentation popup when manually triggered
+		completion = { documentation = { auto_show = true } },
+
+		-- Default list of enabled providers defined so that you can extend it
+		-- elsewhere in your config, without redefining it, due to `opts_extend`
 		sources = {
-			default = {
-				"lsp",
-				"path",
-				"buffer", --[[ "minuet", ]]
-				"snippets",
-			},
-			providers = {
-				--TODO fix minuet
-				-- minuet = {
-				-- 	name = "minuet",
-				-- 	module = "minuet.blink",
-				-- 	score_offset = 50, -- Gives minuet higher priority among suggestions
-				-- 	async = true, -- 👈 let it fetch without blocking UI
-				-- 	timeout_ms = 5000, -- 👈 give llama.cpp a little time
-				-- 	-- async = true,
-				-- 	-- -- Should match minuet.config.request_timeout * 1000,
-				-- 	-- -- since minuet.config.request_timeout is in seconds
-				-- 	-- timeout_ms = 3000,
-				-- },
-			},
+			default = { "lsp", "path", "snippets", "buffer" },
 		},
-		fuzzy = {
-			implementation = "rust",
-			sorts = { "score", "sort_text", "label" },
-		},
+
+		-- (Default) Rust fuzzy matcher for typo resistance and significantly better performance
+		-- You may use a lua implementation instead by using `implementation = "lua"` or fallback to the lua implementation,
+		-- when the Rust fuzzy matcher is not available, by using `implementation = "prefer_rust"`
+		--
+		-- See the fuzzy documentation for more information
+		fuzzy = { implementation = "prefer_rust_with_warning" },
 	},
 	opts_extend = { "sources.default" },
 }

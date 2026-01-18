@@ -155,21 +155,6 @@ return {
 				end,
 				desc = "chop line at 100 chars",
 			},
-			-- {
-			-- 	"<leader>at",
-			-- 	function()
-			-- 		if vim.g.copilot_enabled == false then
-			-- 			vim.cmd("Copilot enable")
-			-- 			vim.g.copilot_enabled = true
-			-- 			vim.notify("Copilot enabled")
-			-- 		else
-			-- 			vim.cmd("Copilot disable")
-			-- 			vim.g.copilot_enabled = false
-			-- 			vim.notify("Copilot disabled")
-			-- 		end
-			-- 	end,
-			-- 	desc = "toggle copilot",
-			-- },
 		})
 	end,
 }
