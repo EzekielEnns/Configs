@@ -55,7 +55,6 @@ in
     pkgs-unstable.basedpyright
     pkgs-unstable.ruff
     efm-langserver
-    pkgs-unstable.vimPlugins.nvim-treesitter
     nodejs_24
     eslint_d
     typescript-language-server
@@ -76,14 +75,12 @@ in
     git
     curl
     gcc
-    kotlin-language-server
 
     pkgs-unstable.rustup
     #    pkgs-unstable.omnisharp-roslyn
     pkgs-unstable.bun
     myNeovim
     # ai
-    pkgs-unstable.claude-code
     pkgs-unstable.aider-chat
     alejandra # very popular, opinionated
     nixfmt-rfc-style

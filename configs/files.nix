@@ -14,11 +14,6 @@ in
       force = true;
     };
 
-    home.file.".zshrc" = {
-      force = true;
-      text = "";
-    };
-
     home.file.".config/ghostty/config" = {
       force = true;
       text = ''
@@ -127,7 +122,7 @@ in
                 }
                 bind "Ctrl m" { SwitchToMode "session"; }
                 bind "Ctrl s" { SwitchToMode "Resize"; }
-                bind "Ctrl v" { SwitchToMode "Scroll"; }
+                bind "Ctrl /" { SwitchToMode "Scroll"; }
                 bind "Ctrl b" { SwitchToMode "Locked"; }
 
                 bind "Alt l" { GoToNextTab; }
@@ -164,7 +159,7 @@ in
             }
 
             scroll {
-                bind "Ctrl s" { SwitchToMode "Normal"; }
+                bind "Ctrl /" { SwitchToMode "Normal"; }
                 bind "e" { EditScrollback; SwitchToMode "Normal"; }
                 bind "s" { SwitchToMode "EnterSearch"; SearchInput 0; }
                 bind "Ctrl c" { ScrollToBottom; SwitchToMode "Normal"; }

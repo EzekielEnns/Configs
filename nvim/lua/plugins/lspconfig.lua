@@ -8,20 +8,26 @@ return {
 	},
 	priority = 1000,
 	config = function()
-		vim.diagnostic.config({ virtual_text = true })
+		vim.diagnostic.config({
+			virtual_text = true,
+			signs = {
+				text = {
+					[vim.diagnostic.severity.ERROR] = "!",
+					[vim.diagnostic.severity.WARN] = "?",
+					[vim.diagnostic.severity.INFO] = "i",
+					[vim.diagnostic.severity.HINT] = "*",
+				},
+			},
+		})
 		vim.lsp.set_log_level("OFF")
 
+		local lsp_attach_group = vim.api.nvim_create_augroup("user_lsp_attach", { clear = true })
 		vim.api.nvim_create_autocmd("LspAttach", {
+			group = lsp_attach_group,
 			desc = "LSP actions",
-			callback = function(event)
-				local opts = { buffer = event.buf }
-				vim.keymap.set("n", "gd", "<cmd>lua vim.lsp.buf.definition()<cr>", opts)
-			end,
-		})
-
-		vim.api.nvim_create_autocmd("LspAttach", {
 			callback = function(args)
 				local bufnr = args.buf
+				vim.keymap.set("n", "gd", "<cmd>lua vim.lsp.buf.definition()<cr>", { buffer = bufnr })
 				require("lsp_signature").on_attach({
 					bind = true,
 					hint_enable = true,
@@ -174,19 +180,53 @@ return {
 
 		vim.lsp.enable("roslyn_ls")
 
-		vim.lsp.config("kotlin-laguage-server", {
-			capabilities = capabilities,
-			cmd = "kotlin-language-server",
-			filetypes = { "kotlin" },
-			root_markers = {
-				"settings.gradle",
-				"settings.gradle.kts",
-				"build.xml",
-				"pom.xml",
-				"build.gradle",
-				"build.gradle.kts",
+		vim.lsp.config("tailwindcss", {
+			settings = {
+				tailwindCSS = {
+					experimental = {
+						classRegex = {
+							{ "cva\\(((?:[^()]|\\([^()]*\\))*)\\)", "[\"'`]([^\"'`]*).*?[\"'`]" },
+							{ "cx\\(((?:[^()]|\\([^()]*\\))*)\\)", "[\"'`]([^\"'`]*).*?[\"'`]" },
+							{ "cn\\(((?:[^()]|\\([^()]*\\))*)\\)", "[\"'`]([^\"'`]*).*?[\"'`]" },
+							"tw`([^`]*)",
+						},
+					},
+				},
+			},
+			filetypes = {
+				"html",
+				"css",
+				"javascript",
+				"javascriptreact",
+				"typescript",
+				"typescriptreact",
+				"svelte",
+				"vue",
 			},
 		})
+
+		vim.lsp.config("basedpyright", {
+			settings = {
+				basedpyright = {
+					analysis = {
+						typeCheckingMode = "basic",
+						useLibraryCodeForTypes = true,
+						autoSearchPaths = true,
+						diagnosticSeverityOverrides = {
+							reportMissingTypeStubs = "none",
+							reportUnknownMemberType = "none",
+							reportUnknownArgumentType = "none",
+							reportUnknownVariableType = "none",
+							reportUnknownParameterType = "none",
+							reportMissingParameterType = "none",
+							reportUntypedFunctionDecl = "none",
+							reportGeneralTypeIssues = "warning",
+						},
+					},
+				},
+			},
+		})
+
 		vim.lsp.enable({
 			"gdscript",
 			"gopls",
@@ -201,7 +241,6 @@ return {
 			"tailwindcss",
 			"basedpyright",
 			"ruff",
-			"kotlin-laguage-server",
 		})
 	end,
 }

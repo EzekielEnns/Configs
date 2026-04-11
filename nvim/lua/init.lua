@@ -91,6 +91,31 @@ vim.api.nvim_create_autocmd("BufEnter", {
 	end,
 })
 
+-- auto-detect uv-managed .venv and export VIRTUAL_ENV so basedpyright/ruff pick it up
+local function detect_uv_venv()
+	local found = vim.fs.find(".venv", {
+		upward = true,
+		type = "directory",
+		path = vim.fn.getcwd(),
+		stop = vim.uv.os_homedir(),
+	})[1]
+	if not found then
+		return
+	end
+	local python = found .. "/bin/python"
+	if vim.uv.fs_stat(python) then
+		vim.env.VIRTUAL_ENV = found
+		vim.env.PATH = found .. "/bin:" .. vim.env.PATH
+		vim.g.python3_host_prog = python
+	end
+end
+
+vim.api.nvim_create_augroup("UvVenv", { clear = true })
+vim.api.nvim_create_autocmd({ "VimEnter", "DirChanged" }, {
+	group = "UvVenv",
+	callback = detect_uv_venv,
+})
+
 _G.mode_indicator = function()
 	local modes = {
 		["n"] = "NORMAL",
@@ -149,6 +174,32 @@ vim.keymap.set("n", "<C-k>", "<C-w>k", { desc = "Move to top window" })
 vim.keymap.set("n", "<C-l>", "<C-w>l", { desc = "Move to right window" })
 
 require("config.lazy")
+
+-- folder_finder: pick a child dir of cwd (or cwd itself) and chdir into it
+_G.folder_finder = function()
+	local cwd = vim.fn.getcwd()
+	local dirs = vim.split(vim.fn.glob(cwd .. "/*/"), "\n", { trimempty = true })
+	table.insert(dirs, 1, cwd)
+
+	local items = {}
+	for i, d in ipairs(dirs) do
+		table.insert(items, { idx = i, text = d, file = d })
+	end
+
+	require("snacks").picker.pick({
+		source = "folders",
+		items = items,
+		format = "text",
+		title = "Pick Directory",
+		confirm = function(picker, item)
+			picker:close()
+			if item then
+				vim.api.nvim_set_current_dir(item.text)
+				vim.notify("cwd → " .. item.text)
+			end
+		end,
+	})
+end
 -- require("lazy").setup({
 -- 	{
 -- 		"nvim-treesitter/nvim-treesitter",
@@ -186,13 +237,20 @@ require("config.lazy")
 -- 	},
 -- })
 -- transparency
-vim.api.nvim_set_hl(0, "Normal", { bg = "none", ctermbg = "none" })
-vim.api.nvim_set_hl(0, "NonText", { bg = "none", ctermbg = "none" })
+local function apply_transparency()
+	vim.api.nvim_set_hl(0, "Normal", { bg = "none", ctermbg = "none" })
+	vim.api.nvim_set_hl(0, "NonText", { bg = "none", ctermbg = "none" })
+	vim.api.nvim_set_hl(0, "SignColumn", { bg = "none", ctermbg = "none" })
+	vim.api.nvim_set_hl(0, "FoldColumn", { bg = "none", ctermbg = "none" })
+	vim.api.nvim_set_hl(0, "LineNr", { bg = "none", ctermbg = "none" })
+	vim.api.nvim_set_hl(0, "CursorLineNr", { bg = "none", ctermbg = "none" })
+	vim.api.nvim_set_hl(0, "EndOfBuffer", { bg = "none", ctermbg = "none" })
+	vim.api.nvim_set_hl(0, "StatusColumn", { bg = "none", ctermbg = "none" })
+end
+
+apply_transparency()
 
 vim.api.nvim_create_autocmd({ "ColorScheme" }, {
 	pattern = "*",
-	callback = function()
-		vim.api.nvim_set_hl(0, "Normal", { bg = "none", ctermbg = "none" })
-		vim.api.nvim_set_hl(0, "NonText", { bg = "none", ctermbg = "none" })
-	end,
+	callback = apply_transparency,
 })

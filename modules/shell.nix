@@ -6,7 +6,6 @@
       fzf
       fastfetch
       ripgrep
-      fzf-git-sh
       bat
       bashInteractive
       lsd
@@ -32,7 +31,6 @@
     environment.shellAliases = {
       ls = "lsd";
       cat = "bat";
-      cd = "z";
     };
   };
 }

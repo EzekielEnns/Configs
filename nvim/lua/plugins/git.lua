@@ -1,7 +1,87 @@
 return {
 	{
 		"lewis6991/gitsigns.nvim",
-		opts = {},
+		event = { "BufReadPre", "BufNewFile" },
+		opts = {
+			signs = {
+				add = { text = "▎" },
+				change = { text = "▎" },
+				delete = { text = "" },
+				topdelete = { text = "" },
+				changedelete = { text = "▎" },
+				untracked = { text = "▎" },
+			},
+			signs_staged = {
+				add = { text = "▎" },
+				change = { text = "▎" },
+				delete = { text = "" },
+				topdelete = { text = "" },
+				changedelete = { text = "▎" },
+			},
+			signs_staged_enable = true,
+			sign_priority = 100,
+			current_line_blame = false,
+			on_attach = function(bufnr)
+				local gs = require("gitsigns")
+				local function map(mode, l, r, desc)
+					vim.keymap.set(mode, l, r, { buffer = bufnr, desc = desc })
+				end
+
+				map("n", "]h", function()
+					if vim.wo.diff then
+						vim.cmd.normal({ "]c", bang = true })
+					else
+						gs.nav_hunk("next")
+					end
+				end, "next hunk")
+				map("n", "[h", function()
+					if vim.wo.diff then
+						vim.cmd.normal({ "[c", bang = true })
+					else
+						gs.nav_hunk("prev")
+					end
+				end, "prev hunk")
+
+				map("n", "<leader>ghs", gs.stage_hunk, "stage hunk")
+				map("n", "<leader>ghr", gs.reset_hunk, "reset hunk")
+				map("v", "<leader>ghs", function()
+					gs.stage_hunk({ vim.fn.line("."), vim.fn.line("v") })
+				end, "stage hunk")
+				map("v", "<leader>ghr", function()
+					gs.reset_hunk({ vim.fn.line("."), vim.fn.line("v") })
+				end, "reset hunk")
+				map("n", "<leader>ghp", gs.preview_hunk, "preview hunk")
+				map("n", "<leader>ghu", gs.undo_stage_hunk, "undo stage hunk")
+				map("n", "<leader>ghb", function()
+					gs.blame_line({ full = true })
+				end, "blame line")
+			end,
+		},
+		config = function(_, opts)
+			require("gitsigns").setup(opts)
+
+			local function apply_git_highlights()
+				-- unstaged → orange
+				vim.api.nvim_set_hl(0, "GitSignsAdd", { fg = "#fe8019" })
+				vim.api.nvim_set_hl(0, "GitSignsChange", { fg = "#fe8019" })
+				vim.api.nvim_set_hl(0, "GitSignsDelete", { fg = "#fe8019" })
+				vim.api.nvim_set_hl(0, "GitSignsTopdelete", { fg = "#fe8019" })
+				vim.api.nvim_set_hl(0, "GitSignsChangedelete", { fg = "#fe8019" })
+				vim.api.nvim_set_hl(0, "GitSignsUntracked", { fg = "#fe8019" })
+				-- staged → green
+				vim.api.nvim_set_hl(0, "GitSignsStagedAdd", { fg = "#b8bb26" })
+				vim.api.nvim_set_hl(0, "GitSignsStagedChange", { fg = "#b8bb26" })
+				vim.api.nvim_set_hl(0, "GitSignsStagedDelete", { fg = "#b8bb26" })
+				vim.api.nvim_set_hl(0, "GitSignsStagedTopdelete", { fg = "#b8bb26" })
+				vim.api.nvim_set_hl(0, "GitSignsStagedChangedelete", { fg = "#b8bb26" })
+			end
+
+			apply_git_highlights()
+			vim.api.nvim_create_autocmd("ColorScheme", {
+				pattern = "*",
+				callback = apply_git_highlights,
+			})
+		end,
 	},
 	{
 		"sindrets/diffview.nvim",

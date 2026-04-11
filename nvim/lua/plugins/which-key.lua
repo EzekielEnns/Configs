@@ -2,7 +2,6 @@ return {
 	"folke/which-key.nvim",
 	event = "VeryLazy",
 	dependencies = {
-		"nvim-telescope/telescope.nvim",
 		"simeji/winresizer",
 		"f-person/git-blame.nvim",
 		"sindrets/diffview.nvim",
@@ -13,39 +12,61 @@ return {
 
 		wk.add({
 			--nav
-			{ "<leader>f", "<cmd>Telescope find_files<CR>", desc = "find files" },
+			{ "<leader>f", function() require("snacks").picker.files() end, desc = "find files" },
 			{ "<leader><C-w>", "<cmd>WinResizerStartResize<cr>", desc = "Resize window" },
-			{ "<leader>s", "<cmd>Telescope git_status<CR>", desc = "find buffers" },
+			{ "<leader>s", function() require("snacks").picker.git_status() end, desc = "git status" },
 			{ "<leader>w", "<cmd>set list!<CR>", desc = "toggle white space" },
-			{ "<leader>b", "<cmd>Telescope buffers<CR>", desc = "find buffers" },
-			{ "<leader>/", "<cmd>Telescope live_grep<CR>", desc = "find text" },
-			{ "<leader>j", "<cmd>Telescope jumplist<CR>", desc = "find text" },
-			{ "<leader>m", "<cmd>Telescope marks<CR>", desc = "find text" },
-			{ "<leader>d", "<cmd>Telescope diagnostics<CR>", desc = "look through diag" },
+			{ "<leader>b", function() require("snacks").picker.buffers() end, desc = "find buffers" },
+			{ "<leader>/", function() require("snacks").picker.grep() end, desc = "find text" },
+			{ "<leader>j", function() require("snacks").picker.jumps() end, desc = "jumplist" },
+			{ "<leader>m", function() require("snacks").picker.marks() end, desc = "marks" },
+			{ "<leader>d", function() require("snacks").picker.diagnostics() end, desc = "diagnostics" },
 			--lsp
-			{ "<leader>ls", "<cmd>Telescope lsp_document_symbols<CR>", desc = "document symbols" },
-			{ "<leader>lw", "<cmd>Telescope lsp_dynamic_workspace_symbols<CR>", desc = "workspace symbols" },
-			{ "<leader>lr", "<cmd>Telescope lsp_references<CR>", desc = "references" },
-			{ "<leader>li", "<cmd>Telescope lsp_implementations<CR>", desc = "implementation" },
+			{ "<leader>ls", function() require("snacks").picker.lsp_symbols() end, desc = "document symbols" },
+			{ "<leader>lw", function() require("snacks").picker.lsp_workspace_symbols() end, desc = "workspace symbols" },
+			{ "<leader>lr", function() require("snacks").picker.lsp_references() end, desc = "references" },
+			{ "<leader>li", function() require("snacks").picker.lsp_implementations() end, desc = "implementation" },
 
 			--explore
 			{ "<leader>cd", "<cmd>lua folder_finder()<cr>", desc = "find Directory" },
-			{ "<leader>ev", "<cmd>Vex!<cr>", desc = "Explorer" },
-			{ "<leader>es", "<cmd>Sex!<cr>", desc = "Explorer" },
-			{ "<leader>ee", "<cmd>Exp!<cr>", desc = "Explorer" },
-			{ "<leader>el", "<cmd>Lexplore!<cr>", desc = "Explorer" },
+			{ "<leader>eo", "<cmd>Oil<cr>", desc = "Oil (q/Esc to close, - to go up)" },
 
 			--git
 			{ "<leader>gb", "<cmd>GitBlameToggle<CR>", desc = "git blame" },
 			{ "<leader>gd", "<cmd>DiffviewOpen<CR>", desc = "git diff open" },
 			{ "<leader>gc", "<cmd>DiffviewClose<CR>", desc = "git diff close" },
+			{ "<leader>gg", function() require("snacks").lazygit() end, desc = "lazygit" },
+			{ "<leader>gB", function() require("snacks").gitbrowse() end, desc = "git browse (open in github)" },
+			{ "<leader>gh", group = "hunk" },
+
+			--terminal
+			{ "<leader>tt", function() require("snacks").terminal() end, desc = "toggle terminal" },
+
+			--trouble
+			{ "<leader>x", group = "trouble" },
+			{ "<leader>xx", "<cmd>Trouble diagnostics toggle<cr>", desc = "diagnostics" },
+			{ "<leader>xX", "<cmd>Trouble diagnostics toggle filter.buf=0<cr>", desc = "buffer diagnostics" },
+			{ "<leader>xs", "<cmd>Trouble symbols toggle focus=false<cr>", desc = "symbols" },
+			{ "<leader>xl", "<cmd>Trouble lsp toggle focus=false win.position=right<cr>", desc = "lsp refs" },
+			{ "<leader>xL", "<cmd>Trouble loclist toggle<cr>", desc = "location list" },
+			{ "<leader>xQ", "<cmd>Trouble qflist toggle<cr>", desc = "quickfix list" },
+
+			--refactor
+			{ "<leader>r", group = "refactor" },
+			{ "<leader>re", desc = "extract function", mode = "v" },
+			{ "<leader>rf", desc = "extract function to file", mode = "v" },
+			{ "<leader>rv", desc = "extract variable", mode = "v" },
+			{ "<leader>ri", desc = "inline variable", mode = { "n", "v" } },
+			{ "<leader>rb", desc = "extract block" },
+			{ "<leader>rbf", desc = "extract block to file" },
+			{ "<leader>rr", desc = "select refactor", mode = { "n", "v" } },
 
 			{ "<leader>h", "<cmd>lua vim.lsp.buf.signature_help()<cr>", desc = "lsp sig help" },
 			{ "<leader>lh", "<cmd>lua vim.lsp.buf.hover()<cr>", desc = "hover" },
 			{ "<leader>lH", "<cmd>lua vim.diagnostic.open_float()<cr>", desc = "diagnostic" },
 			{ "<leader>la", "<cmd>lua vim.lsp.buf.code_action()<cr>", desc = "code action" },
-			{ "<leader>r", "<cmd>lua vim.lsp.buf.rename()<cr>", desc = "rename" },
-			{ "<leader>lt", "<cmd>Telescope lsp_type_definitions<CR>", desc = "type definition" },
+			{ "<leader>lR", "<cmd>lua vim.lsp.buf.rename()<cr>", desc = "rename" },
+			{ "<leader>lt", function() require("snacks").picker.lsp_type_definitions() end, desc = "type definition" },
 			{ "<leader>]", "<cmd>lua vim.diagnostic.goto_prev()<cr>", desc = "prev diagnostic" },
 			{ "<leader>[", "<cmd>lua vim.diagnostic.goto_next()<cr>", desc = "next diagnostic" },
 
