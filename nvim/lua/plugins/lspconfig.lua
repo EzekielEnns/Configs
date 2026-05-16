@@ -20,7 +20,6 @@ return {
 			},
 		})
 		vim.lsp.set_log_level("OFF")
-
 		local lsp_attach_group = vim.api.nvim_create_augroup("user_lsp_attach", { clear = true })
 		vim.api.nvim_create_autocmd("LspAttach", {
 			group = lsp_attach_group,
@@ -202,6 +201,7 @@ return {
 				"typescriptreact",
 				"svelte",
 				"vue",
+				"mdx",
 			},
 		})
 
@@ -227,6 +227,10 @@ return {
 			},
 		})
 
+		vim.lsp.config("mdx_analyzer", {
+			filetypes = { "mdx" },
+		})
+
 		vim.lsp.enable({
 			"gdscript",
 			"gopls",
@@ -241,6 +245,7 @@ return {
 			"tailwindcss",
 			"basedpyright",
 			"ruff",
+			"mdx_analyzer",
 		})
 	end,
 }

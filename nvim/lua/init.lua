@@ -149,7 +149,7 @@ vim.o.statusline = table.concat({
 	" %f %=",
 	"%y [%l:%c]",
 })
-vim.opt.statusline:append(" %t%y~(%{b:git_branch})")
+vim.opt.statusline:append(" %t%y~(%{get(b:,'git_branch','')})")
 vim.opt.showmode = true
 
 -- Global variables

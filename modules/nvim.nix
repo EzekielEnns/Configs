@@ -63,6 +63,7 @@ in
     lua-language-server
     vscode-langservers-extracted
     tailwindcss-language-server
+    mdx-language-server
     pnpm
     terraform-ls
     nodePackages.prettier

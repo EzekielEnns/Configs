@@ -24,6 +24,7 @@ return {
 				"json",
 				"yaml",
 				"c_sharp",
+				"tsx",
 			},
 			auto_install = true,
 			highlight = { enable = true },
