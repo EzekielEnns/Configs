@@ -4,9 +4,6 @@
 , inputs
 , ...
 }:
-let
-  veikk_driver = (pkgs.callPackage ./veikkDriver.nix { });
-in
 {
   # Desktop
   services.xserver.enable = true;
@@ -36,5 +33,4 @@ in
     };
   };
   services.desktopManager.gnome.enable = true;
-  services.udev.packages = [ veikk_driver ];
 }
