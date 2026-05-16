@@ -81,8 +81,6 @@ in
     #    pkgs-unstable.omnisharp-roslyn
     pkgs-unstable.bun
     myNeovim
-    # ai
-    pkgs-unstable.aider-chat
     alejandra # very popular, opinionated
     nixfmt-rfc-style
     nixpkgs-fmt # nixpkgs style
