@@ -36,6 +36,8 @@
   boot.kernel.sysctl = {
     "kernel.panic" = 10;
     "kernel.panic_on_oops" = 1;
+    # required by some games (Star Citizen, Hogwarts Legacy, Counter-Strike 2)
+    "vm.max_map_count" = 2147483642;
   };
 
   fileSystems."/" = {
@@ -77,8 +79,10 @@
   ];
 
   hardware = {
+    enableRedistributableFirmware = true;
+    cpu.amd.updateMicrocode = true;
     nvidia-container-toolkit.enable = true;
-    #steam-hardware.enable = true;
+    steam-hardware.enable = true;
     #show gpu temps  watch -n0.5 nvidia-smi
     # nix-shell -p pciutils --run "lspci | grep -E 'VGA|3D'"
     nvidia = {
@@ -102,14 +106,46 @@
       ];
     };
   };
-  programs.steam.package = pkgs-unstable.steam;
-  programs.gamescope.package = pkgs-unstable.gamescope;
-  environment.systemPackages = with pkgs-unstable; [
+  # Wraps a command so it runs on the dGPU (NVIDIA). Usage: `nvidia-offload steam`
+  # or set Steam per-game launch options to: nvidia-offload %command%
+  environment.systemPackages = (with pkgs-unstable; [
     mangohud
-    gamemode
+    protonup-qt # GUI for managing Proton-GE versions
+  ]) ++ [
+    (pkgs.writeShellScriptBin "nvidia-offload" ''
+      export __NV_PRIME_RENDER_OFFLOAD=1
+      export __NV_PRIME_RENDER_OFFLOAD_PROVIDER=NVIDIA-G0
+      export __GLX_VENDOR_LIBRARY_NAME=nvidia
+      export __VK_LAYER_NV_optimus=NVIDIA_only
+      exec "$@"
+    '')
   ];
-  programs.steam.enable = true;
-  programs.steam.gamescopeSession.enable = true;
-  programs.gamescope.enable = true;
 
+  programs.steam = {
+    enable = true;
+    package = pkgs-unstable.steam;
+    gamescopeSession.enable = true;
+    remotePlay.openFirewall = true;
+    dedicatedServer.openFirewall = true;
+    localNetworkGameTransfers.openFirewall = true;
+    extraCompatPackages = with pkgs-unstable; [ proton-ge-bin ];
+  };
+
+  programs.gamescope = {
+    enable = true;
+    package = pkgs-unstable.gamescope;
+    capSysNice = true;
+  };
+
+  programs.gamemode = {
+    enable = true;
+    settings = {
+      general.renice = 10;
+      gpu = {
+        apply_gpu_optimisations = "accept-responsibility";
+        gpu_device = 0;
+        nv_powermizer_mode = 1;
+      };
+    };
+  };
 }

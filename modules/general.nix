@@ -78,6 +78,7 @@
         "docker"
       ];
       packages = with pkgs; [
+        google-chrome
         firefox
         xfce.thunar
         vial
