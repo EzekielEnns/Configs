@@ -6,12 +6,17 @@
 }:
 {
   config = {
+    # Claude Code overlay — auto-updating Bun-built binaries direct from
+    # Anthropic releases, refreshed hourly. Skips the nixpkgs review lag.
+    nixpkgs.overlays = [ inputs.nix-claude-code.overlays.default ];
+
     environment.systemPackages = [
       pkgs.lm_sensors
       pkgs.glances
       pkgs.htop
       pkgs.nvtopPackages.full
       pkgs.btop
+      pkgs.claude-code
     ];
 
     services.jellyfin = {
