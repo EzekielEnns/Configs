@@ -106,6 +106,18 @@
       ];
     };
   };
+  # Broader gamepad coverage (PS5, 8BitDo, Xbox Elite, etc.) on top of the
+  # Valve rules that steam-hardware.enable already installs.
+  services.udev.packages = with pkgs; [ game-devices-udev-rules ];
+
+  # Tell SDL to use its HIDAPI backend for Steam Controllers so non-Steam
+  # games (Lutris, native Linux titles) can see the SC2 outside of Steam.
+  # Harmless when no controller is connected.
+  environment.sessionVariables = {
+    SDL_HINT_JOYSTICK_HIDAPI_STEAM = "1";
+    SDL_HINT_JOYSTICK_HIDAPI_STEAMDECK = "1";
+  };
+
   # Wraps a command so it runs on the dGPU (NVIDIA). Usage: `nvidia-offload steam`
   # or set Steam per-game launch options to: nvidia-offload %command%
   environment.systemPackages = (with pkgs-unstable; [

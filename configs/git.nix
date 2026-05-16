@@ -1,9 +1,17 @@
-{config, pkgs, ...}: 
+{config, pkgs, ...}:
 {
     options = {};
     config = {
         programs.git = {
         enable = true;
+        signing = {
+            # SSH signing — reuses ~/.ssh/github key, no GPG needed.
+            # Per-commit opt-in via `git commit -S`. Flip signByDefault to true
+            # once both machines have ~/.ssh/github.pub present.
+            format = "ssh";
+            key = "~/.ssh/github.pub";
+            signByDefault = false;
+        };
         settings = {
             user = {
                 name  = "Zeke";
@@ -16,6 +24,9 @@
             mergetool.nvimdiff.cmd = "nvim -d -c \"wincmd l\" -c \"norm ]c\" \"$LOCAL\" \"$MERGED\" \"$REMOTE\"";
             difftool.nvimdiff.cmd = "nvim -d  \"$LOCAL\" \"$REMOTE\"";
             push.default = "current";
+            pull.rebase = true;
+            rebase.autoStash = true;
+            fetch.prune = true;
         };
         };
     };
