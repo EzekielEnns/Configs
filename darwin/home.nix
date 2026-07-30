@@ -4,6 +4,7 @@
     ../configs/starship.nix
     ../configs/git.nix
     ../configs/files.nix
+    ../configs/tmux.nix
   ];
   options = { };
   config = {

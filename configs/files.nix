@@ -1,10 +1,4 @@
 { config, pkgs, ... }:
-let
-  zellijAutolock = pkgs.fetchurl {
-    url = "https://github.com/fresh2dev/zellij-autolock/releases/download/0.2.2/zellij-autolock.wasm";
-    sha256 = "194fgd421w2j77jbpnq994y2ma03qzdlz932cxfhfznrpw3mdjb9";
-  };
-in
 {
   config = {
 
@@ -72,7 +66,9 @@ in
         default_mode "normal"
             default_shell "zsh"
             theme "gruvbox-dark"
-            session_serialization false
+            session_serialization true
+            serialize_pane_viewport true
+            scrollback_lines_to_serialize 10000
             show_release_notes false
             show_startup_tips false
             normal {
@@ -101,7 +97,7 @@ in
                 bind "Alt e" { TogglePaneEmbedOrFloating; }
                 bind "Alt ." { NewTab; SwitchToMode "Normal"; }
                 bind "Alt s" {
-                    LaunchOrFocusPlugin "session-manager" { 
+                    LaunchOrFocusPlugin "session-manager" {
                         floating true
                     };
                     SwitchToMode "normal";
@@ -203,5 +199,6 @@ in
     home.file.".config/zellij/layouts/.keep" = {
       text = "keep";
     };
+
   };
 }

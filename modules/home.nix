@@ -3,6 +3,7 @@
   imports = [
     ../configs/starship.nix
     ../configs/files.nix
+    ../configs/tmux.nix
   ];
   options = { };
   config = {

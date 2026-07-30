@@ -22,11 +22,6 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
-    zen-browser = {
-      url = "github:youwen5/zen-browser-flake";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
-
     nix-claude-code = {
       url = "github:ryoppippi/nix-claude-code";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -61,7 +56,6 @@
       latestPkgs = system: {
         ghostty = inputs.ghostty.packages.${system}.default;
         zellij = inputs.zellij.packages.${system}.default;
-        zen = inputs.zellij.packages.${system}.default;
       };
 
       hmModule =
@@ -94,7 +88,6 @@
           environment.systemPackages = [
             lp.ghostty
             lp.zellij
-            lp.zen
           ];
         };
     in
