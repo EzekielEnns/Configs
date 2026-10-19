@@ -24,6 +24,11 @@
             mergetool.nvimdiff.cmd = "nvim -d -c \"wincmd l\" -c \"norm ]c\" \"$LOCAL\" \"$MERGED\" \"$REMOTE\"";
             difftool.nvimdiff.cmd = "nvim -d  \"$LOCAL\" \"$REMOTE\"";
             push.default = "current";
+            # `push.default = current` already pushes a new branch to a same-named
+            # remote branch, but leaves it untracked. This sets the upstream on
+            # that first push, so `git status` shows ahead/behind and a bare
+            # `git pull` works without anyone remembering `push -u`.
+            push.autoSetupRemote = true;
             pull.rebase = true;
             rebase.autoStash = true;
             fetch.prune = true;

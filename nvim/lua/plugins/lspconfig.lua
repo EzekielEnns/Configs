@@ -19,13 +19,24 @@ return {
 				},
 			},
 		})
-		vim.lsp.set_log_level("OFF")
+		vim.lsp.log.set_level("OFF")
 		local lsp_attach_group = vim.api.nvim_create_augroup("user_lsp_attach", { clear = true })
 		vim.api.nvim_create_autocmd("LspAttach", {
 			group = lsp_attach_group,
 			desc = "LSP actions",
 			callback = function(args)
 				local bufnr = args.buf
+				-- Servers only understand file:// URIs; detach from plugin buffers
+				-- (diffview://, fugitive://, oil://, …) instead of letting every
+				-- request come back as a ParseError.
+				if not vim.uri_from_bufnr(bufnr):find("^file://") then
+					vim.schedule(function()
+						if vim.api.nvim_buf_is_valid(bufnr) then
+							vim.lsp.buf_detach_client(bufnr, args.data.client_id)
+						end
+					end)
+					return
+				end
 				vim.keymap.set("n", "gd", "<cmd>lua vim.lsp.buf.definition()<cr>", { buffer = bufnr })
 				require("lsp_signature").on_attach({
 					bind = true,
@@ -231,9 +242,52 @@ return {
 			filetypes = { "mdx" },
 		})
 
+		-- Go: gopls does formatting/imports/analysis, golangci-lint-langserver
+		-- wraps `golangci-lint run` and publishes its findings as diagnostics
+		-- (so they land in <leader>d, Trouble and the sign column like any
+		-- other LSP). Per-project rules go in .golangci.yml; without one the
+		-- "standard" preset runs. Binaries: modules/nvim.nix (NixOS) or brew +
+		-- `go-tools-install` (macOS).
+		vim.lsp.config("gopls", {
+			settings = {
+				gopls = {
+					gofumpt = true,
+					staticcheck = true,
+					usePlaceholders = true,
+					semanticTokens = true,
+					vulncheck = "Imports",
+					analyses = {
+						unusedparams = true,
+						unusedwrite = true,
+						unusedvariable = true,
+						nilness = true,
+						shadow = true,
+						useany = true,
+					},
+					hints = {
+						assignVariableTypes = true,
+						compositeLiteralFields = true,
+						constantValues = true,
+						functionTypeParameters = true,
+						parameterNames = true,
+						rangeVariableTypes = true,
+					},
+					codelenses = {
+						generate = true,
+						gc_details = true,
+						test = true,
+						tidy = true,
+						upgrade_dependency = true,
+						run_govulncheck = true,
+					},
+				},
+			},
+		})
+
 		vim.lsp.enable({
 			"gdscript",
 			"gopls",
+			"golangci_lint_ls",
 			"terraformls",
 			"efm",
 			"lua_ls",

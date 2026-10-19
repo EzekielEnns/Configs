@@ -14,8 +14,9 @@ return {
 			--nav
 			{ "<leader>f", function() require("snacks").picker.files() end, desc = "find files" },
 			{ "<leader><C-w>", "<cmd>WinResizerStartResize<cr>", desc = "Resize window" },
-			{ "<leader>s", function() require("snacks").picker.git_status() end, desc = "git status" },
 			{ "<leader>w", "<cmd>set list!<CR>", desc = "toggle white space" },
+			{ "<leader>v", "<cmd>ViewToggle<cr>", desc = "toggle rendered view (csv/markdown)" },
+			{ "<leader>o", "<cmd>MdOpen<cr>", desc = "open link/file under cursor" },
 			{ "<leader>b", function() require("snacks").picker.buffers() end, desc = "find buffers" },
 			{ "<leader>/", function() require("snacks").picker.grep() end, desc = "find text" },
 			{ "<leader>j", function() require("snacks").picker.jumps() end, desc = "jumplist" },
@@ -32,15 +33,77 @@ return {
 			{ "<leader>eo", "<cmd>Oil<cr>", desc = "Oil (q/Esc to close, - to go up)" },
 
 			--git
-			{ "<leader>gb", "<cmd>GitBlameToggle<CR>", desc = "git blame" },
+			{
+				"<leader>gb",
+				function()
+					-- git status, but only files with unstaged changes or untracked.
+					-- item.status is the porcelain XY code: X = index, Y = worktree.
+					require("snacks").picker.git_status({
+						title = "Unstaged",
+						filter = {
+							filter = function(item)
+								local s = item.status or ""
+								return s == "??" or s:sub(2, 2) ~= " "
+							end,
+						},
+					})
+				end,
+				desc = "unstaged files",
+			},
+			{ "<leader>gl", "<cmd>GitBlameToggle<CR>", desc = "git blame" },
 			{ "<leader>gd", "<cmd>DiffviewOpen<CR>", desc = "git diff open" },
 			{ "<leader>gc", "<cmd>DiffviewClose<CR>", desc = "git diff close" },
 			{ "<leader>gg", function() require("snacks").lazygit() end, desc = "lazygit" },
 			{ "<leader>gB", function() require("snacks").gitbrowse() end, desc = "git browse (open in github)" },
+			{ "<leader>gr", "<cmd>Octo pr list<cr>", desc = "review PRs (octo)" },
 			{ "<leader>gh", group = "hunk" },
+			{ "<leader>ghf", function() require("snacks").picker.git_diff() end, desc = "find hunk (diff picker)" },
 
 			--terminal
 			{ "<leader>tt", function() require("snacks").terminal() end, desc = "toggle terminal" },
+
+			--go (go.nvim, only defined in go buffers)
+			{ "<leader>G", group = "go" },
+			{ "<leader>Gt", "<cmd>GoTestPkg<cr>", desc = "test package" },
+			{ "<leader>GT", "<cmd>GoTestFunc<cr>", desc = "test function under cursor" },
+			{ "<leader>Gf", "<cmd>GoTestFile<cr>", desc = "test file" },
+			{ "<leader>Gc", "<cmd>GoCoverage<cr>", desc = "coverage (toggle)" },
+			{ "<leader>Ga", "<cmd>GoAlt!<cr>", desc = "alternate file (foo.go <-> foo_test.go)" },
+			{ "<leader>GA", "<cmd>GoAddTest<cr>", desc = "generate test for func (gotests)" },
+			{ "<leader>Gr", "<cmd>GoRun<cr>", desc = "go run" },
+			{ "<leader>Gb", "<cmd>GoBuild<cr>", desc = "go build" },
+			{ "<leader>Gl", "<cmd>GoLint<cr>", desc = "golangci-lint (package)" },
+			{ "<leader>Gv", "<cmd>GoVet<cr>", desc = "go vet" },
+			{ "<leader>Gm", "<cmd>GoModTidy<cr>", desc = "go mod tidy" },
+			{ "<leader>Gg", "<cmd>GoGenerate<cr>", desc = "go generate" },
+			{ "<leader>Gs", "<cmd>GoFillStruct<cr>", desc = "fill struct" },
+			{ "<leader>Gi", "<cmd>GoImpl<cr>", desc = "implement interface" },
+			{ "<leader>Ge", "<cmd>GoIfErr<cr>", desc = "insert if err != nil" },
+			{ "<leader>Gj", "<cmd>GoAddTag json<cr>", desc = "add json tags" },
+			{ "<leader>Gy", "<cmd>GoAddTag yaml<cr>", desc = "add yaml tags" },
+			{ "<leader>Gx", "<cmd>GoRmTag<cr>", desc = "remove tags" },
+			{ "<leader>Gd", "<cmd>GoDoc<cr>", desc = "go doc" },
+			{ "<leader>GD", "<cmd>GoDebug<cr>", desc = "debug (delve)" },
+			{ "<leader>GB", "<cmd>GoBreakToggle<cr>", desc = "toggle breakpoint" },
+			{ "<leader>GS", "<cmd>GoDbgStop<cr>", desc = "stop debugger" },
+
+			--jupyter (pyrepl.nvim)
+			{ "<leader>k", group = "kernel/notebook" },
+			{ "<leader>kt", "<cmd>PyreplToggle<cr>", desc = "toggle repl" },
+			{ "<leader>ko", "<cmd>PyreplOpen<cr>", desc = "open repl" },
+			{ "<leader>kO", "<cmd>PyreplOpen!<cr>", desc = "open repl (pick kernel)" },
+			{ "<leader>kh", "<cmd>PyreplHide<cr>", desc = "hide repl" },
+			{ "<leader>kq", "<cmd>PyreplClose<cr>", desc = "close repl" },
+			{ "<leader>kb", "<cmd>PyreplSendBuffer<cr>", desc = "send buffer" },
+			{ "<leader>kl", "<cmd>PyreplSendCell<cr>", desc = "send cell" },
+			{ "<leader>kv", "<cmd>PyreplSendVisual<cr>", desc = "send selection", mode = "v" },
+			{ "<leader>kn", "<cmd>PyreplStepCellForward<cr>", desc = "next cell" },
+			{ "<leader>kp", "<cmd>PyreplStepCellBackward<cr>", desc = "prev cell" },
+			{ "<leader>ki", "<cmd>PyreplOpenImageHistory<cr>", desc = "plot history" },
+			{ "<leader>kc", "<cmd>PyreplConvert<cr>", desc = "convert .ipynb to script" },
+			{ "<leader>ke", "<cmd>PyreplExport<cr>", desc = "export script to .ipynb" },
+			{ "<leader>kI", ":PyreplInstall ", desc = "install repl packages (uv|pip)" },
+			{ "<M-r>", "<cmd>PyreplToggleFocus<cr>", desc = "toggle repl focus", mode = { "n", "t" } },
 
 			--trouble
 			{ "<leader>x", group = "trouble" },

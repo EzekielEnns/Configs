@@ -91,6 +91,10 @@
     brews = [
       "zellij"
       "direnv"
+      # Go lives outside Nix on macOS so it tracks upstream releases
+      # (see modules/nvim.nix); the editor tools come from `go-tools-install`.
+      "go"
+      "golangci-lint"
     ];
   };
 }

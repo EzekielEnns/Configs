@@ -91,6 +91,15 @@ vim.api.nvim_create_autocmd("BufEnter", {
 	end,
 })
 
+-- Go tools on macOS are `go install`ed into ~/go/bin (see darwin/home.nix).
+-- home-manager puts that on PATH for new login shells, but a terminal that
+-- predates the rebuild (or an app-launched nvim) won't have it, so add it here.
+for _, dir in ipairs({ vim.env.HOME .. "/go/bin", "/opt/homebrew/bin" }) do
+	if vim.uv.fs_stat(dir) and not (":" .. vim.env.PATH .. ":"):find(":" .. dir .. ":", 1, true) then
+		vim.env.PATH = dir .. ":" .. vim.env.PATH
+	end
+end
+
 -- auto-detect uv-managed .venv and export VIRTUAL_ENV so basedpyright/ruff pick it up
 local function detect_uv_venv()
 	local found = vim.fs.find(".venv", {
@@ -173,7 +182,106 @@ vim.keymap.set("n", "<C-j>", "<C-w>j", { desc = "Move to bottom window" })
 vim.keymap.set("n", "<C-k>", "<C-w>k", { desc = "Move to top window" })
 vim.keymap.set("n", "<C-l>", "<C-w>l", { desc = "Move to right window" })
 
+-- Spanner DDL files are just SQL as far as highlighting goes.
+vim.filetype.add({ extension = { ddl = "sql" } })
+
 require("config.lazy")
+
+-- view_toggle: flip the current buffer between raw text and its rendered view,
+-- choosing the renderer from the filetype. csv/tsv start rendered (a raw CSV is
+-- the unreadable one), markdown starts raw, so the first press means different
+-- directions in each -- which is the point of one key rather than two.
+local view_commands = {
+	csv = "CsvViewToggle",
+	tsv = "CsvViewToggle",
+	markdown = "RenderMarkdown buf_toggle",
+}
+
+_G.view_toggle = function()
+	local ft = vim.bo.filetype
+	local cmd = view_commands[ft]
+	if not cmd then
+		vim.notify(
+			"no rendered view for filetype " .. (ft ~= "" and ("'" .. ft .. "'") or "(none)"),
+			vim.log.levels.WARN
+		)
+		return
+	end
+	vim.cmd(cmd)
+end
+
+vim.api.nvim_create_user_command("ViewToggle", _G.view_toggle, {
+	desc = "Toggle the rendered view for this buffer's filetype",
+})
+
+-- md_open_link: built-in gx only sees a URL when the cursor is literally on it,
+-- so on the text half of [label](url) it opens the word under the cursor. Walk
+-- the markdown_inline tree instead to find the enclosing link's destination.
+-- Falls through to the stock gx when there is no link, so nothing is lost.
+local default_gx = vim.fn.maparg("gx", "n", false, true).callback
+
+local function link_destination()
+	local ok, node = pcall(vim.treesitter.get_node, { ignore_injections = false })
+	if not ok or not node then
+		return nil
+	end
+	while node do
+		local kind = node:type()
+		if kind == "uri_autolink" then
+			return (vim.treesitter.get_node_text(node, 0):gsub("^<", ""):gsub(">$", ""))
+		elseif kind == "link_destination" then
+			return vim.treesitter.get_node_text(node, 0)
+		elseif kind == "inline_link" or kind == "image" then
+			for child in node:iter_children() do
+				if child:type() == "link_destination" then
+					return vim.treesitter.get_node_text(child, 0)
+				end
+			end
+		end
+		node = node:parent()
+	end
+	return nil
+end
+
+_G.md_open_link = function()
+	local dest = link_destination()
+	if not dest then
+		if default_gx then
+			return default_gx()
+		end
+		return vim.ui.open(vim.fn.expand("<cfile>"))
+	end
+
+	if dest:match("^%a[%w+.-]*://") or dest:match("^mailto:") then
+		return vim.ui.open(dest)
+	end
+
+	-- Relative link to another file: open it in nvim rather than handing it to
+	-- the system opener, which would launch it in some GUI app instead.
+	local path = dest:gsub("#.*$", "")
+	local base = vim.fn.expand("%:p:h")
+	local target = vim.fs.normalize(path:match("^/") and path or (base .. "/" .. path))
+	if vim.uv.fs_stat(target) then
+		return vim.cmd.edit(vim.fn.fnameescape(target))
+	end
+	return vim.ui.open(dest)
+end
+
+vim.api.nvim_create_user_command("MdOpen", _G.md_open_link, {
+	desc = "Open the markdown link under the cursor",
+})
+
+-- Scoped to markdown buffers: gx keeps its stock behaviour everywhere else.
+vim.api.nvim_create_autocmd("FileType", {
+	group = vim.api.nvim_create_augroup("MdOpenLink", { clear = true }),
+	pattern = { "markdown", "mdx" },
+	callback = function(args)
+		vim.keymap.set("n", "gx", _G.md_open_link, {
+			buffer = args.buf,
+			desc = "Open markdown link under cursor",
+		})
+	end,
+})
 
 -- folder_finder: pick a child dir of cwd (or cwd itself) and chdir into it
 _G.folder_finder = function()

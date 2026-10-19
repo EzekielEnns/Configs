@@ -45,7 +45,16 @@
         }
       ];
       extraConfig = ''
+        # Let OSC sequences from a pane reach ghostty instead of being swallowed
+        # by tmux, so Claude Code's desktop notifications actually surface.
+        set -g allow-passthrough on
+
         set -g renumber-windows on
+
+        # Default automatic-rename-format is #{pane_current_command}, and the
+        # claude binary lives at ~/.local/share/claude/versions/<version>, so
+        # every claude window was named "2.1.266". Name by directory instead.
+        set -g automatic-rename-format '#{b:pane_current_path}'
         set -g set-clipboard on
         set -g detach-on-destroy off
 
@@ -59,6 +68,10 @@
         bind -n M-\; select-pane -t :.+
         bind -n M-, select-pane -t :.-
         bind -n M-s choose-tree -Zs
+        # Jump to the next window flagged with an alert. Claude Code rings the
+        # bell when it finishes or wants input (preferredNotifChannel =
+        # "terminal_bell"), which paints that window red in the status bar.
+        bind -n M-a next-window -a
 
         # "Floating pane": popup running a persistent scratch session.
         # Toggles closed if invoked from inside the popup.

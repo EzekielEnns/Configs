@@ -87,6 +87,19 @@ return {
 		"sindrets/diffview.nvim",
 		cmd = { "DiffviewOpen" },
 		config = function()
+			-- Diffview's index (`:0:`) buffers are left with buftype="" so `:w` can stage
+			-- them, which makes vim.lsp.enable() attach a real server to a `diffview://`
+			-- buffer. gopls then rejects every request with
+			-- "DocumentURI scheme is not 'file'". acwrite keeps the BufWriteCmd staging
+			-- path working while stopping the LSP autostart.
+			vim.api.nvim_create_autocmd("BufFilePost", {
+				group = vim.api.nvim_create_augroup("diffview_no_lsp", { clear = true }),
+				pattern = "diffview://*",
+				callback = function(args)
+					vim.bo[args.buf].buftype = "acwrite"
+				end,
+			})
+
 			require("diffview").setup({
 				diff_binaries = false, -- Show diffs for binaries
 				enhanced_diff_hl = false, -- See |diffview-config-enhanced_diff_hl|

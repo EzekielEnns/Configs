@@ -196,6 +196,30 @@
       force = true;
     };
 
+    # Fallback golangci-lint config: used by any Go project that has no
+    # .golangci.* of its own (golangci-lint checks $HOME last). Drives both the
+    # golangci_lint_ls diagnostics and `golangci-lint fmt` (conform.nvim).
+    home.file.".golangci.yml" = {
+      force = true;
+      text = ''
+        version: "2"
+
+        formatters:
+          enable:
+            - gofumpt
+            - goimports
+
+        linters:
+          default: standard
+          enable:
+            - misspell
+            - unconvert
+            - unparam
+            - errorlint
+            - gocritic
+      '';
+    };
+
     home.file.".config/zellij/layouts/.keep" = {
       text = "keep";
     };

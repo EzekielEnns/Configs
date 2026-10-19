@@ -11,7 +11,7 @@ let
     recursive = true;
     doCheck = false;
   };
-  myNeovim = pkgs.neovim.override {
+  myNeovim = pkgs-unstable.neovim.override {
     configure = {
       customRC = ''
         lua require("init")
@@ -54,6 +54,10 @@ in
     # Language servers and tools
     pkgs-unstable.basedpyright
     pkgs-unstable.ruff
+    # pyrepl.nvim shells out to `jupytext` to turn .ipynb into py:percent
+    # scripts and back; the REPL packages themselves live in the project venv
+    # (:PyreplInstall uv).
+    python3Packages.jupytext
     efm-langserver
     nodejs_24
     eslint_d
@@ -69,13 +73,13 @@ in
     nodePackages.prettier
     prettierd
     stylua
-    gofumpt
-    gopls
-    go
     # Required for lazy.nvim plugin management
     git
     curl
     gcc
+    # nvim-treesitter (main branch) shells out to `tree-sitter build`;
+    # it requires CLI >= 0.26.1, which stable does not have yet.
+    pkgs-unstable.tree-sitter
 
     pkgs-unstable.rustup
     #    pkgs-unstable.omnisharp-roslyn
@@ -85,5 +89,25 @@ in
     nixfmt-rfc-style
     nixpkgs-fmt # nixpkgs style
     terraform
+  ]
+  # Go toolchain + editor helpers (see nvim/lua/plugins/go.lua), NixOS only.
+  # golangci-lint refuses to run when a project's go.mod targets a Go newer
+  # than the one it was built with, and nixpkgs lags Go releases, so on
+  # macOS the whole Go stack lives outside Nix: `brew install go
+  # golangci-lint` (darwin/config.nix) and `go-tools-install` for the rest
+  # (darwin/home.nix).
+  ++ lib.optionals pkgs.stdenv.isLinux [
+    pkgs-unstable.go
+    pkgs-unstable.gopls
+    pkgs-unstable.gotools # goimports, gorename, ...
+    pkgs-unstable.golangci-lint
+    pkgs-unstable.golangci-lint-langserver # golangci_lint_ls in lspconfig.lua
+    pkgs-unstable.delve # :GoDebug
+    pkgs-unstable.govulncheck # gopls run_govulncheck codelens
+    gofumpt
+    gomodifytags # :GoAddTag / :GoRmTag
+    gotests # :GoAddTest / :GoAddAllTest generation
+    impl # :GoImpl
+    iferr # :GoIfErr
   ];
 }
