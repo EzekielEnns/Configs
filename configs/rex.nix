@@ -22,6 +22,10 @@ in
       "Workspace.terminalFontName" = "Monofur Nerd Font Mono";
       "Workspace.terminalFontPointSize" = 15.0;
       "Workspace.interfaceStyle" = "useTheme";
+      # Extra line height in percent; Monofur sits tight at 100%
+      "Workspace.terminalCellHeightPercent" = 10.0;
+      # Insert Path suggests recently used folders too
+      "Workspace.insertPathShowsRecentPaths" = true;
 
       # Chrome
       "Workspace.tabStyle" = "horizontal";
@@ -67,6 +71,10 @@ in
       "Workspace.playsProgramActivitySounds" = true;
       "Workspace.showsProgramActivityDockBadge" = true;
       "Workspace.allowsTerminalNotifications" = true;
+
+      # Overlay scroll bars that show only while scrolling, for Rex alone.
+      # macOS otherwise keeps them on screen whenever a mouse is plugged in.
+      AppleShowScrollBars = "WhenScrolling";
 
       # Lets the rex CLI drive the app, e.g. `finder` switching sessions
       "rex.client.remoteControl" = true;
@@ -147,6 +155,12 @@ in
         rex.bind("ctrl+a>h", "client.sidebar.toggle")
         -- ctrl+a now starts a sequence; press it twice for beginning-of-line
         rex.bind("ctrl+a>ctrl+a", "pane.send_key", { key = "ctrl+a" })
+
+        -- Flip Layout: turn every split in the tab, for moving between the
+        -- portrait monitor and the laptop screen. ctrl+a space, like tmux's
+        -- next-layout.
+        dofile(os.getenv("HOME") .. "/.config/rex/layout.lua")
+        rex.bind("ctrl+a>space", "flip_layout")
       '';
     };
 
@@ -161,6 +175,7 @@ in
     # daemon restores whatever a server restart lost, then saves on every
     # change to ~/.local/state/rex-resurrect/snapshot.json.
     xdg.configFile."rex/resurrect.lua".source = ./rex-resurrect.lua;
+    xdg.configFile."rex/layout.lua".source = ./rex-layout.lua;
 
     # Exits when the server goes away; launchd brings it back, and on a fresh
     # server it restores. --autostart=false leaves starting the server to Rex.app.
