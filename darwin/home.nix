@@ -6,6 +6,7 @@
     ../configs/files.nix
     ../configs/tmux.nix
     ../configs/claude.nix
+    ../configs/rex.nix
   ];
   options = { };
   config = {

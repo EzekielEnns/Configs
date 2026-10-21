@@ -4,10 +4,24 @@
     home.packages = [
       (pkgs.writeShellApplication {
         name = "finder";
-        runtimeInputs = [ pkgs.fzf ];
+        runtimeInputs = [ pkgs.fzf pkgs.jq ];
         text = ''
           wp=$(find ~/Documents/repos -mindepth 1 -maxdepth 1 -type d | while read -r d; do basename "$d"; done | fzf --prompt="Select a repo: ") || exit
           cd ~/Documents/repos/"$wp" || exit
+
+          # Inside Rex (configs/rex.nix): reuse or create a session labelled
+          # after the repo, then switch the app to it.
+          if [ -n "''${REX_SESSION:-}" ]; then
+            id=$(rex ls --json | jq -r --arg l "$wp" '.sessions[] | select(.label == $l) | .session_id' | head -n1)
+            if [ -z "$id" ]; then
+              id=$(rex new "$wp" --cwd "$PWD" --json | jq -r .session_id)
+            fi
+            # Needs Settings > Rex Server > Remote Control
+            rex "do" session.select session_id="$id" >/dev/null 2>&1 ||
+              echo "session '$wp' is ready; open it with alt+s"
+            exit
+          fi
+
           tmux new -As "$wp"
         '';
       })

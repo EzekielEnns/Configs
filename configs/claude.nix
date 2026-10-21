@@ -71,6 +71,20 @@ in
         # the alert sound. Claude picks one channel, so it is one or the other.
         preferredNotifChannel = "ghostty";
 
+        # What `rex skill setup` would add here if this file were writable:
+        # tells each session it's running in Rex, and which session/terminal.
+        hooks.SessionStart = [
+          {
+            hooks = [
+              {
+                type = "command";
+                command = "/bin/sh -c 'rex __internal session-start --agent claude 2>/dev/null || true'";
+                timeout = 5;
+              }
+            ];
+          }
+        ];
+
         voice = {
           enabled = false;
           mode = "tap";
@@ -87,5 +101,22 @@ in
     # The module doesn't set force, and a real settings.json already exists on
     # this machine; without this, activation refuses to clobber it.
     home.file.".claude/settings.json".force = true;
+
+    # Stub from `rex skill setup`; the real guide comes from the installed rex.
+    home.file.".claude/skills/rex/SKILL.md".text = ''
+      ---
+      name: rex
+      description: Use the rex CLI to manage Rex sessions, open tabs, arrange panes, run commands, inspect terminal output, and control connected Rex apps.
+      metadata:
+        rex-stub: "2"
+      ---
+      <!-- Installed by "rex skill setup". Remove it with "rex skill remove". -->
+
+      Run `rex __internal skill` and follow the guide it prints. The guide comes from
+      the installed Rex CLI, so it describes the commands available in that version.
+
+      If the command fails, the installed Rex version predates the guide. Start with
+      `rex whoami --json`, then use `rex --help` and `rex COMMAND --help`.
+    '';
   };
 }
