@@ -53,6 +53,8 @@ in
       "Workspace.terminalCopyAnimation" = false;
       "Workspace.terminalCursorStyle" = "block";
       "Workspace.terminalCursorStyleForced" = true;
+      # 0 = no blink, like cursor-style-blink = false in ghostty
+      "Workspace.terminalCursorBlinkIntervalMilliseconds" = 0;
       "Workspace.darkUsesExtendedThemePalette" = true;
       # Off to compare typing feel against ghostty
       "Workspace.terminalAllowsLigatures" = false;
