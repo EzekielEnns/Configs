@@ -77,6 +77,13 @@ in
         -data "$(${pkgs.unixtools.xxd}/bin/xxd -p ${themes} | tr -d '\n')"
     '';
 
+    # Installs the xterm-rex terminfo entry in ~/.terminfo plus Rex's ssh guard
+    # (an Include in ~/.ssh/config), so panes get TERM=xterm-rex, Rex's copy of
+    # ghostty's entry, instead of plain xterm-256color. Repeating it is harmless.
+    home.activation.rexTerminfo = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+      run "${rexBin}/rex" terminfo setup --autostart=false >/dev/null || true
+    '';
+
     # Only keys, actions, modes and hosts live here. Theme, font, cursor and
     # chrome settings are still in the app's plist (com.superlogical.rex).
     xdg.configFile."rex/init.lua" = {
