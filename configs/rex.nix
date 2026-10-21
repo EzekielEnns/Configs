@@ -1,4 +1,4 @@
-{ lib, pkgs, ... }:
+{ config, lib, pkgs, ... }:
 let
   # The rex CLI ships inside the app bundle. Rex adds this dir to PATH itself,
   # but nix-darwin's /etc/zshenv resets PATH and drops it.
@@ -114,6 +114,21 @@ in
         rex.bind("resize/enter", "client.mode.exit")
         rex.bind("resize/ctrl+s", "client.mode.exit")
 
+        -- Scroll mode, stand-in for tmux copy mode: alt+u or ctrl+a [, then k/j or
+        -- up/down jump between shell prompts. Rex has no line/page scroll
+        -- action yet, so prompt jumps are the keyboard way through scrollback.
+        rex.mode("scroll", { exclusive = true })
+        rex.bind("ctrl+a>[", "client.mode.enter", { name = "scroll" })
+        rex.bind("alt+u", "client.mode.enter", { name = "scroll" })
+        for _, k in ipairs({ "k", "up" }) do
+          rex.bind("scroll/" .. k, "client.prompt.previous")
+        end
+        for _, k in ipairs({ "j", "down" }) do
+          rex.bind("scroll/" .. k, "client.prompt.next")
+        end
+        rex.bind("scroll/q", "client.mode.exit")
+        rex.bind("scroll/enter", "client.mode.exit")
+
         -- Cmd+K is the session switcher by default; make it the palette
         rex.bind("cmd+k", "client.palette.toggle")
         rex.bind("cmd+s", "session.switch")
@@ -132,5 +147,45 @@ in
         run "${rexBin}/rex" config reload || true
       fi
     '';
+
+    # Session save/restore, standing in for tmux-resurrect + continuum. The
+    # daemon restores whatever a server restart lost, then saves on every
+    # change to ~/.local/state/rex-resurrect/snapshot.json.
+    xdg.configFile."rex/resurrect.lua".source = ./rex-resurrect.lua;
+
+    # Exits when the server goes away; launchd brings it back, and on a fresh
+    # server it restores. --autostart=false leaves starting the server to Rex.app.
+    launchd.agents.rex-resurrect = {
+      enable = true;
+      config = {
+        ProgramArguments = [
+          "${rexBin}/rex" "do" "--all" "--autostart=false"
+          "${config.xdg.configHome}/rex/resurrect.lua" "mode=daemon"
+        ];
+        RunAtLoad = true;
+        KeepAlive = true;
+        ThrottleInterval = 30;
+        StandardOutPath = "${config.home.homeDirectory}/Library/Logs/rex-resurrect.log";
+        StandardErrorPath = "${config.home.homeDirectory}/Library/Logs/rex-resurrect.log";
+      };
+    };
+
+    home.packages = [
+      (pkgs.writeShellScriptBin "rex-restore" ''
+        exec "${rexBin}/rex" do "${config.xdg.configHome}/rex/resurrect.lua" mode=restore
+      '')
+      # tmux-to-rex [SESSION [LABEL]]: snapshot the running tmux with
+      # tmux-resurrect, then rebuild it (or just SESSION) in Rex. Existing Rex
+      # labels are skipped, so pass LABEL to bring a second copy over.
+      (pkgs.writeShellScriptBin "tmux-to-rex" ''
+        set -eu
+        save=$(tmux show -gv @resurrect-save-script-path)
+        "$save" quiet
+        args=(mode=tmux)
+        [ -n "''${1:-}" ] && args+=("session=$1")
+        [ -n "''${2:-}" ] && args+=("as=$2")
+        exec "${rexBin}/rex" do "${config.xdg.configHome}/rex/resurrect.lua" "''${args[@]}"
+      '')
+    ];
   };
 }

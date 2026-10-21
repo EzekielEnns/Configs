@@ -56,6 +56,15 @@
           bindkey '\ec' fzf-cd-widget
         fi
         eval "$(starship init zsh)"
+        # Rex skips shell integration, so mark prompts (OSC 133) ourselves;
+        # its prompt-jump scroll mode needs them (configs/rex.nix).
+        if [ "$TERM_PROGRAM" = rex ]; then
+          _osc133_precmd() { local s=$?; print -n "\e]133;D;$s\a\e]133;A\a"; }
+          _osc133_preexec() { print -n '\e]133;C\a'; }
+          precmd_functions+=(_osc133_precmd)
+          preexec_functions+=(_osc133_preexec)
+          PROMPT="$PROMPT"$'%{\e]133;B\a%}'
+        fi
         eval "$(direnv hook zsh)"
         export _ZO_DOCTOR=0
         eval "$(zoxide init zsh)"

@@ -3,6 +3,16 @@ let
   # Shared by the setting and the status line so the denominator can't drift.
   autoCompactWindow = 400000;
 
+  # Records which conversation runs in which Rex pane. SessionStart also fires
+  # on /clear and /resume, so the file always holds the current session id.
+  rexPaneHook = pkgs.writeShellScript "claude-rex-pane" ''
+    [ -n "''${REX_BLOCK:-}" ] || exit 0
+    dir="$HOME/.local/state/rex-resurrect/claude"
+    mkdir -p "$dir"
+    ${pkgs.jq}/bin/jq -r '.session_id // empty' \
+      > "$dir/$(printf %s "$REX_BLOCK" | tr -c 'A-Za-z0-9-' _)"
+  '';
+
   # Reads the session JSON on stdin. rate_limits only exists for Pro/Max
   # subscribers and only after the first API response, hence the `// empty`s.
   statusLine = pkgs.writeShellScript "claude-statusline" ''
@@ -79,6 +89,13 @@ in
               {
                 type = "command";
                 command = "/bin/sh -c 'rex __internal session-start --agent claude 2>/dev/null || true'";
+                timeout = 5;
+              }
+              {
+                # Lets configs/rex-resurrect.lua bring this pane back with
+                # `claude --resume <id>` after a Rex server restart.
+                type = "command";
+                command = "${rexPaneHook}";
                 timeout = 5;
               }
             ];
