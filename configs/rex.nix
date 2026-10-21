@@ -98,6 +98,22 @@ in
         rex.bind("alt+down", "pane.resize", { direction = "down" })
         rex.bind("alt+up", "pane.resize", { direction = "up" })
 
+        -- Resize mode from the old zellij config: ctrl+s, then hjkl or arrows
+        -- (shift for bigger steps), = to balance, esc/enter/ctrl+s to leave.
+        -- Exclusive so stray keys don't type into the terminal.
+        rex.mode("resize", { exclusive = true })
+        rex.bind("ctrl+s", "client.mode.enter", { name = "resize" })
+        for _, d in ipairs({
+          { "h", "left" }, { "j", "down" }, { "k", "up" }, { "l", "right" },
+          { "left", "left" }, { "down", "down" }, { "up", "up" }, { "right", "right" },
+        }) do
+          rex.bind("resize/" .. d[1], "pane.resize", { direction = d[2] })
+          rex.bind("resize/shift+" .. d[1], "pane.resize", { direction = d[2], amount = 15 })
+        end
+        rex.bind("resize/=", "pane.balance")
+        rex.bind("resize/enter", "client.mode.exit")
+        rex.bind("resize/ctrl+s", "client.mode.exit")
+
         -- Cmd+K is the session switcher by default; make it the palette
         rex.bind("cmd+k", "client.palette.toggle")
         rex.bind("cmd+s", "session.switch")
