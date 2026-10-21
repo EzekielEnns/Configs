@@ -36,6 +36,35 @@ in
       "Workspace.showsIdleProgramsInActivity" = true;
       "Workspace.appIcon" = "dark";
       "Workspace.appIconVisibility" = "dockAndMenuBar";
+      "Workspace.showsPaneHeaders" = false;
+      "Workspace.usesPaneGlass" = false;
+      "Workspace.showsKeySequenceHints" = false;
+      # Edges take the program's background (nvim) instead of the theme's
+      "Workspace.terminalPaddingColor" = "extend";
+      "Workspace.tintsPanesWithProgramBackground" = true;
+      "Workspace.balancesSplitsOnCreation" = true;
+      "Workspace.prefersGeneratedTitles" = true;
+      # Other options: commandPalette, activity / splitRight, splitDown, zoom, close
+      "Workspace.hiddenChromeButtons" = [ "newTab" ];
+      "Workspace.hiddenPaneButtons" = [ "splitRight" "splitDown" "zoom" "close" ];
+
+      # Terminal, matching the old ghostty config
+      "Workspace.terminalCopyOnSelect" = true;
+      "Workspace.terminalCopyAnimation" = false;
+      "Workspace.terminalCursorStyle" = "block";
+      "Workspace.terminalCursorStyleForced" = true;
+      "Workspace.darkUsesExtendedThemePalette" = true;
+      # Off to compare typing feel against ghostty
+      "Workspace.terminalAllowsLigatures" = false;
+      "Workspace.terminalImproveTextContrast" = false;
+
+      # Agent status. Claude also sends OSC 777 banners (configs/claude.nix);
+      # if they double up, turn one side off.
+      "Workspace.showsProgramStatusInTabs" = true;
+      "Workspace.showsProgramActivityNotifications" = true;
+      "Workspace.playsProgramActivitySounds" = true;
+      "Workspace.showsProgramActivityDockBadge" = true;
+      "Workspace.allowsTerminalNotifications" = true;
 
       # Lets the rex CLI drive the app, e.g. `finder` switching sessions
       "rex.client.remoteControl" = true;
