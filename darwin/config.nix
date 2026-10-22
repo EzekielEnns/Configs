@@ -15,6 +15,10 @@
   nixpkgs.config.allowUnfree = true;
   nix.package = pkgs.nix;
   nix.settings.experimental-features = "nix-command flakes";
+
+  # Same as nixos/dk.nix: compromised eMudhra intermediates
+  # (https://harry.id/blog/emudhra-ca-compromise-macos-curl). Drop once nixpkgs cacert is patched.
+  security.pki.caCertificateBlacklist = [ "emSign ECC Root CA - G3" ];
   environment.systemPackages = with pkgs; [
     zsh
     #needed for bash script
