@@ -10,6 +10,11 @@
     # Anthropic releases, refreshed hourly. Skips the nixpkgs review lag.
     nixpkgs.overlays = [ inputs.nix-claude-code.overlays.default ];
 
+    # eMudhra intermediates under this root had recoverable private keys
+    # (https://harry.id/blog/emudhra-ca-compromise-macos-curl). Browsers block
+    # them, but curl/python/git read this bundle. Drop once nixpkgs cacert is patched.
+    security.pki.caCertificateBlacklist = [ "emSign ECC Root CA - G3" ];
+
     environment.systemPackages = [
       pkgs.lm_sensors
       pkgs.glances
