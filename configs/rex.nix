@@ -64,13 +64,13 @@ in
       "Workspace.terminalAllowsLigatures" = false;
       "Workspace.terminalImproveTextContrast" = false;
 
-      # Agent status. Claude also sends OSC 777 banners (configs/claude.nix);
-      # if they double up, turn one side off.
+      # Agent status comes from Rex itself. Claude's own OSC 777 banners
+      # (configs/claude.nix) are dropped: they piled up in Notification Center.
       "Workspace.showsProgramStatusInTabs" = true;
       "Workspace.showsProgramActivityNotifications" = true;
       "Workspace.playsProgramActivitySounds" = true;
       "Workspace.showsProgramActivityDockBadge" = true;
-      "Workspace.allowsTerminalNotifications" = true;
+      "Workspace.allowsTerminalNotifications" = false;
 
       # Overlay scroll bars that show only while scrolling, for Rex alone.
       # macOS otherwise keeps them on screen whenever a mouse is plugged in.
@@ -109,6 +109,9 @@ in
         rex.bind("alt+;", "pane.focus_next")
         rex.bind("alt+,", "pane.focus_previous")
         rex.bind("alt+s", "session.switch")
+        -- Sessions on j/k, next to tabs on h/l
+        rex.bind("alt+j", "session.next")
+        rex.bind("alt+k", "session.previous")
 
         rex.bind("alt+left", "pane.resize", { direction = "left" })
         rex.bind("alt+right", "pane.resize", { direction = "right" })
@@ -132,16 +135,18 @@ in
         rex.bind("resize/ctrl+s", "client.mode.exit")
 
         -- Scroll mode, stand-in for tmux copy mode: alt+u or ctrl+a [, then k/j or
-        -- up/down jump between shell prompts. Rex has no line/page scroll
-        -- action yet, so prompt jumps are the keyboard way through scrollback.
+        -- up/down. Shells jump between prompts (Rex has no line/page scroll
+        -- action yet); Claude Code, nvim and other full-screen programs get
+        -- Page Up / Page Down (rex-scroll.lua).
+        dofile(os.getenv("HOME") .. "/.config/rex/scroll.lua")
         rex.mode("scroll", { exclusive = true })
         rex.bind("ctrl+a>[", "client.mode.enter", { name = "scroll" })
         rex.bind("alt+u", "client.mode.enter", { name = "scroll" })
         for _, k in ipairs({ "k", "up" }) do
-          rex.bind("scroll/" .. k, "client.prompt.previous")
+          rex.bind("scroll/" .. k, "scroll_step", { direction = "up" })
         end
         for _, k in ipairs({ "j", "down" }) do
-          rex.bind("scroll/" .. k, "client.prompt.next")
+          rex.bind("scroll/" .. k, "scroll_step", { direction = "down" })
         end
         rex.bind("scroll/q", "client.mode.exit")
         rex.bind("scroll/enter", "client.mode.exit")
@@ -176,6 +181,7 @@ in
     # change to ~/.local/state/rex-resurrect/snapshot.json.
     xdg.configFile."rex/resurrect.lua".source = ./rex-resurrect.lua;
     xdg.configFile."rex/layout.lua".source = ./rex-layout.lua;
+    xdg.configFile."rex/scroll.lua".source = ./rex-scroll.lua;
 
     # Exits when the server goes away; launchd brings it back, and on a fresh
     # server it restores. --autostart=false leaves starting the server to Rex.app.
