@@ -19,11 +19,6 @@
       pkgs.claude-code
     ];
 
-    services.jellyfin = {
-      enable = true;
-      group = "media";
-    };
-
     users.groups.media = { };
     users.users.ezekiel.extraGroups = [ "media" ];
     # Macbook key (public; safe to commit). Password SSH is off below, so this
@@ -163,13 +158,6 @@
             proxyWebsockets = true;
           };
         };
-        "tv.lan" = {
-          serverName = "tv.lan";
-          locations."/" = {
-            proxyPass = "http://127.0.0.1:8096";
-            proxyWebsockets = true;
-          };
-        };
         "ipxe.lan" = {
           serverName = "ipxe.lan";
           locations."/" = {
@@ -236,7 +224,6 @@
         address = [
           "/qb.lan/192.168.1.6"
           "/sb.lan/192.168.1.6"
-          "/tv.lan/192.168.1.6"
           "/music.lan/192.168.1.6"
           "/dc.lan/192.168.1.6"
           "/ex.lan/192.168.1.6"
@@ -277,8 +264,6 @@
     networking.firewall.allowedTCPPorts = [
       #dns
       53
-      #jf
-      8096
       #ssh
       22
       #http
