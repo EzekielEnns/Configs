@@ -2,6 +2,7 @@
 , config
 , inputs
 , pkgs
+, pkgs-unstable
 , ...
 }:
 {
@@ -286,6 +287,8 @@
 
     services.tailscale = {
       enable = true;
+      # stable lags tailscale releases by months; the Mac client comes from brew
+      package = pkgs-unstable.tailscale;
       openFirewall = true; # let tailscale traffic in/out
       useRoutingFeatures = "server"; # turns this box into a subnet router
       extraUpFlags = [
