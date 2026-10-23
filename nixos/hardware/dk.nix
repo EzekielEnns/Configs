@@ -123,7 +123,27 @@
   environment.sessionVariables = {
     SDL_HINT_JOYSTICK_HIDAPI_STEAM = "1";
     SDL_HINT_JOYSTICK_HIDAPI_STEAMDECK = "1";
+    # glvnd tries 10_nvidia before 50_mesa, so every EGL app (gnome-shell,
+    # Xwayland, GTK4, mpv, ghostty) opened a context on the dGPU and held VRAM
+    # the local LLMs need. Mesa only by default; nvidia-offload switches back.
+    __EGL_VENDOR_LIBRARY_FILENAMES = "/run/opengl-driver/share/glvnd/egl_vendor.d/50_mesa.json";
   };
+
+  # Keep mutter (gnome-shell) off the dGPU: no monitors are plugged into it.
+  # Offloaded apps still render there and hand frames to the iGPU.
+  services.udev.extraRules = ''
+    SUBSYSTEM=="drm", KERNEL=="card*", KERNELS=="0000:01:00.0", TAG+="mutter-device-ignore"
+  '';
+
+  # Chrome picks the NVIDIA render node by itself; pin it to the iGPU (by PCI
+  # path, since renderD numbers can change).
+  nixpkgs.overlays = [
+    (final: prev: {
+      google-chrome = prev.google-chrome.override {
+        commandLineArgs = "--render-node-override=/dev/dri/by-path/pci-0000:0f:00.0-render";
+      };
+    })
+  ];
 
   # Wraps a command so it runs on the dGPU (NVIDIA). Usage: `nvidia-offload steam`
   # or set Steam per-game launch options to: nvidia-offload %command%
@@ -136,6 +156,7 @@
       export __NV_PRIME_RENDER_OFFLOAD_PROVIDER=NVIDIA-G0
       export __GLX_VENDOR_LIBRARY_NAME=nvidia
       export __VK_LAYER_NV_optimus=NVIDIA_only
+      export __EGL_VENDOR_LIBRARY_FILENAMES=/run/opengl-driver/share/glvnd/egl_vendor.d/10_nvidia.json
       exec "$@"
     '')
   ];
