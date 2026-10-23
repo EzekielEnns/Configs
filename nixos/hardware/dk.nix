@@ -32,7 +32,10 @@
   ];
 
   boot.extraModulePackages = [ ];
-  boot.kernelPackages = pkgs.linuxPackages_latest;
+  # Pinned to 7.0: NVIDIA 580.142 (newest in this nixpkgs) fails to build
+  # against 7.1 (linux/of_gpio.h was removed). Go back to linuxPackages_latest
+  # once nixpkgs ships a driver that supports it.
+  boot.kernelPackages = pkgs.linuxPackages_7_0;
   boot.kernel.sysctl = {
     "kernel.panic" = 10;
     "kernel.panic_on_oops" = 1;
