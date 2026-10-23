@@ -64,6 +64,8 @@
     };
 
     virtualisation.docker.enable = true;
+    # nixpkgs marks docker_28 (the default here) insecure and refuses to build it.
+    virtualisation.docker.package = pkgs.docker_29;
     virtualisation.docker.enableOnBoot = true;
 
     virtualisation.docker.daemon.settings = {
