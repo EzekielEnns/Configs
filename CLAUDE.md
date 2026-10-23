@@ -2,6 +2,18 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+## Public repo — never commit sensitive data
+
+**This is a PUBLIC repository.** Do not add, commit, or expose anything that should stay private. Before writing config or committing, confirm you are not introducing:
+
+- **Secrets** of any kind — private keys, API tokens, passwords, auth cookies/session tokens, TLS/SSH *private* keys. (Public keys are fine; e.g. the macbook SSH *public* key in `nixos/dk.nix` is intentionally committed.)
+- **Credentials / connection strings** — DB URLs with passwords, `.env` contents, cloud creds.
+- **Personal or identifying data** — emails/phone numbers/addresses beyond what is already deliberately public, and especially *other people's* data.
+
+Keep secrets out of git **and** out of the Nix store (the store is world-readable, so an inlined secret in a `.nix` file leaks even if the file isn't): use `sops-nix` / `agenix`, or an untracked, git-ignored path. When a value must be referenced in a committed file, use a placeholder and note where the real value comes from.
+
+If you find something sensitive already committed, **flag it** — the fix is to rotate the secret; deleting it from the latest commit does not remove it from git history.
+
 ## What this repo is
 
 Personal Nix flake managing both **nix-darwin** (macOS) and **NixOS** hosts from a single `flake.nix`, with `home-manager` integrated into each host. Also contains a Neovim config (`nvim/`), notes, and cheatsheets.
