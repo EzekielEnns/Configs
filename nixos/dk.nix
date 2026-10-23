@@ -6,7 +6,19 @@
 , ...
 }:
 {
+  # Local AI stack (llama-swap + LiteLLM on the dGPU). Lives in a private repo that's
+  # cloned on the desktop, so it's loaded from there (needs --impure, which the rebuild
+  # already uses) instead of being a flake input the Mac would also have to fetch.
+  imports = [
+    (builtins.getFlake "git+file:///home/ezekiel/Documents/repos/ai-stack").nixosModules.default
+  ];
+
   config = {
+    services.ai-stack = {
+      enable = true;
+      listenAddress = "100.64.96.125"; # Tailscale only; the firewall is off on this host
+    };
+
     # Claude Code overlay — auto-updating Bun-built binaries direct from
     # Anthropic releases, refreshed hourly. Skips the nixpkgs review lag.
     nixpkgs.overlays = [ inputs.nix-claude-code.overlays.default ];
@@ -250,6 +262,10 @@
       enable = true;
     };
     networking.networkmanager.enable = true;
+    # modules/networking.nix turns the firewall off for every host; this one serves the
+    # LAN (dns, pxe, nginx *.lan) and the ports below are what it means to expose.
+    # Tailscale is trusted below; Steam adds its own ports; Docker bypasses it anyway.
+    networking.firewall.enable = lib.mkForce true;
     networking.firewall.allowedUDPPorts = [
       53
       6881
