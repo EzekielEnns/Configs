@@ -2,6 +2,7 @@
 , config
 , inputs
 , pkgs
+, pkgs-unstable
 , ...
 }:
 {
@@ -22,15 +23,18 @@
       pkgs.nvtopPackages.full
       pkgs.btop
       pkgs.claude-code
+      # Native qBittorrent GUI — run on demand instead of the always-on docker
+      # container. Point its download dir at /mnt/games/torrents.
+      pkgs.qbittorrent
     ];
-
-    services.jellyfin = {
-      enable = true;
-      group = "media";
-    };
 
     users.groups.media = { };
     users.users.ezekiel.extraGroups = [ "media" ];
+    # Macbook key (public; safe to commit). Password SSH is off below, so this
+    # (or Tailscale SSH) is the way in remotely.
+    users.users.ezekiel.openssh.authorizedKeys.keys = [
+      "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIAhiPOtQxrU8YphLKSi9prqAKrpDJcLzRGVdnM03qT8K ezekiel.enns@protonmail.com"
+    ];
     #TODO move to harddrive
     systemd.tmpfiles.rules = [
       # top-level media dir + common subdirs (world-writable, setgid)
@@ -56,13 +60,16 @@
     services.openssh = {
       enable = true;
       settings = {
-        PasswordAuthentication = true;
-        PermitRootLogin = "yes";
+        PasswordAuthentication = false;
+        KbdInteractiveAuthentication = false;
+        PermitRootLogin = "no";
         X11Forwarding = true;
       };
     };
 
     virtualisation.docker.enable = true;
+    # nixpkgs marks docker_28 (the default here) insecure and refuses to build it.
+    virtualisation.docker.package = pkgs.docker_29;
     virtualisation.docker.enableOnBoot = true;
 
     virtualisation.docker.daemon.settings = {
@@ -87,22 +94,8 @@
           ];
         };
 
-        qbittorrent = {
-          extraOptions = [ "--network=host" ];
-          image = "lscr.io/linuxserver/qbittorrent:latest";
-          volumes = [
-            "/srv/media/torrents:/downloads" # downloads land here
-            "/var/qbit/config:/config"
-          ];
-          ports = [
-            "8083:8083"
-            "6881:6881"
-            "6881:6881/udp"
-          ];
-          environment = {
-            WEBUI_PORT = "8083";
-          };
-        };
+        # qBittorrent is now the native pkgs.qbittorrent GUI (systemPackages),
+        # run on demand. Removed from docker on 2026-10-23.
         microbin = {
           ports = [ "127.0.0.1:8084:8080" ];
           image = "danielszabo99/microbin:latest";
@@ -157,13 +150,6 @@
           serverName = "dc.lan";
           locations."/" = {
             proxyPass = "http://127.0.0.1:6280";
-            proxyWebsockets = true;
-          };
-        };
-        "tv.lan" = {
-          serverName = "tv.lan";
-          locations."/" = {
-            proxyPass = "http://127.0.0.1:8096";
             proxyWebsockets = true;
           };
         };
@@ -233,7 +219,6 @@
         address = [
           "/qb.lan/192.168.1.6"
           "/sb.lan/192.168.1.6"
-          "/tv.lan/192.168.1.6"
           "/music.lan/192.168.1.6"
           "/dc.lan/192.168.1.6"
           "/ex.lan/192.168.1.6"
@@ -274,8 +259,6 @@
     networking.firewall.allowedTCPPorts = [
       #dns
       53
-      #jf
-      8096
       #ssh
       22
       #http
@@ -298,6 +281,8 @@
 
     services.tailscale = {
       enable = true;
+      # stable lags tailscale releases by months; the Mac client comes from brew
+      package = pkgs-unstable.tailscale;
       openFirewall = true; # let tailscale traffic in/out
       useRoutingFeatures = "server"; # turns this box into a subnet router
       extraUpFlags = [
