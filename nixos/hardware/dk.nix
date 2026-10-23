@@ -47,7 +47,10 @@
     device = "/dev/disk/by-uuid/478e3c03-a6ba-4aa0-916b-d6c855fd3554";
     fsType = "ext4";
   };
-  fileSystems."/run/media/ezekiel/games" = {
+  # Big 1TB spinning drive (label "games"): movies + torrents. Mounted at a
+  # stable /mnt path rather than /run/media/... (the udisks removable-media
+  # location, which conflicts with auto-mounting and mounts late/unreliably).
+  fileSystems."/mnt/games" = {
     device = "/dev/disk/by-uuid/a2c6c80f-93bb-41ad-8200-e5f77225c900";
     fsType = "ext4";
     options = [
@@ -55,6 +58,7 @@
       "noatime"
       "rw"
       "exec"
+      "nofail" # don't block boot if the drive is missing/disconnected
     ];
   };
 

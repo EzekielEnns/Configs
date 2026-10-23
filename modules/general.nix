@@ -117,9 +117,12 @@
     };
     nix.optimise.automatic = true;
     nix.settings.auto-optimise-store = true;
+    # Auto-GC during builds: when free space drops below min-free (5 GiB),
+    # nix frees garbage until max-free (20 GiB) is available. Previously 100 MiB,
+    # which only kicked in when the disk was already essentially full.
     nix.extraOptions = ''
-      min-free = ${toString (100 * 1024 * 1024)}
-      max-free = ${toString (1024 * 1024 * 1024)}
+      min-free = ${toString (5 * 1024 * 1024 * 1024)}
+      max-free = ${toString (20 * 1024 * 1024 * 1024)}
     '';
 
   };

@@ -18,6 +18,9 @@
       pkgs.nvtopPackages.full
       pkgs.btop
       pkgs.claude-code
+      # Native qBittorrent GUI — run on demand instead of the always-on docker
+      # container. Point its download dir at /mnt/games/torrents.
+      pkgs.qbittorrent
     ];
 
     users.groups.media = { };
@@ -86,22 +89,8 @@
           ];
         };
 
-        qbittorrent = {
-          extraOptions = [ "--network=host" ];
-          image = "lscr.io/linuxserver/qbittorrent:latest";
-          volumes = [
-            "/srv/media/torrents:/downloads" # downloads land here
-            "/var/qbit/config:/config"
-          ];
-          ports = [
-            "8083:8083"
-            "6881:6881"
-            "6881:6881/udp"
-          ];
-          environment = {
-            WEBUI_PORT = "8083";
-          };
-        };
+        # qBittorrent is now the native pkgs.qbittorrent GUI (systemPackages),
+        # run on demand. Removed from docker on 2026-10-23.
         microbin = {
           ports = [ "127.0.0.1:8084:8080" ];
           image = "danielszabo99/microbin:latest";
