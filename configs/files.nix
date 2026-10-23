@@ -8,6 +8,20 @@
       force = true;
     };
 
+    # Smooth playback off the slow 5400rpm SMR drive: read a big chunk ahead
+    # into RAM so a disk hiccup never reaches the video. mpv's default read-ahead
+    # is only 1s. 61G RAM here, so a 2 GiB forward buffer costs nothing. Harmless
+    # on SSD/network sources too.
+    home.file.".config/mpv/mpv.conf" = {
+      force = true;
+      text = ''
+        cache=yes
+        demuxer-max-bytes=2GiB
+        demuxer-max-back-bytes=256MiB
+        demuxer-readahead-secs=300
+      '';
+    };
+
     home.file.".config/ghostty/config" = {
       force = true;
       text = ''
