@@ -26,6 +26,11 @@
 
     users.groups.media = { };
     users.users.ezekiel.extraGroups = [ "media" ];
+    # Macbook key (public; safe to commit). Password SSH is off below, so this
+    # (or Tailscale SSH) is the way in remotely.
+    users.users.ezekiel.openssh.authorizedKeys.keys = [
+      "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIAhiPOtQxrU8YphLKSi9prqAKrpDJcLzRGVdnM03qT8K ezekiel.enns@protonmail.com"
+    ];
     #TODO move to harddrive
     systemd.tmpfiles.rules = [
       # top-level media dir + common subdirs (world-writable, setgid)
@@ -51,8 +56,9 @@
     services.openssh = {
       enable = true;
       settings = {
-        PasswordAuthentication = true;
-        PermitRootLogin = "yes";
+        PasswordAuthentication = false;
+        KbdInteractiveAuthentication = false;
+        PermitRootLogin = "no";
         X11Forwarding = true;
       };
     };
