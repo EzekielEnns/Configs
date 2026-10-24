@@ -67,8 +67,14 @@ in
       };
       hideThinkingBlock = true;
       theme.dark = "titanium";
-      composer.shape = "box"; # a plain bordered input, like Claude Code's
-      statusLine.preset = "minimal";
+      # Quiet input bar, closer to Pi's: no powerline caps or filled status background.
+      composer.shape = "box";
+      statusLine = {
+        preset = "minimal";
+        separator = "pipe";
+        transparent = true;
+        contextLine = "percentage";
+      };
       setupVersion = 2; # skip the first-run wizard
     };
   };
