@@ -6,7 +6,8 @@ let
 
   # The gateway listens only on the desktop's Tailscale IP, and the desktop doesn't
   # resolve its own MagicDNS name.
-  gateway = "http://${if pkgs.stdenv.isDarwin then "desktop" else "100.64.96.125"}:4000/v1";
+  desktop = if pkgs.stdenv.isDarwin then "desktop" else "100.64.96.125";
+  gateway = "http://${desktop}:4000/v1";
 
   # Pi from the nixpkgs omp builds with: our pinned unstable still has Pi 0.80.
   agentPkgs = inputs.omp.inputs.nixpkgs.legacyPackages.${system};
@@ -54,16 +55,20 @@ in
         tiny = "local/lfm2.5-230m"; # session titles on this machine's CPU
       };
       retry.fallbackChains.tiny = [ ];
-      # Work-code lockdown: gateway models only, nothing sent to web-search providers.
+      # Work-code lockdown: gateway models only. Web search goes through the desktop's own
+      # SearXNG (no third-party search API) and asks first, since a query can say what
+      # you're working on.
       enabledModels = [ "desktop/*" "local/*" ];
       exa.enabled = false;
+      searxng.endpoint = "http://${desktop}:8888";
       tools.approval = {
-        web_search = "deny";
+        web_search = "ask";
         browser = "deny";
       };
       hideThinkingBlock = true;
       theme.dark = "titanium";
-      composer.shape = "band";
+      composer.shape = "box"; # a plain bordered input, like Claude Code's
+      statusLine.preset = "minimal";
       setupVersion = 2; # skip the first-run wizard
     };
   };
