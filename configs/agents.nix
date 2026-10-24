@@ -14,8 +14,9 @@ let
   agentPkgs = inputs.pi-nixpkgs.legacyPackages.${system};
 
   models = [
-    { id = "flint"; name = "Flint 40B-A2.5B (quick: 2k thinking)"; contextWindow = 65536; maxTokens = 16384; }
-    { id = "flint-careful"; name = "Flint 40B-A2.5B (careful: no thinking cap)"; contextWindow = 65536; maxTokens = 32768; }
+    # Flint runs 2 slots x 32k on the desktop so two (sub-)agents work at once.
+    { id = "flint"; name = "Flint 40B-A2.5B (quick: 2k thinking)"; contextWindow = 32768; maxTokens = 16384; }
+    { id = "flint-careful"; name = "Flint 40B-A2.5B (careful: no thinking cap)"; contextWindow = 32768; maxTokens = 16384; }
     { id = "qwen"; name = "Qwen3.6-35B-A3B (2 slots x 32k)"; contextWindow = 32768; maxTokens = 16384; }
     { id = "qwen-27b"; name = "Qwen3.8-27B dense (slow, careful)"; contextWindow = 32768; maxTokens = 16384; }
     { id = "planner"; name = "planner (GLM-5.3 via OpenRouter, US hosts)"; contextWindow = 131072; maxTokens = 32768; }
@@ -35,6 +36,8 @@ let
   # Pi's sub-agent extension (shipped as an example in its package): each sub-agent is a
   # separate `pi` process, run alone, in parallel or chained. Its sample agents name
   # Claude models, so ours keep the prompts and use the desktop's.
+  piSearxng = pkgs.callPackage ./pi-searxng { };
+
   subagentDir = "${agentPkgs.pi-coding-agent}/lib/node_modules/pi-monorepo/examples/extensions/subagent";
   subagentModels = {
     scout = "desktop/flint";
@@ -52,9 +55,27 @@ let
   // lib.listToAttrs (map
     (name: lib.nameValuePair ".pi/agent/prompts/${name}.md" { source = "${subagentDir}/prompts/${name}.md"; })
     [ "implement" "implement-and-review" "scout-and-plan" ])
+  # Ours (configs/pi-agents): researcher + architect, and the /research and
+  # /research-design-build workflows built on them.
+  // lib.listToAttrs (map
+    (name: lib.nameValuePair ".pi/agent/agents/${name}.md" { source = ./pi-agents/${name}.md; })
+    [ "researcher" "architect" ])
+  // lib.listToAttrs (map
+    (name: lib.nameValuePair ".pi/agent/prompts/${name}.md" { source = ./pi-agents/${name}.md; })
+    [ "research" "research-design-build" ])
   // {
     ".pi/agent/extensions/subagent/index.ts".source = "${subagentDir}/index.ts";
     ".pi/agent/extensions/subagent/agents.ts".source = "${subagentDir}/agents.ts";
+    # Web search through the desktop's SearXNG, and page fetch (like Claude's WebFetch).
+    ".pi/agent/extensions/searxng".source = "${piSearxng}/lib/node_modules/pi-searxng";
+    # Read from ~/.pi, not Pi's agent dir.
+    ".pi/searxng.json" = {
+      force = true;
+      text = builtins.toJSON {
+        searxngUrl = "http://${desktop}:8888";
+        maxResults = 8;
+      };
+    };
   };
 
   piSettings = (pkgs.formats.json { }).generate "pi-settings.json" {
