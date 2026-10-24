@@ -31,6 +31,31 @@ let
     run install -m 600 ${file} "$HOME/${name}"
   '';
 
+  # Pi's sub-agent extension (shipped as an example in its package): each sub-agent is a
+  # separate `pi` process, run alone, in parallel or chained. Its sample agents name
+  # Claude models, so ours keep the prompts and use the desktop's.
+  subagentDir = "${agentPkgs.pi-coding-agent}/lib/node_modules/pi-monorepo/examples/extensions/subagent";
+  subagentModels = {
+    scout = "desktop/flint";
+    worker = "desktop/flint";
+    planner = "desktop/flint-careful";
+    reviewer = "desktop/flint-careful";
+  };
+  subagentFiles = lib.mapAttrs'
+    (name: model: lib.nameValuePair ".pi/agent/agents/${name}.md" {
+      text = builtins.replaceStrings [ "\nmodel: claude-sonnet-4-5\n" "\nmodel: claude-haiku-4-5\n" ]
+        [ "\nmodel: ${model}\n" "\nmodel: ${model}\n" ]
+        (builtins.readFile "${subagentDir}/agents/${name}.md");
+    })
+    subagentModels
+  // lib.listToAttrs (map
+    (name: lib.nameValuePair ".pi/agent/prompts/${name}.md" { source = "${subagentDir}/prompts/${name}.md"; })
+    [ "implement" "implement-and-review" "scout-and-plan" ])
+  // {
+    ".pi/agent/extensions/subagent/index.ts".source = "${subagentDir}/index.ts";
+    ".pi/agent/extensions/subagent/agents.ts".source = "${subagentDir}/agents.ts";
+  };
+
   piSettings = (pkgs.formats.json { }).generate "pi-settings.json" {
     hideThinkingBlock = true; # Ctrl+T shows it
     showHardwareCursor = true; # Pi's drawn cursor looked squished
@@ -79,28 +104,30 @@ in
     };
   };
 
-  home.file.".omp/agent/models.yml" = {
-    force = true;
-    source = (pkgs.formats.yaml { }).generate "omp-models.yml" {
-      providers.desktop = {
-        baseUrl = gateway;
-        api = "openai-completions";
-        auth = "none";
-        models = withReasoning;
-      };
-    };
-  };
-
   home.packages = [ agentPkgs.pi-coding-agent ];
 
-  home.file.".pi/agent/models.json" = {
-    force = true;
-    source = (pkgs.formats.json { }).generate "pi-models.json" {
-      providers.desktop = {
-        baseUrl = gateway;
-        api = "openai-completions";
-        apiKey = "local";
-        models = withReasoning;
+  home.file = subagentFiles // {
+    ".omp/agent/models.yml" = {
+      force = true;
+      source = (pkgs.formats.yaml { }).generate "omp-models.yml" {
+        providers.desktop = {
+          baseUrl = gateway;
+          api = "openai-completions";
+          auth = "none";
+          models = withReasoning;
+        };
+      };
+    };
+
+    ".pi/agent/models.json" = {
+      force = true;
+      source = (pkgs.formats.json { }).generate "pi-models.json" {
+        providers.desktop = {
+          baseUrl = gateway;
+          api = "openai-completions";
+          apiKey = "local";
+          models = withReasoning;
+        };
       };
     };
   };
