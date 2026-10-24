@@ -43,6 +43,8 @@
           cloud-opus = "openrouter/anthropic/claude-opus-5.5";
         };
       planner = "cloud-glm";
+      webui = false; # parked; flip back on for browser chat and images
+      chatRetentionDays = 1; # pinned chats are kept (only while webui is on)
     };
 
     # Claude Code overlay — auto-updating Bun-built binaries direct from
