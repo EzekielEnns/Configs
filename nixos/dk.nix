@@ -16,7 +16,33 @@
   config = {
     services.ai-stack = {
       enable = true;
-      listenAddress = "100.64.96.125"; # Tailscale only; the firewall is off on this host
+      listenAddress = "100.64.96.125"; # Tailscale only
+      # Cloud models via OpenRouter (prepaid credit). The key is OPENROUTER_API_KEY in
+      # /var/lib/ai-stack/secrets.env on the desktop, never in this repo.
+      cloudModels =
+        let
+          # Open-weight models from PRC labs: only established US hosts, never the lab's
+          # own API, and no provider that keeps or trains on prompts.
+          usHosts = {
+            only = [ "deepinfra" "together" "fireworks" "baseten" ];
+            allow_fallbacks = false;
+            data_collection = "deny";
+          };
+        in
+        {
+          cloud-glm = {
+            model = "openrouter/z-ai/glm-5.3";
+            extra_body.provider = usHosts;
+          };
+          cloud-deepseek = {
+            model = "openrouter/deepseek/deepseek-v4.1-flash";
+            extra_body.provider = usHosts;
+          };
+          cloud-haiku = "openrouter/anthropic/claude-haiku-5.5";
+          cloud-sonnet = "openrouter/anthropic/claude-sonnet-5.5";
+          cloud-opus = "openrouter/anthropic/claude-opus-5.5";
+        };
+      planner = "cloud-glm";
     };
 
     # Claude Code overlay — auto-updating Bun-built binaries direct from
