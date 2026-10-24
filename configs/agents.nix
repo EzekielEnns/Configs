@@ -91,7 +91,11 @@ in
         browser = "deny";
       };
       hideThinkingBlock = true;
-      theme.dark = "titanium";
+      theme.dark = "dark-gruvbox"; # matches nvim (gruvbox.nvim)
+      startup = {
+        showSplash = false;
+        quiet = true; # no tips or notices
+      };
       # Quiet input bar, closer to Pi's: no powerline caps or filled status background.
       composer.shape = "box";
       statusLine = {
