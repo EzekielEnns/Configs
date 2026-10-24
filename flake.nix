@@ -22,6 +22,8 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
+    # omp coding agent (configs/agents.nix). Pinned to a tag: it releases daily.
+    omp.url = "github:can1357/oh-my-pi/v18.12.6";
     nix-claude-code = {
       url = "github:ryoppippi/nix-claude-code";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -74,7 +76,10 @@
               imports = extraImports;
             };
             # expose unstable pkgs to HM if you need them
-            home-manager.extraSpecialArgs.pkgs-unstable = mkUnstable system;
+            home-manager.extraSpecialArgs = {
+              inherit inputs;
+              pkgs-unstable = mkUnstable system;
+            };
           }
         ];
 
@@ -104,6 +109,7 @@
           {
             home-manager.useGlobalPkgs = true;
             home-manager.useUserPackages = true;
+            home-manager.extraSpecialArgs = { inherit inputs; };
             home-manager.users.ezekiel = {
               imports = [ ./darwin/home.nix ];
             };
@@ -153,6 +159,7 @@
             hmUser = "ezekiel";
             hmImports = [
               ./configs/users.nix
+              ./configs/agents.nix
             ];
           };
         };
