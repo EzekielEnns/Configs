@@ -1,5 +1,6 @@
-# Coding agents (omp, Pi) pointed at the AI gateway on the desktop (LiteLLM :4000, see
-# nixos/dk.nix services.ai-stack). Shared by the Mac and the desktop.
+# Pi, the coding agent, pointed at the AI gateway on the desktop (LiteLLM :4000, see
+# nixos/dk.nix services.ai-stack). Shared by the Mac and the desktop. (omp was tried and
+# dropped 2026-10-24: its input bar can't be a closed box; see git history for its config.)
 { lib, pkgs, inputs, ... }:
 let
   system = pkgs.stdenv.hostPlatform.system;
@@ -9,8 +10,8 @@ let
   desktop = if pkgs.stdenv.isDarwin then "desktop" else "100.64.96.125";
   gateway = "http://${desktop}:4000/v1";
 
-  # Pi from the nixpkgs omp builds with: our pinned unstable still has Pi 0.80.
-  agentPkgs = inputs.omp.inputs.nixpkgs.legacyPackages.${system};
+  # Pi from its own nixpkgs pin: our pinned unstable still has Pi 0.80.
+  agentPkgs = inputs.pi-nixpkgs.legacyPackages.${system};
 
   models = [
     { id = "flint"; name = "Flint 40B-A2.5B (quick: 2k thinking)"; contextWindow = 65536; maxTokens = 16384; }
@@ -63,66 +64,9 @@ let
   };
 in
 {
-  imports = [ inputs.omp.homeManagerModules.default ];
-
-  programs.omp = {
-    enable = true;
-    # Copied in as a writable file on each switch (omp rewrites it at runtime).
-    settings = {
-      # default/smol/task share one model so subagents don't make llama-swap reload;
-      # slow reloads Flint without the thinking cap (~5 s swap); plan goes to the cloud.
-      modelRoles = {
-        default = "desktop/flint";
-        smol = "desktop/flint";
-        task = "desktop/flint";
-        slow = "desktop/flint-careful";
-        plan = "desktop/planner";
-        tiny = "local/lfm2.5-230m"; # session titles on this machine's CPU
-      };
-      retry.fallbackChains.tiny = [ ];
-      # Work-code lockdown: gateway models only. Web search goes through the desktop's own
-      # SearXNG (no third-party search API) and asks first, since a query can say what
-      # you're working on.
-      enabledModels = [ "desktop/*" "local/*" ];
-      exa.enabled = false;
-      searxng.endpoint = "http://${desktop}:8888";
-      tools.approval = {
-        web_search = "ask";
-        browser = "deny";
-      };
-      hideThinkingBlock = true;
-      theme.dark = "dark-gruvbox"; # matches nvim (gruvbox.nvim)
-      startup = {
-        showSplash = false;
-        quiet = true; # no tips or notices
-      };
-      # Quiet input bar, closer to Pi's: no powerline caps or filled status background.
-      composer.shape = "box";
-      statusLine = {
-        preset = "minimal";
-        separator = "pipe";
-        transparent = true;
-        contextLine = "percentage";
-      };
-      setupVersion = 2; # skip the first-run wizard
-    };
-  };
-
   home.packages = [ agentPkgs.pi-coding-agent ];
 
   home.file = subagentFiles // {
-    ".omp/agent/models.yml" = {
-      force = true;
-      source = (pkgs.formats.yaml { }).generate "omp-models.yml" {
-        providers.desktop = {
-          baseUrl = gateway;
-          api = "openai-completions";
-          auth = "none";
-          models = withReasoning;
-        };
-      };
-    };
-
     ".pi/agent/models.json" = {
       force = true;
       source = (pkgs.formats.json { }).generate "pi-models.json" {

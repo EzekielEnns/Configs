@@ -22,8 +22,8 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
-    # omp coding agent (configs/agents.nix). Pinned to a tag: it releases daily.
-    omp.url = "github:can1357/oh-my-pi/v18.12.6";
+    # Pi (configs/agents.nix): a newer nixpkgs than nixpkgs-unstable's pin, just for it.
+    pi-nixpkgs.url = "github:NixOS/nixpkgs/2fcb964de67fcf60b43471c55d5d99e61a9ccb5a";
     nix-claude-code = {
       url = "github:ryoppippi/nix-claude-code";
       inputs.nixpkgs.follows = "nixpkgs";
