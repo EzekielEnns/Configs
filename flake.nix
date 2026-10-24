@@ -23,7 +23,7 @@
     };
 
     # Pi (configs/agents.nix): a newer nixpkgs than nixpkgs-unstable's pin, just for it.
-    pi-nixpkgs.url = "github:NixOS/nixpkgs/2fcb964de67fcf60b43471c55d5d99e61a9ccb5a";
+    pi-nixpkgs.url = "github:NixOS/nixpkgs/f9ad0d4bed4a33c2667caced86429a69424fe5f1";
     nix-claude-code = {
       url = "github:ryoppippi/nix-claude-code";
       inputs.nixpkgs.follows = "nixpkgs";
