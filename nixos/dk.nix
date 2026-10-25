@@ -336,6 +336,21 @@
 
     networking.networkmanager.unmanaged = [ "enp6s0" ];
 
+    # Internet over the cable (measured 2026-10-24: ~730 vs ~500 Mbit/s on Wi-Fi, 5.8 vs
+    # 9 ms jittery), with Wi-Fi as fallback: NM's Wi-Fi default route has metric 600, and
+    # a cable-less enp6s0 route is ignored instead of black-holing traffic.
+    networking.defaultGateway = {
+      address = "192.168.1.1";
+      interface = "enp6s0";
+      metric = 100;
+    };
+    boot.kernel.sysctl = {
+      "net.ipv4.conf.all.ignore_routes_with_linkdown" = 1;
+      # Both NICs sit on 192.168.1.0/24: answer ARP only for the NIC's own address.
+      "net.ipv4.conf.all.arp_ignore" = 1;
+      "net.ipv4.conf.all.arp_announce" = 2;
+    };
+
     services.tailscale = {
       enable = true;
       # stable lags tailscale releases by months; the Mac client comes from brew
