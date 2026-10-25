@@ -290,6 +290,19 @@
       enable = true;
     };
     networking.networkmanager.enable = true;
+    # enableIPv6 = false (modules/networking.nix) is undone per interface by NM when a
+    # profile has ipv6.method=auto (every saved Wi-Fi), and the router's 6to4 IPv6 has no
+    # route out, so apps that try IPv6 first stall. Turn it back off on every up.
+    networking.networkmanager.dispatcherScripts = [
+      {
+        source = pkgs.writeText "no-ipv6" ''
+          if [ "$2" = up ] && [ -e "/proc/sys/net/ipv6/conf/$1/disable_ipv6" ]; then
+            echo 1 > "/proc/sys/net/ipv6/conf/$1/disable_ipv6"
+          fi
+        '';
+        type = "basic";
+      }
+    ];
     # modules/networking.nix turns the firewall off for every host; this one serves the
     # LAN (dns, pxe, nginx *.lan) and the ports below are what it means to expose.
     # Tailscale is trusted below; Steam adds its own ports; Docker bypasses it anyway.
