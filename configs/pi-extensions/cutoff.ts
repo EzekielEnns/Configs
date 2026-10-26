@@ -1,15 +1,18 @@
 /**
- * Output cut off at the token limit (stopReason "length"): keep the agent going with a nudge
- * instead of ending the run.
+ * Output cut off at the model's output limit (stopReason "length"): keep the agent going with
+ * a nudge instead of ending the run.
  *
  * Found in the Flint bake-off (ai-stack docs/BAKEOFF.md): it wrote whole Rust libraries in one
  * `write` and hit the 16k output cap. Pi itself refuses to run the truncated tool call, but
  * when the cut-off message is the last one, `pi -p` ends the run, so the agent never fixed the
  * broken file it had left. All four Rust runs failed to compile this way.
  *
- * turn_end: if the message was cut off, add a short instruction and continue, at most
- * MAX_RESUMES times in a row. The system prompt (pi-agents/APPEND_SYSTEM.md) asks for files
- * in parts so it rarely comes to this.
+ * Only for cut-offs that used the whole output limit. One that ends below it means the context
+ * is full; Pi compacts and retries those itself (isRecoverableLength in pi-ai), and continuing
+ * here would skip that and fill the context with 1-token replies.
+ *
+ * turn_end: add a short instruction and continue, at most MAX_RESUMES times in a row. The
+ * system prompt (pi-agents/APPEND_SYSTEM.md) asks for files in parts so it rarely comes to this.
  */
 import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
 
@@ -22,12 +25,14 @@ const NUDGE =
 export default function (pi: ExtensionAPI) {
 	let resumes = 0;
 
-	pi.on("turn_end", (event) => {
-		const m = event.message as { stopReason?: string };
+	pi.on("turn_end", (event, ctx) => {
+		const m = event.message as { stopReason?: string; usage?: { output?: number } };
 		if (m.stopReason !== "length") {
 			resumes = 0;
 			return;
 		}
+		const limit = ctx.model?.maxTokens ?? 0;
+		if (limit <= 0 || (m.usage?.output ?? 0) < limit) return; // context full: Pi's recovery
 		if (resumes >= MAX_RESUMES) return;
 		resumes++;
 		return {
