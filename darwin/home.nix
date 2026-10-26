@@ -14,7 +14,8 @@
     home.username = "ezekiel";
     home.homeDirectory = "/Users/ezekiel";
     # ~/go/bin: `go install`ed tools (gopls, dlv, ...) used by neovim
-    home.sessionPath = [ "$HOME/.local/bin" "$HOME/go/bin" ];
+    # ~/.cargo/bin: binaries from `cargo install` (rustup itself comes from modules/nvim.nix).
+    home.sessionPath = [ "$HOME/.local/bin" "$HOME/go/bin" "$HOME/.cargo/bin" ];
     home.packages = [
       # The desktop's `ai` command (status, up MODEL, down, logs, chats nuke) over Tailscale.
       (pkgs.writeShellScriptBin "local-ai" ''

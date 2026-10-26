@@ -76,7 +76,6 @@ in
     # Required for lazy.nvim plugin management
     git
     curl
-    gcc
     # nvim-treesitter (main branch) shells out to `tree-sitter build`;
     # it requires CLI >= 0.26.1, which stable does not have yet.
     pkgs-unstable.tree-sitter
@@ -96,6 +95,10 @@ in
   # macOS the whole Go stack lives outside Nix: `brew install go
   # golangci-lint` (darwin/config.nix) and `go-tools-install` for the rest
   # (darwin/home.nix).
+  # A C compiler for tree-sitter parsers, Linux only: on macOS this gcc became `cc` and
+  # can't link Rust (or other) programs against the macOS SDK (no libiconv), while Xcode's
+  # clang at /usr/bin/cc does both.
+  ++ lib.optionals pkgs.stdenv.isLinux [ gcc ]
   ++ lib.optionals pkgs.stdenv.isLinux [
     pkgs-unstable.go
     pkgs-unstable.gopls
