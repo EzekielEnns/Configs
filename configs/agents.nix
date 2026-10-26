@@ -79,6 +79,11 @@ let
   };
 
   piSettings = (pkgs.formats.json { }).generate "pi-settings.json" {
+    # Start on Flint and only cycle desktop models. Without this Pi picks "automatic",
+    # and modules/nvim.nix's dummy OPENAI_API_KEY (for aider) makes that OpenAI.
+    defaultProvider = "desktop";
+    defaultModel = "flint";
+    enabledModels = [ "desktop/*" ];
     hideThinkingBlock = true; # Ctrl+T shows it
     showHardwareCursor = true; # Pi's drawn cursor looked squished
     editorPaddingX = 1;
