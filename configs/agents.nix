@@ -80,6 +80,10 @@ let
     # Small-context helpers (pi-extensions): big tool output to files, and for research
     # sub-agents only, a tool budget plus the note and code_search tools.
     ".pi/agent/extensions/spill.ts".source = ./pi-extensions/spill.ts;
+    # Output cut off at the token limit: continue with a nudge instead of ending the run.
+    ".pi/agent/extensions/cutoff.ts".source = ./pi-extensions/cutoff.ts;
+    # Write big files in parts (the bake-off's Rust runs all died on one huge write).
+    ".pi/agent/APPEND_SYSTEM.md".source = ./pi-agents/APPEND_SYSTEM.md;
     ".pi/agent/extensions/budget.ts".source = ./pi-extensions/budget.ts;
     ".pi/agent/extensions/research.ts".source = ./pi-extensions/research.ts;
     # Web search through the desktop's SearXNG, and page fetch (like Claude's WebFetch).
