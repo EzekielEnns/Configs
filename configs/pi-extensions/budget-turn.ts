@@ -18,7 +18,7 @@ const HIGH = Number(process.env.PI_BUDGET_HIGH) || 2048;
 const LOW = Number(process.env.PI_BUDGET_LOW) || 384;
 
 const FAILED =
-	/\[(?:cargo check|go vet|ruff[^\]]*|py_compile): \d+ error|error\[E\d+\]|^error:|\bFAILED\b|--- FAIL|panicked|Traceback|Could not find|exited with code [1-9]|exit code [1-9]|command not found|No such file/m;
+	/\[(?:cargo check|go vet|ruff[^\]]*|py_compile): \d+ error|error\[E\d+\]|^error:|\bFAILED\b|\b[1-9]\d* failed\b|--- FAIL|panicked|Traceback|Could not find|exited with code [1-9]|exit code [1-9]|command not found|No such file/m;
 
 type Msg = { role: string; content?: unknown };
 
