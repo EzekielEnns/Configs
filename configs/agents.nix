@@ -36,12 +36,24 @@ let
     run install -m 600 ${file} "$HOME/${name}"
   '';
 
+  # Web tools: pi-searxng's search config and page extraction, with our index.ts
+  # (pi-extensions/web): pages are saved to files and the model gets an outline + path to
+  # grep, instead of 30k chars inline; GitHub links fetch raw files instead of cloning.
+  piSearxng = (pkgs.callPackage ./pi-searxng { }).overrideAttrs (old: {
+    postPatch = old.postPatch + "\ncp ${./pi-extensions/web/index.ts} index.ts";
+  });
+
   # Pi's sub-agent extension (shipped as an example in its package): each sub-agent is a
   # separate `pi` process, run alone, in parallel or chained. Its sample agents name
-  # Claude models, so ours keep the prompts and use the desktop's.
-  piSearxng = pkgs.callPackage ./pi-searxng { };
-
-  subagentDir = "${agentPkgs.pi-coding-agent}/lib/node_modules/pi-monorepo/examples/extensions/subagent";
+  # Claude models, so ours keep the prompts and use the desktop's. Patched
+  # (pi-extensions/subagent.patch) for our 2 llama.cpp slots: at most 2 run at once across
+  # calls, per-agent thinking / tool budget / timeout, a shared run directory for notes and
+  # pages, and saved notes returned even when an agent dies.
+  subagentDir = pkgs.applyPatches {
+    name = "pi-subagent";
+    src = "${agentPkgs.pi-coding-agent}/lib/node_modules/pi-monorepo/examples/extensions/subagent";
+    patches = [ ./pi-extensions/subagent.patch ];
+  };
   subagentModels = {
     scout = "desktop/flint";
     worker = "desktop/flint";
@@ -69,6 +81,11 @@ let
   // {
     ".pi/agent/extensions/subagent/index.ts".source = "${subagentDir}/index.ts";
     ".pi/agent/extensions/subagent/agents.ts".source = "${subagentDir}/agents.ts";
+    # Small-context helpers (pi-extensions): big tool output to files, and for research
+    # sub-agents only, a tool budget plus the note and code_search tools.
+    ".pi/agent/extensions/spill.ts".source = ./pi-extensions/spill.ts;
+    ".pi/agent/extensions/budget.ts".source = ./pi-extensions/budget.ts;
+    ".pi/agent/extensions/research.ts".source = ./pi-extensions/research.ts;
     # Web search through the desktop's SearXNG, and page fetch (like Claude's WebFetch).
     ".pi/agent/extensions/searxng".source = "${piSearxng}/lib/node_modules/pi-searxng";
     # Read from ~/.pi, not Pi's agent dir.

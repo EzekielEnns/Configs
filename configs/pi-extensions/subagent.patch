@@ -1,0 +1,194 @@
+diff -ru subagent-a/agents.ts subagent-b/agents.ts
+--- a/agents.ts	2026-10-25 22:44:12
++++ b/agents.ts	2026-10-25 22:44:18
+@@ -13,6 +13,12 @@
+ 	description: string;
+ 	tools?: string[];
+ 	model?: string;
++	/** Thinking level for the agent's process (off, minimal, low, medium, high). */
++	thinking?: string;
++	/** Tool-call budget; the budget extension enforces it inside the agent. */
++	maxToolCalls?: number;
++	/** Wall-clock limit in minutes; the agent is stopped after it. */
++	timeoutMinutes?: number;
+ 	systemPrompt: string;
+ 	source: "user" | "project";
+ 	filePath: string;
+@@ -36,6 +42,9 @@
+ 	description?: unknown;
+ 	tools?: unknown;
+ 	model?: unknown;
++	thinking?: unknown;
++	max_tool_calls?: unknown;
++	timeout?: unknown;
+ };
+ 
+ /**
+@@ -96,6 +105,9 @@
+ 			description: frontmatter.description,
+ 			tools: parseToolList(frontmatter.tools),
+ 			model: typeof frontmatter.model === "string" ? frontmatter.model : undefined,
++			thinking: typeof frontmatter.thinking === "string" ? frontmatter.thinking : undefined,
++			maxToolCalls: typeof frontmatter.max_tool_calls === "number" ? frontmatter.max_tool_calls : undefined,
++			timeoutMinutes: typeof frontmatter.timeout === "number" ? frontmatter.timeout : undefined,
+ 			systemPrompt: body,
+ 			source,
+ 			filePath,
+diff -ru subagent-a/index.ts subagent-b/index.ts
+--- a/index.ts	2026-10-25 22:44:12
++++ b/index.ts	2026-10-25 23:23:24
+@@ -32,7 +32,46 @@
+ import { type AgentConfig, type AgentScope, discoverAgents } from "./agents.ts";
+ 
+ const MAX_PARALLEL_TASKS = 8;
+-const MAX_CONCURRENCY = 4;
++// Sub-agents share the desktop's llama.cpp slots, so cap how many run at once across all
++// subagent calls (the model often starts parallel agents as separate calls).
++const MAX_CONCURRENCY = Number(process.env.PI_SUBAGENT_CONCURRENCY) || 2;
++let running = 0;
++const waiting: (() => void)[] = [];
++async function acquireSlot(): Promise<() => void> {
++	if (running >= MAX_CONCURRENCY) await new Promise<void>((resolve) => waiting.push(resolve));
++	running++;
++	return () => {
++		running--;
++		waiting.shift()?.();
++	};
++}
++
++// One run directory per user prompt: sub-agents save notes (findings.jsonl) and fetched
++// pages there, so later waves and the parent can read them.
++let runDir: string | undefined;
++let agentCounter = 0;
++// Small orchestrators keep sending more waves until their context overflows; cap the
++// sub-agents per prompt, and keep what each returns short (its notes carry the detail).
++const MAX_PER_PROMPT = Number(process.env.PI_SUBAGENT_MAX_PER_PROMPT) || 4;
++const ANSWER_CAP = 2500;
++let spawnedThisPrompt = 0;
++function getRunDir(): string {
++	if (!runDir) runDir = fs.mkdtempSync(path.join(os.tmpdir(), "pi-research-"));
++	return runDir;
++}
++function readNotes(dir: string, agentName: string): string[] {
++	try {
++		return fs
++			.readFileSync(path.join(dir, "findings.jsonl"), "utf8")
++			.split("\n")
++			.filter(Boolean)
++			.map((line) => JSON.parse(line))
++			.filter((n) => n.agent === agentName)
++			.map((n) => `- ${String(n.claim).slice(0, 240)} (${n.url}${n.date ? `, ${n.date}` : ""})`);
++	} catch {
++		return [];
++	}
++}
+ const COLLAPSED_ITEM_COUNT = 10;
+ const PER_TASK_OUTPUT_CAP = 50 * 1024;
+ 
+@@ -295,15 +334,35 @@
+ 		};
+ 	}
+ 
++	if (++spawnedThisPrompt > MAX_PER_PROMPT) {
++		return {
++			agent: agentName,
++			agentSource: agent.source,
++			task,
++			exitCode: 1,
++			messages: [],
++			stderr: `Limit of ${MAX_PER_PROMPT} sub-agents per prompt reached. Don't start more; write your answer now from the summaries and notes you have.`,
++			usage: { input: 0, output: 0, cacheRead: 0, cacheWrite: 0, cost: 0, contextTokens: 0, turns: 0 },
++			step,
++		};
++	}
++
+ 	const args: string[] = ["--mode", "json", "-p", "--no-session"];
+ 	const inheritsDispatchConfig = !agent.model;
+ 	const model = agent.model ?? dispatchDefaults.model;
+ 	if (model) args.push("--model", model);
+-	if (inheritsDispatchConfig && dispatchDefaults.thinkingLevel) {
++	if (agent.thinking) {
++		args.push("--thinking", agent.thinking);
++	} else if (inheritsDispatchConfig && dispatchDefaults.thinkingLevel) {
+ 		args.push("--thinking", dispatchDefaults.thinkingLevel);
+ 	}
++	const dir = getRunDir();
++	const instanceName = `${agent.name}-${++agentCounter}`;
++	const env: NodeJS.ProcessEnv = { ...process.env, PI_RESEARCH_DIR: dir, PI_AGENT_NAME: instanceName };
++	if (agent.maxToolCalls) env.PI_TOOL_BUDGET = String(agent.maxToolCalls);
+ 	if (agent.tools && agent.tools.length > 0) args.push("--tools", agent.tools.join(","));
+ 
++	let release: (() => void) | undefined;
+ 	let tmpPromptDir: string | null = null;
+ 	let tmpPromptPath: string | null = null;
+ 
+@@ -338,6 +397,8 @@
+ 
+ 		args.push(`Task: ${task}`);
+ 		let wasAborted = false;
++		let timedOut = false;
++		release = await acquireSlot();
+ 
+ 		const exitCode = await new Promise<number>((resolve) => {
+ 			const invocation = getPiInvocation(args);
+@@ -345,7 +406,16 @@
+ 				cwd: cwd ?? defaultCwd,
+ 				shell: false,
+ 				stdio: ["ignore", "pipe", "pipe"],
++				env,
+ 			});
++			const timer = agent.timeoutMinutes
++				? setTimeout(() => {
++						timedOut = true;
++						proc.kill("SIGTERM");
++						setTimeout(() => proc.killed || proc.kill("SIGKILL"), 5000);
++					}, agent.timeoutMinutes * 60_000)
++				: undefined;
++			proc.on("close", () => clearTimeout(timer));
+ 			let buffer = "";
+ 
+ 			const processLine = (line: string) => {
+@@ -418,10 +488,29 @@
+ 			}
+ 		});
+ 
+-		currentResult.exitCode = exitCode;
++		release();
++		release = undefined;
++		currentResult.exitCode = timedOut ? 0 : exitCode;
++		if (timedOut) currentResult.stopReason = "timeout";
+ 		if (wasAborted) throw new Error("Subagent was aborted");
++
++		// Hand back the notes too: they are all that's left when the agent ran out of
++		// context or time before writing its answer.
++		const notes = readNotes(dir, instanceName);
++		let answer = getFinalOutput(currentResult.messages).trim();
++		if (answer.length > ANSWER_CAP) answer = `${answer.slice(0, ANSWER_CAP)}\n[answer cut; the notes below have the details]`;
++		if (notes.length || !answer || answer.endsWith("details]")) {
++			const parts = [answer || `(no final answer: ${currentResult.stopReason ?? "stopped"})`];
++			if (notes.length) parts.push(`Notes saved by ${instanceName}:\n${notes.slice(0, 12).join("\n")}`);
++			parts.push(`All notes from this run: ${path.join(dir, "findings.jsonl")}`);
++			currentResult.messages.push({
++				role: "assistant",
++				content: [{ type: "text", text: parts.join("\n\n") }],
++			} as unknown as Message);
++		}
+ 		return currentResult;
+ 	} finally {
++		release?.();
+ 		if (tmpPromptPath)
+ 			try {
+ 				fs.unlinkSync(tmpPromptPath);
+@@ -467,6 +556,12 @@
+ });
+ 
+ export default function (pi: ExtensionAPI) {
++	// A new prompt starts a new run directory; waves within one prompt share it.
++	pi.on("before_agent_start", () => {
++		runDir = undefined;
++		spawnedThisPrompt = 0;
++	});
++
+ 	pi.registerTool({
+ 		name: "subagent",
+ 		label: "Subagent",
