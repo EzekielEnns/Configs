@@ -206,6 +206,22 @@
         "type": "github"
       }
     },
+    "pi-nixpkgs": {
+      "locked": {
+        "lastModified": 1792849551,
+        "narHash": "sha256-MMnoPQoHdpsFzVHLNpOLbhiWxBnL/iv8yAiTv83cCVs=",
+        "owner": "NixOS",
+        "repo": "nixpkgs",
+        "rev": "f9ad0d4bed4a33c2667caced86429a69424fe5f1",
+        "type": "github"
+      },
+      "original": {
+        "owner": "NixOS",
+        "repo": "nixpkgs",
+        "rev": "f9ad0d4bed4a33c2667caced86429a69424fe5f1",
+        "type": "github"
+      }
+    },
     "root": {
       "inputs": {
         "ghostty": "ghostty",
@@ -214,6 +230,7 @@
         "nix-darwin": "nix-darwin",
         "nixpkgs": "nixpkgs",
         "nixpkgs-unstable": "nixpkgs-unstable",
+        "pi-nixpkgs": "pi-nixpkgs",
         "zellij": "zellij"
       }
     },

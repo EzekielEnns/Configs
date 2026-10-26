@@ -7,6 +7,7 @@
     ../configs/tmux.nix
     ../configs/claude.nix
     ../configs/rex.nix
+    ../configs/agents.nix
   ];
   options = { };
   config = {
@@ -15,6 +16,10 @@
     # ~/go/bin: `go install`ed tools (gopls, dlv, ...) used by neovim
     home.sessionPath = [ "$HOME/.local/bin" "$HOME/go/bin" ];
     home.packages = [
+      # The desktop's `ai` command (status, up MODEL, down, logs, chats nuke) over Tailscale.
+      (pkgs.writeShellScriptBin "local-ai" ''
+        exec ssh -t desktop ai "$@"
+      '')
       # (Re)install every Go binary neovim needs from upstream @latest.
       # Run after `brew upgrade go` so they're rebuilt against the new Go.
       (pkgs.writeShellScriptBin "go-tools-install" ''

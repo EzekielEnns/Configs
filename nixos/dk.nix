@@ -43,6 +43,8 @@
           cloud-opus = "openrouter/anthropic/claude-opus-5.5";
         };
       planner = "cloud-glm";
+      webui = false; # parked; flip back on for browser chat and images
+      chatRetentionDays = 1; # pinned chats are kept (only while webui is on)
     };
 
     # Claude Code overlay — auto-updating Bun-built binaries direct from
@@ -288,6 +290,19 @@
       enable = true;
     };
     networking.networkmanager.enable = true;
+    # enableIPv6 = false (modules/networking.nix) is undone per interface by NM when a
+    # profile has ipv6.method=auto (every saved Wi-Fi), and the router's 6to4 IPv6 has no
+    # route out, so apps that try IPv6 first stall. Turn it back off on every up.
+    networking.networkmanager.dispatcherScripts = [
+      {
+        source = pkgs.writeText "no-ipv6" ''
+          if [ "$2" = up ] && [ -e "/proc/sys/net/ipv6/conf/$1/disable_ipv6" ]; then
+            echo 1 > "/proc/sys/net/ipv6/conf/$1/disable_ipv6"
+          fi
+        '';
+        type = "basic";
+      }
+    ];
     # modules/networking.nix turns the firewall off for every host; this one serves the
     # LAN (dns, pxe, nginx *.lan) and the ports below are what it means to expose.
     # Tailscale is trusted below; Steam adds its own ports; Docker bypasses it anyway.
@@ -320,6 +335,21 @@
     ];
 
     networking.networkmanager.unmanaged = [ "enp6s0" ];
+
+    # Internet over the cable (measured 2026-10-24: ~730 vs ~500 Mbit/s on Wi-Fi, 5.8 vs
+    # 9 ms jittery), with Wi-Fi as fallback: NM's Wi-Fi default route has metric 600, and
+    # a cable-less enp6s0 route is ignored instead of black-holing traffic.
+    networking.defaultGateway = {
+      address = "192.168.1.1";
+      interface = "enp6s0";
+      metric = 100;
+    };
+    boot.kernel.sysctl = {
+      "net.ipv4.conf.all.ignore_routes_with_linkdown" = 1;
+      # Both NICs sit on 192.168.1.0/24: answer ARP only for the NIC's own address.
+      "net.ipv4.conf.all.arp_ignore" = 1;
+      "net.ipv4.conf.all.arp_announce" = 2;
+    };
 
     services.tailscale = {
       enable = true;

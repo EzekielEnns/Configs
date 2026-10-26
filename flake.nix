@@ -22,6 +22,8 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
+    # Pi (configs/agents.nix): a newer nixpkgs than nixpkgs-unstable's pin, just for it.
+    pi-nixpkgs.url = "github:NixOS/nixpkgs/f9ad0d4bed4a33c2667caced86429a69424fe5f1";
     nix-claude-code = {
       url = "github:ryoppippi/nix-claude-code";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -74,7 +76,10 @@
               imports = extraImports;
             };
             # expose unstable pkgs to HM if you need them
-            home-manager.extraSpecialArgs.pkgs-unstable = mkUnstable system;
+            home-manager.extraSpecialArgs = {
+              inherit inputs;
+              pkgs-unstable = mkUnstable system;
+            };
           }
         ];
 
@@ -104,6 +109,7 @@
           {
             home-manager.useGlobalPkgs = true;
             home-manager.useUserPackages = true;
+            home-manager.extraSpecialArgs = { inherit inputs; };
             home-manager.users.ezekiel = {
               imports = [ ./darwin/home.nix ];
             };
@@ -153,6 +159,7 @@
             hmUser = "ezekiel";
             hmImports = [
               ./configs/users.nix
+              ./configs/agents.nix
             ];
           };
         };
