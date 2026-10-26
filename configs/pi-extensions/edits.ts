@@ -11,11 +11,13 @@
  * - tool_result: when `edit` can't find its old text, the result also shows the lines of the
  *   file that look most like it, so a near miss (whitespace, a changed line) costs one retry,
  *   not a rewrite.
+ * PI_EDITS=0 turns it off.
  */
 import { existsSync, readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
 
+const ON = process.env.PI_EDITS !== "0";
 const MAX_LINES = Number(process.env.PI_WRITE_MAX_LINES) || 150;
 
 const words = (s: string) => new Set(s.toLowerCase().match(/\w+/g) ?? []);
@@ -45,6 +47,7 @@ function nearest(file: string, old: string): string | undefined {
 }
 
 export default function (pi: ExtensionAPI) {
+	if (!ON) return;
 	pi.on("tool_call", (event, ctx) => {
 		if (event.toolName !== "write") return;
 		const path = resolve(ctx.cwd, String(event.input.path ?? ""));

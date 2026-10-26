@@ -12,10 +12,11 @@
  * Only once the context is PI_TRIM_THINKING_AT percent full (default 50; 0 = always), and from
  * then on for the rest of the session, so the prompt doesn't flip back and forth. Flint's chat
  * template sends old reasoning back, and trimming from the start cost points on short Go and
- * Python tasks that never ran short of room.
+ * Python tasks that never ran short of room. PI_THINKING=0 turns it off.
  */
 import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
 
+const ON = process.env.PI_THINKING !== "0";
 const KEEP = Number(process.env.PI_KEEP_THINKING) || 2;
 const AT = Number(process.env.PI_TRIM_THINKING_AT ?? 50);
 
@@ -23,6 +24,7 @@ type Block = { type: string };
 type Msg = { role: string; content?: Block[] | string };
 
 export default function (pi: ExtensionAPI) {
+	if (!ON) return;
 	let on = AT <= 0;
 
 	pi.on("context", (event, ctx) => {

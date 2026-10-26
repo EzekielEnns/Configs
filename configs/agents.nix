@@ -84,6 +84,15 @@ let
     ".pi/agent/extensions/cutoff.ts".source = ./pi-extensions/cutoff.ts;
     # Write big files in parts (the bake-off's Rust runs all died on one huge write).
     ".pi/agent/APPEND_SYSTEM.md".source = ./pi-agents/APPEND_SYSTEM.md;
+    # Context and speed for small models (ai-stack docs/CODING-PLAN.md). Each has an off
+    # switch, PI_<NAME>=0: EDITS, CHECK, BUDGET_TURN, MASK, THINKING, LOG_DIGEST (spill).
+    ".pi/agent/extensions/edits.ts".source = ./pi-extensions/edits.ts; # edit, don't rewrite
+    ".pi/agent/extensions/check.ts".source = ./pi-extensions/check.ts; # compile errors after edits
+    ".pi/agent/extensions/budget-turn.ts".source = ./pi-extensions/budget-turn.ts; # reasoning budget per turn
+    ".pi/agent/extensions/mask.ts".source = ./pi-extensions/mask.ts; # hide old tool output
+    ".pi/agent/extensions/thinking.ts".source = ./pi-extensions/thinking.ts; # drop old reasoning past 50% context
+    ".pi/agent/extensions/outline.ts".source = ./pi-extensions/outline.ts; # `outline` tool
+    ".pi/agent/extensions/timings.ts".source = ./pi-extensions/timings.ts; # only with PI_TIMINGS_FILE
     ".pi/agent/extensions/budget.ts".source = ./pi-extensions/budget.ts;
     ".pi/agent/extensions/research.ts".source = ./pi-extensions/research.ts;
     # Web search through the desktop's SearXNG, and page fetch (like Claude's WebFetch).

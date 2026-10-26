@@ -10,10 +10,11 @@
  * session keeps them; only the request gets shorter); `write`/`edit` calls older than the
  * last KEEP assistant messages keep their path but not their text, since the file is on disk.
  * The boundary moves STEP results at a time so the prompt prefix, and llama.cpp's cache of
- * it, stays the same between most turns.
+ * it, stays the same between most turns. PI_MASK=0 turns it off.
  */
 import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
 
+const ON = process.env.PI_MASK !== "0";
 const KEEP = Number(process.env.PI_MASK_KEEP) || 4;
 const STEP = 4;
 const MIN_CHARS = 400;
@@ -33,6 +34,7 @@ function maskCall(c: Block): Block {
 }
 
 export default function (pi: ExtensionAPI) {
+	if (!ON) return;
 	pi.on("context", (event) => {
 		const out = [...(event.messages as Msg[])];
 		const calls = new Map<string, Block>();
