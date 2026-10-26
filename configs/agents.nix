@@ -25,6 +25,9 @@ let
     { id = "gemma"; name = "Gemma 4 26B-A4B (Q4)"; contextWindow = 65536; maxTokens = 16384; }
     { id = "glm-flash"; name = "GLM-4.7-Flash 30B-A3B (Q4)"; contextWindow = 65536; maxTokens = 16384; }
     { id = "devstral"; name = "Devstral Small 2 24B (Q4)"; contextWindow = 65536; maxTokens = 16384; }
+    # Research-tuned: the 4B runs 4 slots x 16k for parallel researchers.
+    { id = "agents-a1-4b"; name = "Agents-A1 4B (research, 4 slots x 16k)"; contextWindow = 16384; maxTokens = 8192; }
+    { id = "agents-a1"; name = "Agents-A1 35B-A3B (research, Q3, 2 slots x 32k)"; contextWindow = 32768; maxTokens = 16384; }
   ];
   withReasoning = map (m: m // { reasoning = true; }) models;
 
@@ -59,10 +62,10 @@ let
   # /research-design-build workflows built on them.
   // lib.listToAttrs (map
     (name: lib.nameValuePair ".pi/agent/agents/${name}.md" { source = ./pi-agents/${name}.md; })
-    [ "researcher" "architect" ])
+    [ "researcher" "researcher-fast" "architect" ])
   // lib.listToAttrs (map
     (name: lib.nameValuePair ".pi/agent/prompts/${name}.md" { source = ./pi-agents/${name}.md; })
-    [ "research" "research-design-build" ])
+    [ "research" "research-fast" "research-design-build" ])
   // {
     ".pi/agent/extensions/subagent/index.ts".source = "${subagentDir}/index.ts";
     ".pi/agent/extensions/subagent/agents.ts".source = "${subagentDir}/agents.ts";
@@ -84,6 +87,15 @@ let
     defaultProvider = "desktop";
     defaultModel = "flint";
     enabledModels = [ "desktop/*" ];
+    # Pi's compaction defaults (start when <16k free, keep the last 20k) assume big
+    # windows; on 16-32k slots they'd compact at half full and keep more than fits.
+    # Use a quarter of the window for each instead.
+    compaction.modelOverrides = lib.listToAttrs (map
+      (m: lib.nameValuePair "desktop/${m.id}" {
+        reserveTokens = m.contextWindow / 4;
+        keepRecentTokens = m.contextWindow / 4;
+      })
+      (lib.filter (m: m.contextWindow <= 32768) models));
     hideThinkingBlock = true; # Ctrl+T shows it
     showHardwareCursor = true; # Pi's drawn cursor looked squished
     editorPaddingX = 1;
