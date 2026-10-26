@@ -37,6 +37,8 @@ let
   # grep, instead of 30k chars inline; GitHub links fetch raw files instead of cloning.
   piSearxng = (pkgs.callPackage ./pi-searxng { }).overrideAttrs (old: {
     postPatch = old.postPatch + "\ncp ${./pi-extensions/web/index.ts} index.ts";
+    # Not in the package's `files` list, so npm's install would leave it out.
+    postInstall = "cp -r ${./pi-extensions/web/steps} $out/lib/node_modules/pi-searxng/steps";
   });
 
   # Pi's sub-agent extension (shipped as an example in its package): each sub-agent is a
@@ -73,7 +75,7 @@ let
     [ "researcher" "researcher-fast" "architect" ])
   // lib.listToAttrs (map
     (name: lib.nameValuePair ".pi/agent/prompts/${name}.md" { source = ./pi-agents/${name}.md; })
-    [ "research" "research-fast" "research-design-build" ])
+    [ "research" "research-fast" "research-design-build" "lookup" ])
   // {
     ".pi/agent/extensions/subagent/index.ts".source = "${subagentDir}/index.ts";
     ".pi/agent/extensions/subagent/agents.ts".source = "${subagentDir}/agents.ts";
@@ -88,7 +90,13 @@ let
     ".pi/searxng.json" = {
       force = true;
       text = builtins.toJSON {
+        # web_search / lookup try these in order (pi-extensions/web/steps/search.ts):
+        # Brave and SearXNG through the gateway (keys stay in the desktop's secrets.env),
+        # then SearXNG directly with the engines that answer from a home IP.
+        searchChain = [ "gateway:brave" "gateway:searxng" "searxng" ];
+        gatewayUrl = "http://${desktop}:4000";
         searxngUrl = "http://${desktop}:8888";
+        searxngEngines = "yahoo,wikipedia,github";
         maxResults = 8;
       };
     };

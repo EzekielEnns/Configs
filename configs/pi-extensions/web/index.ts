@@ -2,10 +2,13 @@
  * Web tools for small-context agents; replaces pi-searxng's index.ts (its config.ts and
  * extract.ts deps are reused).
  *
- * - web_search: SearXNG results with short snippets and dates; marks URLs already fetched.
+ * - web_search: results with short snippets and dates from the first provider in
+ *   `searchChain` that answers (steps/search.ts); marks URLs already fetched.
  * - fetch_content: saves the page (Markdown) or file (GitHub blob links go to the raw file)
- *   to disk and returns only an outline with line numbers, a short preview and the path.
- *   The agent then uses grep and read with offset/limit on that file. No repo clones.
+ *   to disk. With a `question`, returns the passages that answer it; without, an outline
+ *   with line numbers, a short preview and the path for grep and read. No repo clones.
+ * - lookup: search, fetch the top pages in parallel and return the passages that answer
+ *   the question, in one call. For quick questions (/lookup).
  *
  * Refuses non-public addresses (loopback, LAN, Tailscale) so pages can't steer agents at
  * the home network. Files go to $PI_RESEARCH_DIR/pages when set, else $TMPDIR/pi-web
@@ -23,6 +26,10 @@ import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
 import { parseHTML } from "linkedom";
 import TurndownService from "turndown";
 import { loadConfig } from "./config.js";
+import { chunk } from "./steps/chunk.js";
+import { rank, type Scored } from "./steps/rank.js";
+import { search, type SearchConfig } from "./steps/search.js";
+import { runStep } from "./steps/step.js";
 
 const RUN_DIR = process.env.PI_RESEARCH_DIR;
 const PAGES = RUN_DIR ? join(RUN_DIR, "pages") : join(tmpdir(), "pi-web");
@@ -136,6 +143,49 @@ async function getPage(target: string, hops = 0): Promise<{ title: string; body:
 	}
 }
 
+interface Saved {
+	file: string;
+	title: string;
+	body: string;
+	markdown: boolean;
+	hint?: string;
+}
+
+/** Fetch a URL (or reuse today's copy) and save it as Markdown under PAGES. */
+async function savePage(pageUrl: string): Promise<Saved> {
+	const gh = githubTarget(new URL(pageUrl));
+	const target = gh?.raw ?? pageUrl;
+	const file = join(PAGES, `${createHash("sha256").update(target).digest("hex").slice(0, 12)}.md`);
+	if (existsSync(file) && Date.now() - statSync(file).mtimeMs < DAY) {
+		const body = readFileSync(file, "utf8");
+		return { file, title: body.split("\n", 2)[1]?.replace(/^# /, "") ?? "", body, markdown: true, hint: gh?.hint };
+	}
+	const page = await getPage(target);
+	const title = gh?.title ?? page.title;
+	const body = `<!-- source: ${pageUrl} | fetched: ${new Date().toISOString().slice(0, 10)} -->\n# ${title}\n\n${page.body}`;
+	mkdirSync(PAGES, { recursive: true, mode: 0o700 });
+	writeFileSync(file, body, { mode: 0o600 });
+	return { file, title, body, markdown: page.markdown, hint: gh?.hint };
+}
+
+/** The passages of a saved page that answer `question`, with line numbers. Passages in
+ * `seen` (same text from another copy of the page, e.g. a mirror) are skipped. */
+function passages(question: string, page: Saved, top: number, maxChars: number, seen = new Set<string>()): { text: string; picked: Scored[] } {
+	const key = (c: Scored) => c.text.replace(/\W+/g, "").slice(0, 160);
+	const picked = rank(question, chunk(page.body), top).filter((c) => !seen.has(key(c)));
+	for (const c of picked) seen.add(key(c));
+	let used = 0;
+	const parts: string[] = [];
+	for (const c of picked) {
+		const room = maxChars - used;
+		if (room < 200) break;
+		const body = c.text.length > room ? `${c.text.slice(0, room)} [...]` : c.text;
+		used += body.length;
+		parts.push(`[L${c.startLine}-${c.endLine}${c.heading ? ` · ${c.heading}` : ""}]\n${body}`);
+	}
+	return { text: parts.join("\n\n"), picked };
+}
+
 export default function (pi: ExtensionAPI) {
 	pi.on("session_start", () => {
 		if (RUN_DIR) return;
@@ -153,29 +203,21 @@ export default function (pi: ExtensionAPI) {
 		name: "web_search",
 		label: "Web Search",
 		description:
-			"Search the web (SearXNG). Returns titles, URLs, dates and short snippets. Read the snippets first and only fetch the most promising 1-3 results.",
+			"Search the web. Returns titles, URLs, dates and short snippets. Read the snippets first and only fetch the most promising 1-3 results.",
 		parameters: Type.Object({
 			query: Type.String({ description: "Search query; add a year or 'latest' for current info" }),
 			limit: Type.Optional(Type.Number({ description: "Max results (default 8)" })),
 		}),
-		async execute(_id, params, signal) {
-			const config = loadConfig();
-			const url = new URL(`${config.searxngUrl}/search`);
-			url.searchParams.set("q", params.query);
-			url.searchParams.set("format", "json");
-			const res = await fetch(url, { signal, headers: { Accept: "application/json" } });
-			if (!res.ok) throw new Error(`SearXNG returned ${res.status}`);
-			const data: any = await res.json();
-			const seen = fetchedUrls();
-			const results = (data.results ?? []).slice(0, Math.min(params.limit ?? 8, 10));
+		async execute(_id, params) {
+			const results = await search(loadConfig() as SearchConfig, params.query, Math.min(params.limit ?? 8, 10));
 			if (!results.length) return text("No results.", { count: 0 });
-			const lines = results.map((r: any, i: number) => {
-				const date = r.publishedDate ? ` (${String(r.publishedDate).slice(0, 10)})` : "";
+			const seen = fetchedUrls();
+			const lines = results.map((r, i) => {
+				const date = r.date ? ` (${r.date})` : "";
 				const mark = seen.has(r.url) ? " [already fetched]" : "";
-				const snippet = String(r.content ?? "").replace(/\s+/g, " ").slice(0, 240);
-				return `${i + 1}. ${r.title ?? "Untitled"}${date}${mark}\n   ${r.url}\n   ${snippet}`;
+				return `${i + 1}. ${r.title}${date}${mark}\n   ${r.url}\n   ${r.snippet.slice(0, 240)}`;
 			});
-			return text(lines.join("\n"), { count: results.length });
+			return text(lines.join("\n"), { count: results.length, source: results[0].source });
 		},
 	});
 
@@ -183,42 +225,87 @@ export default function (pi: ExtensionAPI) {
 		name: "fetch_content",
 		label: "Fetch",
 		description:
-			"Fetch a web page or GitHub file and save it to a local file. Returns an outline with line numbers, a short preview and the file path; " +
-			"then use grep on the path to find what you need and read with offset/limit around it. GitHub blob links are fetched as raw files.",
-		parameters: Type.Object({ url: Type.String({ description: "URL to fetch" }) }),
+			"Fetch a web page or GitHub file and save it to a local file. Pass `question` to get back the passages that answer it. " +
+			"Without it, returns an outline with line numbers, a short preview and the file path; then grep the path and read with offset/limit. " +
+			"GitHub blob links are fetched as raw files.",
+		parameters: Type.Object({
+			url: Type.String({ description: "URL to fetch" }),
+			question: Type.Optional(
+				Type.String({ description: "What you want from the page; returns the passages that answer it instead of an outline" }),
+			),
+		}),
 		async execute(_id, params) {
-			const gh = githubTarget(new URL(params.url));
-			const target = gh?.raw ?? params.url;
-			const file = join(PAGES, `${createHash("sha256").update(target).digest("hex").slice(0, 12)}.md`);
-			let body: string;
-			let title: string;
-			let markdown: boolean;
-			if (existsSync(file) && Date.now() - statSync(file).mtimeMs < DAY) {
-				const saved = readFileSync(file, "utf8");
-				[title, body] = [saved.split("\n", 2)[1]?.replace(/^# /, "") ?? "", saved];
-				markdown = true;
-			} else {
-				const page = await getPage(target);
-				({ title, markdown } = page);
-				if (gh) title = gh.title;
-				body = `<!-- source: ${params.url} | fetched: ${new Date().toISOString().slice(0, 10)} -->\n# ${title}\n\n${page.body}`;
-				mkdirSync(PAGES, { recursive: true, mode: 0o700 });
-				writeFileSync(file, body, { mode: 0o600 });
-			}
+			const page = await savePage(params.url);
 			markFetched(params.url);
-			const lines = body.split("\n");
+			const lines = page.body.split("\n");
+			const head = [`Saved: ${page.file}`, `Title: ${page.title}`, `Size: ${lines.length} lines, ${page.body.length} chars`];
+			if (page.hint) head.push(`Note: ${page.hint}`);
+			if (params.question) {
+				const { text: found, picked } = passages(params.question, page, 4, 4000);
+				if (picked.length)
+					return text(
+						[...head, `Passages for "${params.question}":\n\n${found}`, "Need more? read the file with offset/limit around these lines, or grep it."].join("\n\n"),
+						{ file: page.file, url: params.url, chars: page.body.length, passages: picked.length },
+					);
+				head.push("No passage matched the question's words; outline below.");
+			}
 			const preview = lines.slice(2).join("\n").trim().slice(0, 700);
 			return text(
 				[
-					`Saved: ${file}`,
-					`Title: ${title}`,
-					`Size: ${lines.length} lines, ${body.length} chars`,
-					...(gh?.hint ? [`Note: ${gh.hint}`] : []),
-					`Outline:\n${outline(lines, markdown)}`,
+					...head,
+					`Outline:\n${outline(lines, page.markdown)}`,
 					`Preview:\n${preview}`,
 					`Next: grep this file for your terms, then read it with offset/limit around the matches.`,
 				].join("\n\n"),
-				{ file, url: params.url, chars: body.length },
+				{ file: page.file, url: params.url, chars: page.body.length },
+			);
+		},
+	});
+
+	pi.registerTool({
+		name: "lookup",
+		label: "Lookup",
+		description:
+			"Answer a quick question from the web in one call: searches, fetches the top pages and returns the passages that answer the question, with URLs. " +
+			"Use a focused search query (add the year for anything current). Call again with a different query if the passages don't answer it.",
+		parameters: Type.Object({
+			question: Type.String({ description: "The question, in full" }),
+			query: Type.Optional(Type.String({ description: "Search query, if different from the question" })),
+			pages: Type.Optional(Type.Number({ description: "Pages to read (default 3, max 5)" })),
+		}),
+		async execute(_id, params) {
+			const query = params.query ?? params.question;
+			const results = await search(loadConfig() as SearchConfig, query, 8);
+			if (!results.length) return text(`No search results for "${query}". Try a different query.`, { pages: 0 });
+			const n = Math.min(Math.max(params.pages ?? 3, 1), 5);
+			const pages = await Promise.all(
+				results.slice(0, n).map((r) =>
+					runStep(
+						"fetch",
+						20_000,
+						() => savePage(r.url),
+						() => undefined,
+						(p) => ({ url: r.url, chars: p?.body.length ?? 0 }),
+					).then((page) => ({ r, page })),
+				),
+			);
+			const blocks: string[] = [];
+			const seen = new Set<string>();
+			for (const { r, page } of pages) {
+				const date = r.date ? ` (${r.date})` : "";
+				if (!page) {
+					blocks.push(`## ${r.title}${date}\n${r.url}\n(couldn't fetch; search snippet: ${r.snippet.slice(0, 300)})`);
+					continue;
+				}
+				markFetched(r.url);
+				const { text: found } = passages(params.question, page, 2, 2000, seen);
+				const none = `(no new passage: it matches an earlier page or not the question; snippet: ${r.snippet.slice(0, 300)})`;
+				blocks.push(`## ${page.title || r.title}${date}\n${r.url} · saved: ${page.file}\n\n${found || none}`);
+			}
+			const more = results.slice(n).map((r) => `- ${r.title}: ${r.url}`);
+			return text(
+				[`Results for "${query}":`, ...blocks, ...(more.length ? [`Other results (not read):\n${more.join("\n")}`] : [])].join("\n\n"),
+				{ pages: pages.filter((p) => p.page).length, source: results[0].source },
 			);
 		},
 	});
