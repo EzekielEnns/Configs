@@ -17,17 +17,13 @@ let
     # Flint runs 2 slots x 32k on the desktop so two (sub-)agents work at once.
     { id = "flint"; name = "Flint 40B-A2.5B (quick: 2k thinking)"; contextWindow = 32768; maxTokens = 16384; }
     { id = "flint-careful"; name = "Flint 40B-A2.5B (careful: no thinking cap)"; contextWindow = 32768; maxTokens = 16384; }
-    { id = "qwen"; name = "Qwen3.6-35B-A3B (2 slots x 32k)"; contextWindow = 32768; maxTokens = 16384; }
-    { id = "qwen-27b"; name = "Qwen3.8-27B dense (slow, careful)"; contextWindow = 32768; maxTokens = 16384; }
     { id = "planner"; name = "planner (GLM-5.3 via OpenRouter, US hosts)"; contextWindow = 131072; maxTokens = 32768; }
-    # Bake-off contenders (ai-stack docs/BAKEOFF.md)
-    { id = "laguna"; name = "Laguna XS 2.1 33B-A3B (Q3)"; contextWindow = 65536; maxTokens = 16384; }
-    { id = "gemma"; name = "Gemma 4 26B-A4B (Q4)"; contextWindow = 65536; maxTokens = 16384; }
-    { id = "glm-flash"; name = "GLM-4.7-Flash 30B-A3B (Q4)"; contextWindow = 65536; maxTokens = 16384; }
-    { id = "devstral"; name = "Devstral Small 2 24B (Q4)"; contextWindow = 65536; maxTokens = 16384; }
-    # Research-tuned: the 4B runs 4 slots x 16k for parallel researchers.
+    # Research (ai-stack docs/models/sage-a1.5.md): Sage runs its own sub-agents, 2 slots
+    # x 32k; the 4B runs 4 slots x 16k for quick lookups.
+    { id = "sage"; name = "Sage-A1.5 35B-A3B (research, Q3, 2 slots x 32k)"; contextWindow = 32768; maxTokens = 16384; }
     { id = "agents-a1-4b"; name = "Agents-A1 4B (research, 4 slots x 16k)"; contextWindow = 16384; maxTokens = 8192; }
-    { id = "agents-a1"; name = "Agents-A1 35B-A3B (research, Q3, 2 slots x 32k)"; contextWindow = 32768; maxTokens = 16384; }
+    # Coding bake-off against Flint (ai-stack docs/BAKEOFF.md)
+    { id = "laguna"; name = "Laguna XS 2.1 33B-A3B (Q3)"; contextWindow = 65536; maxTokens = 16384; }
   ];
   withReasoning = map (m: m // { reasoning = true; }) models;
 
