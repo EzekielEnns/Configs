@@ -17,6 +17,9 @@
     services.ai-stack = {
       enable = true;
       listenAddress = "100.64.96.125"; # Tailscale only
+      # Brave search through the gateway (legacy Free AI plan). The key is BRAVE_API_KEY in
+      # /var/lib/ai-stack/secrets.env, never in this repo.
+      braveSearch = true;
       # Cloud models via OpenRouter (prepaid credit). The key is OPENROUTER_API_KEY in
       # /var/lib/ai-stack/secrets.env on the desktop, never in this repo.
       cloudModels =
