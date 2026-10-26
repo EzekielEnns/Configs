@@ -10,6 +10,10 @@
  * - lookup: search, fetch the top pages in parallel and return the passages that answer
  *   the question, in one call. For quick questions (/lookup).
  *
+ * Passages: BM25 picks them (steps/rank.ts); with PI_EVIDENCE_URL set, BM25's top chunks go
+ * to Open Provence on the evidence service, which reranks them and keeps only the sentences
+ * that answer the question (steps/prune.ts).
+ *
  * Refuses non-public addresses (loopback, LAN, Tailscale) so pages can't steer agents at
  * the home network. Files go to $PI_RESEARCH_DIR/pages when set, else $TMPDIR/pi-web
  * (swept after a day).
@@ -27,6 +31,7 @@ import { parseHTML } from "linkedom";
 import TurndownService from "turndown";
 import { loadConfig } from "./config.js";
 import { chunk } from "./steps/chunk.js";
+import { CANDIDATES, EVIDENCE_URL, prune } from "./steps/prune.js";
 import { rank, type Scored } from "./steps/rank.js";
 import { search, type SearchConfig } from "./steps/search.js";
 import { runStep } from "./steps/step.js";
@@ -170,9 +175,26 @@ async function savePage(pageUrl: string): Promise<Saved> {
 
 /** The passages of a saved page that answer `question`, with line numbers. Passages in
  * `seen` (same text from another copy of the page, e.g. a mirror) are skipped. */
-function passages(question: string, page: Saved, top: number, maxChars: number, seen = new Set<string>()): { text: string; picked: Scored[] } {
+async function passages(
+	question: string,
+	page: Saved,
+	top: number,
+	maxChars: number,
+	seen = new Set<string>(),
+): Promise<{ text: string; picked: Scored[] }> {
 	const key = (c: Scored) => c.text.replace(/\W+/g, "").slice(0, 160);
-	const picked = rank(question, chunk(page.body), top).filter((c) => !seen.has(key(c)));
+	const chunks = chunk(page.body);
+	const bm25 = () => rank(question, chunks, top);
+	const ranked = EVIDENCE_URL
+		? await runStep(
+				"prune",
+				15_000,
+				(signal) => prune(question, rank(question, chunks, CANDIDATES), top, signal),
+				bm25,
+				(out) => ({ kept: out.length, best: out.reduce((m, c) => Math.max(m, c.score), 0) }),
+			)
+		: bm25();
+	const picked = ranked.filter((c) => !seen.has(key(c)));
 	for (const c of picked) seen.add(key(c));
 	let used = 0;
 	const parts: string[] = [];
@@ -241,7 +263,7 @@ export default function (pi: ExtensionAPI) {
 			const head = [`Saved: ${page.file}`, `Title: ${page.title}`, `Size: ${lines.length} lines, ${page.body.length} chars`];
 			if (page.hint) head.push(`Note: ${page.hint}`);
 			if (params.question) {
-				const { text: found, picked } = passages(params.question, page, 4, 4000);
+				const { text: found, picked } = await passages(params.question, page, 4, 4000);
 				if (picked.length)
 					return text(
 						[...head, `Passages for "${params.question}":\n\n${found}`, "Need more? read the file with offset/limit around these lines, or grep it."].join("\n\n"),
@@ -298,7 +320,7 @@ export default function (pi: ExtensionAPI) {
 					continue;
 				}
 				markFetched(r.url);
-				const { text: found } = passages(params.question, page, 2, 2000, seen);
+				const { text: found } = await passages(params.question, page, 2, 2000, seen);
 				const none = `(no new passage: it matches an earlier page or not the question; snippet: ${r.snippet.slice(0, 300)})`;
 				blocks.push(`## ${page.title || r.title}${date}\n${r.url} · saved: ${page.file}\n\n${found || none}`);
 			}

@@ -1,7 +1,7 @@
 /**
  * Pick the chunks that answer a question. Today: BM25 keyword scoring, no model, instant.
- * Phase B replaces it with Open Provence (rerank + sentence pruning) through `ai-helpers`,
- * with this as the passthrough.
+ * With PI_EVIDENCE_URL set, its top chunks go on to Open Provence (steps/prune.ts), with
+ * this as the passthrough.
  */
 import type { Chunk } from "./chunk.js";
 
