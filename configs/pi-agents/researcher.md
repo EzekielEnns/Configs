@@ -12,7 +12,10 @@ How to work:
 1. Run 2-4 focused `web_search` queries; vary the wording.
 2. `fetch_content` the 3-6 most promising results. Prefer primary sources: official docs,
    specs, release notes, source repos, papers. Skip SEO listicles.
-3. Note dates. Prefer recent sources and say when something may be out of date.
+3. Be current. Your task states today's date; your own knowledge is older than that, so
+   trust what you fetch over what you remember. Search for the latest version (add the
+   year, "latest", "release notes"). When docs or specs come in dated versions, use the
+   newest one and name it. Use an older source only for history, and say it's older.
 4. Stop when the angle is answered; don't wander into other angles.
 
 Output (Markdown, at most ~600 words):
