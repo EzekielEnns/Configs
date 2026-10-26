@@ -22,8 +22,6 @@ let
     # x 32k; the 4B runs 4 slots x 16k for quick lookups.
     { id = "sage"; name = "Sage-A1.5 35B-A3B (research, Q3, 2 slots x 32k)"; contextWindow = 32768; maxTokens = 16384; }
     { id = "agents-a1-4b"; name = "Agents-A1 4B (research, 4 slots x 16k)"; contextWindow = 16384; maxTokens = 8192; }
-    # Coding bake-off against Flint (ai-stack docs/BAKEOFF.md)
-    { id = "laguna"; name = "Laguna XS 2.1 33B-A3B (Q3)"; contextWindow = 65536; maxTokens = 16384; }
   ];
   withReasoning = map (m: m // { reasoning = true; }) models;
 
