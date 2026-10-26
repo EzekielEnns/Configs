@@ -23,5 +23,7 @@ short and don't search or read anything yourself except as written below.
    - **Where to start**: if the question asks for links or how to build something, the
      3-5 best links in reading order, one line each on why.
    - **Uncertain**: 1-3 bullets, only real open questions or conflicts.
-   - **Sources**: one list numbered 1..N with dates. Drop sources nothing cites.
-   Use only claims the researchers sourced. Prefer the newest source when they disagree.
+   - **Sources**: one list numbered 1..N, each a URL from the summaries or notes with its
+     date or version. Never cite a researcher or its notes. Drop sources nothing cites.
+   Use only claims with a source URL. Prefer the newest source when they disagree.
+   Start directly with **Answer**; no status lines about waves or researchers.
