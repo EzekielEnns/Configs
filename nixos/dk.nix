@@ -20,6 +20,12 @@
       # Brave search through the gateway (legacy Free AI plan). The key is BRAVE_API_KEY in
       # /var/lib/ai-stack/secrets.env, never in this repo.
       braveSearch = true;
+      # Web evidence service (ai-stack docs/RAG-PLAN.md), from its own private repo cloned
+      # next to ai-stack. Health check only for now; the pipeline lands step by step.
+      evidence = {
+        enable = true;
+        package = (builtins.getFlake "git+file:///home/ezekiel/Documents/repos/evidence").packages.x86_64-linux.evidence;
+      };
       # Cloud models via OpenRouter (prepaid credit). The key is OPENROUTER_API_KEY in
       # /var/lib/ai-stack/secrets.env on the desktop, never in this repo.
       cloudModels =
