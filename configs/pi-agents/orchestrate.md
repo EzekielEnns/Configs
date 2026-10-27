@@ -1,36 +1,32 @@
 ---
-description: Plan a big job and run it with worker subagents on Flint; you only plan, check and merge
+description: Plan a code-reading job as a ledger of slices, run reader workers on Flint with pi-orch, and merge their checked claims
 ---
 Goal: $@
 
-You are the orchestrator, on a strong model with a big context. The workers are `worker`
-subagents on Flint (local, free, 32k context, at most 2 run at once). Your job is to plan,
-brief, check and merge; theirs is the bulk reading and writing.
+You plan and merge. `reader` workers on Flint do the reading, and `pi-orch` (a script, not a
+model) runs them 2 at a time, checks every claim's quote against its file, and retries a
+slice once. You never brief workers yourself: the brief comes from a fixed template.
 
-1. **Orient (small).** Read the project's AGENTS.md / README if present, then look at the
-   shape of the work with ls, sizes, `head`, grep. Don't read whole files.
-2. **Do the hard one-off steps yourself**, the ones every worker depends on and Flint would
-   get wrong: a decoder, a shared script in the project's tools folder, the slice plan.
-   Keep your own raw reading under ~200 lines per file. Past a budget, a "Pi delegation
-   guard" note replaces big tool output: it comes from the harness, so delegate that read.
-3. **Plan the slices and show me.** Each slice fits a worker: one small file, a 600-800
-   line range, or one module. A worker has 32k of context and 40 tool calls, and reads 80
-   lines at a time, so smaller is better. Say what each will find or change and where its output goes. List
-   what you skip and why. Wait for my ok unless I said to go ahead.
-4. **Run the workers** with the subagent tool in parallel mode, `cwd` set to the project
-   folder, 2 per call (up to 24 per prompt). Each brief is under 100 words and
-   self-contained (the worker sees only the brief and the project's AGENTS.md): the exact
-   path and range, what to find or do, the rules that matter, and these lines verbatim:
-   "grep for what you need first, then read only those spots. Your deliverable is the file
-   <notes path>/<slice>.md: write it after your first few findings and rewrite it as you go,
-   with file:line for each claim and open questions at the end. Your final reply is just
-   that path and 3 lines of summary. If the code reads as garbage (mojibake, random strings
-where names should be), stop and say so in the file." The file survives a worker that runs
-out of room; one that never writes it gets its interim text and reads saved there instead.
-5. **Check after each wave.** Read the notes files, not the sources. A worker that stopped
-   early still leaves its file; brief the rest of its range as a new slice. Spot-check a claim only when
-   it matters or looks wrong (read those few lines yourself). Re-brief a slice that failed,
-   once, with what was missing.
-6. **Merge.** Write the final result yourself from the notes: what was found, with file:line
-   references, what is uncertain, what was skipped. Then a one-line cost summary: waves,
-   workers, slices redone.
+1. **Orient (small).** The project's AGENTS.md / README, then ls, `wc -l`, and grep for the
+   entry points and names the goal mentions. Don't read whole files; keep your own raw
+   reading under ~200 lines per file.
+2. **Write the ledger.** Notes go in `~/.pi/orch/<short-name>/` unless I name a folder.
+   Write `<notes>/ledger.json`:
+   `{"goal": "...", "root": "<project path>", "slices": [{"id": "s1", "file": "src/x.rs", "lines": [1, 400], "questions": ["..."]}]}`
+   One file per slice, at most 600 lines (smaller is better: a worker has 32k of context).
+   1-4 questions per slice, each answerable by a line of code (a call, a name, a constant),
+   e.g. "Which function does the POST /search route call?" Then run
+   `pi-orch check <notes>/ledger.json` and fix what it reports.
+3. **Show me the plan:** `pi-orch status <notes>/ledger.json`, plus what you skip and why.
+   Wait for my ok unless I said to go ahead.
+4. **Run:** `pi-orch run <notes>/ledger.json`. It prints a line per try and takes a few
+   minutes per slice. After it starts, don't change slices' status except to set a failed
+   one to `redo` (with better questions); you may add new slices as `pending`.
+5. **Read `<notes>/digest.md`** (run writes it; `pi-orch digest` rewrites it). It holds only
+   claims whose quote was found in the file. Before using a claim marked `[far]` or
+   `[numbers ...]`, read those few lines yourself. If a step of the answer is missing, add a
+   slice for it (the workers' open questions often name where) and run again; one more
+   round at most.
+6. **Merge.** Write the answer from the digest to `<notes>/report.md` and reply with it:
+   each point with file:line, what's uncertain, what was skipped. End with one line from
+   `pi-orch status`: slices, tries, verified / dropped claims.

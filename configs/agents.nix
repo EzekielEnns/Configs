@@ -27,6 +27,8 @@ let
   ];
   withReasoning = map (m: m // { reasoning = true; }) models;
 
+  checkrefs = pkgs.writeShellScriptBin "checkrefs" ''exec ${pkgs.python3}/bin/python3 -I ${./pi-orch/checkrefs.py} "$@"'';
+
   writable = name: file: ''
     run mkdir -p "$(dirname "$HOME/${name}")"
     run install -m 600 ${file} "$HOME/${name}"
@@ -150,7 +152,12 @@ in
 {
   home.packages = [
     agentPkgs.pi-coding-agent
-    (pkgs.writeShellScriptBin "checkrefs" ''exec ${pkgs.python3}/bin/python3 -I ${./pi-orch/checkrefs.py} "$@"'')
+    checkrefs
+    # Runs reader workers over a ledger's slices and checks their claims (ORCHESTRATE-PLAN.md v2).
+    (pkgs.writeShellScriptBin "pi-orch" ''
+      export PI_ORCH_CHECKREFS=${checkrefs}/bin/checkrefs
+      exec ${pkgs.python3}/bin/python3 -I ${./pi-orch/orch.py} "$@"
+    '')
   ];
 
   home.file = subagentFiles // {
