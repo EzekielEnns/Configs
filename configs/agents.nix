@@ -75,7 +75,7 @@ let
   # /research-design-build workflows built on them.
   // lib.listToAttrs (map
     (name: lib.nameValuePair ".pi/agent/agents/${name}.md" { source = ./pi-agents/${name}.md; })
-    [ "researcher" "researcher-fast" "architect" ])
+    [ "researcher" "researcher-fast" "architect" "reader" ])
   // lib.listToAttrs (map
     (name: lib.nameValuePair ".pi/agent/prompts/${name}.md" { source = ./pi-agents/${name}.md; })
     [ "research" "research-fast" "research-design-build" "lookup" "orchestrate" ])
@@ -105,6 +105,9 @@ let
     # in the system prompt; "remember ..." saves. Files stay on each machine. PI_MEMORY=0 off.
     ".pi/agent/extensions/memory.ts".source = ./pi-extensions/memory.ts;
     ".pi/agent/extensions/budget.ts".source = ./pi-extensions/budget.ts;
+    # `reader` workers (PI_CLAIMS_FILE set): can't finish without a valid claims file, and
+    # write nothing else. checkrefs checks their quotes (ai-stack docs/ORCHESTRATE-PLAN.md v2).
+    ".pi/agent/extensions/claims.ts".source = ./pi-extensions/claims.ts;
     ".pi/agent/extensions/research.ts".source = ./pi-extensions/research.ts;
     # Web search through the desktop's SearXNG, and page fetch (like Claude's WebFetch).
     ".pi/agent/extensions/searxng".source = "${piSearxng}/lib/node_modules/pi-searxng";
@@ -145,7 +148,10 @@ let
   };
 in
 {
-  home.packages = [ agentPkgs.pi-coding-agent ];
+  home.packages = [
+    agentPkgs.pi-coding-agent
+    (pkgs.writeShellScriptBin "checkrefs" ''exec ${pkgs.python3}/bin/python3 -I ${./pi-orch/checkrefs.py} "$@"'')
+  ];
 
   home.file = subagentFiles // {
     ".pi/agent/models.json" = {
