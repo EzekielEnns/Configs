@@ -11,6 +11,9 @@
  *   the relevant lines of tool output, arXiv 2604.04979) picks them instead; PI_LOG_DIGEST=0
  *   goes back to the plain preview.
  * - Over-long `read` results (very long lines) are cut, pointing back at the source file.
+ * - Digest lines are cut at 400 chars: a grep that matched a 95k-char string-array line once
+ *   went through whole (it was among the last lines, which the digest always keeps) and
+ *   filled a worker's context.
  *
  * Spill files live in $TMPDIR/pi-spill/<pid>/ and are removed after a day.
  */
@@ -71,8 +74,12 @@ function render(all: string[], keep: Uint8Array): string {
  * the lines around failure markers; around weaker words ("error", "warning") only if that
  * still fits in `max`.
  */
+/** Longest line a digest shows: one minified or string-array line can be 95k chars on its own. */
+const LINE_MAX = 400;
+const clip = (l: string) => (l.length > LINE_MAX ? `${l.slice(0, LINE_MAX)} [... line cut: ${l.length} chars]` : l);
+
 export function digest(text: string, max: number): string {
-	const all = text.split("\n");
+	const all = text.split("\n").map(clip);
 	const mark = (keep: Uint8Array, re: RegExp, before: number, after: number) =>
 		all.forEach((l, i) => {
 			if (!re.test(l) || PASSING.test(l)) return;
