@@ -14,8 +14,8 @@ on, a quote from that line, and terms a claim has to state (any one of each grou
 
 A key fact is `located` when a claim whose quote checkrefs found (exact, fixed or far) is at
 its line (±2, or the fact's span), and `found` when that claim also states the terms. A
-brain's RUN/report.md is scored the same way, per line: a citation of the fact's file:line
-(or a range over it), and the terms on that line. Claims
+brain's RUN/report.md is scored the same way, per point (a bullet with its wrapped lines): a
+citation of the fact's file:line (or a range over it), and the terms in that point. Claims
 are counted by checkrefs status; `numbers` is claims stating a number their quote doesn't.
 Cost uses PRICES (US hosts, per 1M in/out); Flint is local, so 0. Wall time runs from the
 first worker's start to the last one's end. The brain's tokens come from its Pi session
@@ -87,6 +87,19 @@ def says(text, term):
     return re.search(rf"(?<![\w.]){re.escape(term)}(?![\w])" if term[0].isalnum() else re.escape(term), text, re.I)
 
 
+def items(text):
+    """A report's points: each bullet or numbered item with its wrapped lines, or a paragraph."""
+    out = []
+    for line in text.splitlines():
+        if re.match(r"\s*([-*+]|\d+[.)])\s", line) or line.startswith("#") or not out or not out[-1].strip():
+            out.append(line)
+        elif line.strip():
+            out[-1] += " " + line.strip()
+        else:
+            out.append("")
+    return [p for p in out if p.strip()]
+
+
 def cites(line, k):
     # file.py:42, file.py:40-45, file.py lines 40-45; the file's base name is enough.
     base = re.escape(os.path.basename(k["file"]))
@@ -128,7 +141,7 @@ def score(run, key, prices):
         ledger = {"slices": []}  # the brain stopped before planning
     try:
         with open(os.path.join(run, "report.md"), encoding="utf-8") as f:
-            report = f.read().splitlines()
+            report = items(f.read())
     except OSError:
         report = None
     claims, tries, models = [], [], set()
