@@ -24,7 +24,9 @@ brief, check and merge; theirs is the bulk reading and writing.
    "grep for what you need first, then read only those spots. Your deliverable is the file
    <notes path>/<slice>.md: write it after your first few findings and rewrite it as you go,
    with file:line for each claim and open questions at the end. Your final reply is just
-   that path and 3 lines of summary." The file survives a worker that runs out of room.
+   that path and 3 lines of summary. If the code reads as garbage (mojibake, random strings
+where names should be), stop and say so in the file." The file survives a worker that runs
+out of room; one that never writes it gets its interim text and reads saved there instead.
 5. **Check after each wave.** Read the notes files, not the sources. A worker that stopped
    early still leaves its file; brief the rest of its range as a new slice. Spot-check a claim only when
    it matters or looks wrong (read those few lines yourself). Re-brief a slice that failed,

@@ -36,7 +36,7 @@ diff -ru a/agents.ts b/agents.ts
  			filePath,
 diff -ru a/index.ts b/index.ts
 --- a/index.ts	2026-10-27 10:19:02
-+++ b/index.ts	2026-10-27 11:24:36
++++ b/index.ts	2026-10-27 12:32:05
 @@ -32,7 +32,61 @@
  import { type AgentConfig, type AgentScope, discoverAgents } from "./agents.ts";
  
@@ -100,7 +100,33 @@ diff -ru a/index.ts b/index.ts
  const COLLAPSED_ITEM_COUNT = 10;
  const PER_TASK_OUTPUT_CAP = 50 * 1024;
  
-@@ -295,15 +349,40 @@
+@@ -177,6 +231,25 @@
+ 	return "";
+ }
+ 
++/** A stopped worker's interim text and what it read, for its notes file. */
++function trail(messages: Message[]): string {
++	const said: string[] = [];
++	const looked: string[] = [];
++	for (const msg of messages) {
++		if (msg.role !== "assistant") continue;
++		for (const part of msg.content) {
++			if (part.type === "text" && part.text.trim()) said.push(part.text.trim());
++			if (part.type === "toolCall") {
++				const a = part.arguments as Record<string, unknown>;
++				const what = a.path ? `${a.path}${a.offset ? `:${a.offset}` : ""}` : "";
++				looked.push(`- ${part.name} ${[a.pattern, what, a.command].filter(Boolean).join(" ").slice(0, 160)}`);
++			}
++		}
++	}
++	const text = said.join("\n\n").slice(-4000);
++	return `${text || "(it wrote no text)"}\n\n## Tool calls\n${looked.join("\n") || "(none)"}`;
++}
++
+ function isFailedResult(result: SingleResult): boolean {
+ 	return result.exitCode !== 0 || result.stopReason === "error" || result.stopReason === "aborted";
+ }
+@@ -295,15 +368,40 @@
  		};
  	}
  
@@ -143,7 +169,7 @@ diff -ru a/index.ts b/index.ts
  	let tmpPromptDir: string | null = null;
  	let tmpPromptPath: string | null = null;
  
-@@ -338,6 +417,8 @@
+@@ -338,6 +436,8 @@
  
  		args.push(`Task: ${task}`);
  		let wasAborted = false;
@@ -152,7 +178,7 @@ diff -ru a/index.ts b/index.ts
  
  		const exitCode = await new Promise<number>((resolve) => {
  			const invocation = getPiInvocation(args);
-@@ -345,7 +426,16 @@
+@@ -345,7 +445,16 @@
  				cwd: cwd ?? defaultCwd,
  				shell: false,
  				stdio: ["ignore", "pipe", "pipe"],
@@ -169,7 +195,7 @@ diff -ru a/index.ts b/index.ts
  			let buffer = "";
  
  			const processLine = (line: string) => {
-@@ -418,10 +508,38 @@
+@@ -418,10 +527,42 @@
  			}
  		});
  
@@ -185,17 +211,21 @@ diff -ru a/index.ts b/index.ts
 +		const notes = readNotes(dir, instanceName);
 +		let answer = getFinalOutput(currentResult.messages).trim();
 +		const salvaged: string[] = [];
-+		if (answer)
-+			for (const p of missingNotes(task, cwd ?? defaultCwd))
-+				try {
-+					fs.mkdirSync(path.dirname(p), { recursive: true });
-+					fs.writeFileSync(p, `_Saved by the subagent tool from ${instanceName}'s final reply: it did not write this file itself._\n\n${answer}\n`);
-+					salvaged.push(p);
-+				} catch {}
++		// No reply either (out of budget, timed out): save what it said and read along the way,
++		// so the next brief can skip what's covered.
++		const saved = answer
++			? `_Saved by the subagent tool from ${instanceName}'s final reply: it did not write this file itself._\n\n${answer}`
++			: `_Saved by the subagent tool: ${instanceName} stopped (${currentResult.stopReason ?? "out of budget"}) without writing this file or replying. What it said and looked at along the way; unverified._\n\n${trail(currentResult.messages)}`;
++		for (const p of missingNotes(task, cwd ?? defaultCwd))
++			try {
++				fs.mkdirSync(path.dirname(p), { recursive: true });
++				fs.writeFileSync(p, `${saved}\n`);
++				salvaged.push(p);
++			} catch {}
 +		if (answer.length > ANSWER_CAP) answer = `${answer.slice(0, ANSWER_CAP)}\n[answer cut; the notes below have the details]`;
 +		if (notes.length || !answer || answer.endsWith("details]") || salvaged.length) {
 +			const parts = [answer || `(no final answer: ${currentResult.stopReason ?? "stopped"})`];
-+			if (salvaged.length) parts.push(`[The worker didn't write ${salvaged.join(", ")}; its final reply was saved there.]`);
++			if (salvaged.length) parts.push(`[The worker didn't write ${salvaged.join(", ")}; ${answer ? "its final reply" : "what it said and read along the way"} was saved there.]`);
 +			if (notes.length) parts.push(`Notes saved by ${instanceName}:\n${notes.slice(0, 12).join("\n")}`);
 +			parts.push(`All notes from this run: ${path.join(dir, "findings.jsonl")}`);
 +			currentResult.messages.push({
@@ -209,7 +239,7 @@ diff -ru a/index.ts b/index.ts
  		if (tmpPromptPath)
  			try {
  				fs.unlinkSync(tmpPromptPath);
-@@ -467,6 +585,12 @@
+@@ -467,6 +608,12 @@
  });
  
  export default function (pi: ExtensionAPI) {
@@ -222,7 +252,7 @@ diff -ru a/index.ts b/index.ts
  	pi.registerTool({
  		name: "subagent",
  		label: "Subagent",
-@@ -479,6 +603,7 @@
+@@ -479,6 +626,7 @@
  		parameters: SubagentParams,
  
  		async execute(_toolCallId, params, signal, onUpdate, ctx) {
