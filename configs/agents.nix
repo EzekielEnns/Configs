@@ -75,7 +75,7 @@ let
     [ "researcher" "researcher-fast" "architect" ])
   // lib.listToAttrs (map
     (name: lib.nameValuePair ".pi/agent/prompts/${name}.md" { source = ./pi-agents/${name}.md; })
-    [ "research" "research-fast" "research-design-build" "lookup" ])
+    [ "research" "research-fast" "research-design-build" "lookup" "orchestrate" ])
   // {
     ".pi/agent/extensions/subagent/index.ts".source = "${subagentDir}/index.ts";
     ".pi/agent/extensions/subagent/agents.ts".source = "${subagentDir}/agents.ts";
@@ -95,6 +95,9 @@ let
     ".pi/agent/extensions/thinking.ts".source = ./pi-extensions/thinking.ts; # drop old reasoning past 50% context
     ".pi/agent/extensions/outline.ts".source = ./pi-extensions/outline.ts; # `outline` tool
     ".pi/agent/extensions/timings.ts".source = ./pi-extensions/timings.ts; # only with PI_TIMINGS_FILE
+    # Hosted brain (cloud-*, planner): past a raw-read budget, big tool output is cut to its
+    # head with a note to delegate to Flint workers (/orchestrate). PI_DELEGATE=0 turns it off.
+    ".pi/agent/extensions/delegate.ts".source = ./pi-extensions/delegate.ts;
     ".pi/agent/extensions/budget.ts".source = ./pi-extensions/budget.ts;
     ".pi/agent/extensions/research.ts".source = ./pi-extensions/research.ts;
     # Web search through the desktop's SearXNG, and page fetch (like Claude's WebFetch).
