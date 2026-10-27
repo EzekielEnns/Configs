@@ -1,0 +1,38 @@
+{
+ "goal": "how pi-orch runs reader workers and checks their claims, and how Pi's budget, spill and memory extensions limit what a model can do",
+ "snapshot": "02bb7da",
+ "paths": ["configs/pi-orch/orch.py", "configs/pi-orch/checkrefs.py", "configs/pi-extensions/budget.ts", "configs/pi-extensions/spill.ts", "configs/pi-extensions/memory.ts"],
+ "root": "src/configs",
+ "slices": [
+  {"id": "s1", "file": "pi-orch/orch.py", "lines": [1, 290], "questions": [
+   "How is each worker process started: the command line, and which environment variables does it set?",
+   "What limits apply to a slice and to one worker run (size and time), and what are their values?",
+   "When a slice is tried again, what does the new brief tell the worker about the last try?",
+   "How are checked claims counted as verified, flagged or dropped?"]},
+  {"id": "s2", "file": "pi-orch/orch.py", "lines": [291, 523], "questions": [
+   "After a worker finishes, what makes the runner try the slice again, and when is a slice marked failed?",
+   "What are the defaults of the `pi-orch run` options?",
+   "What happens when a run is interrupted with Ctrl-C?",
+   "Where are the claims files and the digest written, and how are they named?"]},
+  {"id": "s3", "file": "pi-orch/checkrefs.py", "lines": [1, 124], "questions": [
+   "How does it decide between exact, fixed and far, and what is the default distance?",
+   "Which quotes can't be checked at all?",
+   "When is a claim flagged for numbers, and which numbers are ignored?",
+   "When a quote appears several times in the file, which line is chosen?"]},
+  {"id": "s4", "file": "pi-extensions/budget.ts", "lines": [1, 98], "questions": [
+   "When are tool calls refused, and when is the run ended? Give the thresholds and their defaults.",
+   "What limits does it put on `read` calls?",
+   "How does it catch an agent paging through a file with bash?",
+   "Which tools stay allowed after the budget is used up?"]},
+  {"id": "s5", "file": "pi-extensions/spill.ts", "lines": [1, 189], "questions": [
+   "What are the defaults for the read limit and for the output size that gets spilled to a file?",
+   "Which lines of a long output does the digest keep?",
+   "How are very long lines handled?",
+   "When is Squeez used, how long is it given, and when are spill files cleaned up?"]},
+  {"id": "s6", "file": "pi-extensions/memory.ts", "lines": [1, 182], "questions": [
+   "When may the memory tool save or forget a memory?",
+   "What do subagents get from this extension?",
+   "How is the index built, which files does it list, and how much of it goes into the prompt?",
+   "How are other tools kept from changing memories?"]}
+ ]
+}
