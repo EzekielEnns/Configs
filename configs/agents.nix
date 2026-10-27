@@ -58,10 +58,13 @@ let
     planner = "desktop/flint-careful";
     reviewer = "desktop/flint-careful";
   };
+  # Workers get budget.ts's limits (wrap up at 60% context, stop at 85%, no sed-paging loops):
+  # without them an orchestrated worker looped 91 turns until its 32k context ran out.
+  subagentExtra = { worker = "max_tool_calls: 40\ntimeout: 15\n"; };
   subagentFiles = lib.mapAttrs'
     (name: model: lib.nameValuePair ".pi/agent/agents/${name}.md" {
       text = builtins.replaceStrings [ "\nmodel: claude-sonnet-4-5\n" "\nmodel: claude-haiku-4-5\n" ]
-        [ "\nmodel: ${model}\n" "\nmodel: ${model}\n" ]
+        [ "\nmodel: ${model}\n${subagentExtra.${name} or ""}" "\nmodel: ${model}\n${subagentExtra.${name} or ""}" ]
         (builtins.readFile "${subagentDir}/agents/${name}.md");
     })
     subagentModels

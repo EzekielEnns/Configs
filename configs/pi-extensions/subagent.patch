@@ -1,6 +1,6 @@
-diff -ru subagent-a/agents.ts subagent-b/agents.ts
---- a/agents.ts	2026-10-25 22:44:12
-+++ b/agents.ts	2026-10-25 22:44:18
+diff -ru a/agents.ts b/agents.ts
+--- a/agents.ts	2026-10-27 10:19:02
++++ b/agents.ts	2026-10-27 10:19:02
 @@ -13,6 +13,12 @@
  	description: string;
  	tools?: string[];
@@ -34,10 +34,10 @@ diff -ru subagent-a/agents.ts subagent-b/agents.ts
  			systemPrompt: body,
  			source,
  			filePath,
-diff -ru subagent-a/index.ts subagent-b/index.ts
---- a/index.ts	2026-10-25 22:44:12
-+++ b/index.ts	2026-10-25 23:23:24
-@@ -32,7 +32,46 @@
+diff -ru a/index.ts b/index.ts
+--- a/index.ts	2026-10-27 10:19:02
++++ b/index.ts	2026-10-27 10:19:12
+@@ -32,7 +32,50 @@
  import { type AgentConfig, type AgentScope, discoverAgents } from "./agents.ts";
  
  const MAX_PARALLEL_TASKS = 8;
@@ -63,6 +63,10 @@ diff -ru subagent-a/index.ts subagent-b/index.ts
 +// Small orchestrators keep sending more waves until their context overflows; cap the
 +// sub-agents per prompt, and keep what each returns short (its notes carry the detail).
 +const MAX_PER_PROMPT = Number(process.env.PI_SUBAGENT_MAX_PER_PROMPT) || 4;
++// A hosted orchestrator (delegate.ts, /orchestrate) has the context for many waves.
++const HOSTED = new RegExp(process.env.PI_DELEGATE_MODELS ?? "^(cloud-|planner)");
++const MAX_PER_PROMPT_HOSTED = Number(process.env.PI_SUBAGENT_MAX_PER_PROMPT_HOSTED) || 24;
++let perPromptLimit = MAX_PER_PROMPT;
 +const ANSWER_CAP = 2500;
 +let spawnedThisPrompt = 0;
 +function getRunDir(): string {
@@ -85,18 +89,18 @@ diff -ru subagent-a/index.ts subagent-b/index.ts
  const COLLAPSED_ITEM_COUNT = 10;
  const PER_TASK_OUTPUT_CAP = 50 * 1024;
  
-@@ -295,15 +334,35 @@
+@@ -295,15 +338,35 @@
  		};
  	}
  
-+	if (++spawnedThisPrompt > MAX_PER_PROMPT) {
++	if (++spawnedThisPrompt > perPromptLimit) {
 +		return {
 +			agent: agentName,
 +			agentSource: agent.source,
 +			task,
 +			exitCode: 1,
 +			messages: [],
-+			stderr: `Limit of ${MAX_PER_PROMPT} sub-agents per prompt reached. Don't start more; write your answer now from the summaries and notes you have.`,
++			stderr: `Limit of ${perPromptLimit} sub-agents per prompt reached. Don't start more; write your answer now from the summaries and notes you have.`,
 +			usage: { input: 0, output: 0, cacheRead: 0, cacheWrite: 0, cost: 0, contextTokens: 0, turns: 0 },
 +			step,
 +		};
@@ -122,7 +126,7 @@ diff -ru subagent-a/index.ts subagent-b/index.ts
  	let tmpPromptDir: string | null = null;
  	let tmpPromptPath: string | null = null;
  
-@@ -338,6 +397,8 @@
+@@ -338,6 +401,8 @@
  
  		args.push(`Task: ${task}`);
  		let wasAborted = false;
@@ -131,7 +135,7 @@ diff -ru subagent-a/index.ts subagent-b/index.ts
  
  		const exitCode = await new Promise<number>((resolve) => {
  			const invocation = getPiInvocation(args);
-@@ -345,7 +406,16 @@
+@@ -345,7 +410,16 @@
  				cwd: cwd ?? defaultCwd,
  				shell: false,
  				stdio: ["ignore", "pipe", "pipe"],
@@ -148,7 +152,7 @@ diff -ru subagent-a/index.ts subagent-b/index.ts
  			let buffer = "";
  
  			const processLine = (line: string) => {
-@@ -418,10 +488,29 @@
+@@ -418,10 +492,29 @@
  			}
  		});
  
@@ -179,7 +183,7 @@ diff -ru subagent-a/index.ts subagent-b/index.ts
  		if (tmpPromptPath)
  			try {
  				fs.unlinkSync(tmpPromptPath);
-@@ -467,6 +556,12 @@
+@@ -467,6 +560,12 @@
  });
  
  export default function (pi: ExtensionAPI) {
@@ -192,3 +196,11 @@ diff -ru subagent-a/index.ts subagent-b/index.ts
  	pi.registerTool({
  		name: "subagent",
  		label: "Subagent",
+@@ -479,6 +578,7 @@
+ 		parameters: SubagentParams,
+ 
+ 		async execute(_toolCallId, params, signal, onUpdate, ctx) {
++			perPromptLimit = HOSTED.test(ctx.model?.id ?? "") ? MAX_PER_PROMPT_HOSTED : MAX_PER_PROMPT;
+ 			const agentScope: AgentScope = params.agentScope ?? "user";
+ 			const dispatchDefaults: DispatchDefaults = {
+ 				model: ctx.model ? `${ctx.model.provider}/${ctx.model.id}` : undefined,
