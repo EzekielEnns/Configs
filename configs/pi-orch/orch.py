@@ -16,11 +16,12 @@ may set redo, or add new pending slices). Claims files and logs go next to the l
   pi-orch status LEDGER   one line per slice
   pi-orch digest LEDGER   write <notes>/digest.md: the checked claims per slice, for the brain
 
-Each worker is `pi --mode json -p` with the agent file's model, thinking, tools and prompt,
-PI_CLAIMS_FILE (claims.ts: it can't finish without that file, and writes nothing else),
-PI_TOOL_BUDGET from max_tool_calls, and PI_DELEGATE=0. Its claims go through checkrefs; a
-slice with no claims file, or with no or mostly unfound quotes, is retried once with what
-was missing. Standard library only.
+Each worker is `pi --mode json -p --no-tools` with the agent file's model, thinking and
+prompt, and PI_DELEGATE=0. Its brief holds the slice's lines, numbered, and it replies with
+the claims JSON, which is saved as the claims file: one turn. (Workers that found and read
+the slice themselves took 14+ turns; given only `write`, Flint sometimes overwrote the
+source instead.) The claims go through checkrefs; a slice with no claims, or with no or
+mostly unfound quotes, is retried once with what was missing. Standard library only.
 """
 import argparse
 import concurrent.futures as cf
@@ -159,20 +160,25 @@ def checkrefs_cmd():
 def brief(ledger, s, claims, last):
     a, b = s["lines"]
     qs = "\n".join(f"{i + 1}. {q}" for i, q in enumerate(s["questions"]))
+    # The slice goes in the brief, numbered: a worker left to find and read it spent 14 turns
+    # (find /, other files, sed paging past the read cap) on 160 lines.
+    with open(os.path.join(ledger["root"], s["file"]), encoding="utf-8", errors="replace") as f:
+        code = "".join(f"{n}\t{line}" for n, line in enumerate(f, 1) if a <= n <= b)
     text = (
         f"Slice {s['id']} of a larger job. The job: {ledger['goal']}\n\n"
-        f"Read {s['file']}, lines {a}-{b} (paths are relative to your working directory).\n"
         f"Answer:\n{qs}\n\n"
-        f"Your claims file: {claims}\n"
-        "Each fact is a claim with its line and a quote copied from that line. If a question "
-        "isn't answered in your range, say so in open_questions, with the name of the function "
-        "or file where the answer probably is."
+        "Reply with only the claims JSON.\n"
+        f"Use \"file\": \"{s['file']}\" in every claim. Each fact is a claim with its line number "
+        "and a quote copied from that line (the text after the tab, not the number). If a "
+        "question isn't answered in these lines, say so in open_questions, with the name of the "
+        "function or file where the answer probably is.\n\n"
+        f"{s['file']}, lines {a}-{b}, each line as <number><tab><text>:\n```\n{code}```"
     )
     if last:
         text += f"\n\nThis is another try at this slice. Last time: {'; '.join(last['reasons'])}."
         if last.get("unfound"):
             text += (" These quotes weren't found in the file, so those claims were thrown away; "
-                     "copy quotes from the read output, or leave the claim out:\n"
+                     "copy quotes from the code above, or leave the claim out:\n"
                      + "\n".join(f"- {c['file']}:{c['line']} {c['quote']!r}" for c in last["unfound"][:8]))
         if last.get("kept"):
             text += f"\n{last['kept']} claims from last time were verified and are kept; you needn't repeat them."
@@ -188,14 +194,11 @@ def run_worker(ledger, s, claims, log, agent, opts, last):
         args += ["--model", model]
     if thinking:
         args += ["--thinking", thinking]
-    if agent.get("tools"):
-        args += ["--tools", ",".join(t.strip() for t in agent["tools"].split(","))]
+    args.append("--no-tools")
     env = dict(os.environ)
-    for k in ("PI_RESEARCH_DIR", "PI_DELEGATE_LOG"):
+    for k in ("PI_RESEARCH_DIR", "PI_DELEGATE_LOG", "PI_CLAIMS_FILE", "PI_TOOL_BUDGET"):
         env.pop(k, None)
-    env.update(PI_AGENT_NAME=f"reader-{s['id']}", PI_CLAIMS_FILE=claims, PI_DELEGATE="0")
-    if agent.get("max_tool_calls"):
-        env["PI_TOOL_BUDGET"] = agent["max_tool_calls"]
+    env.update(PI_AGENT_NAME=f"reader-{s['id']}", PI_DELEGATE="0")
     timeout = float(agent.get("timeout") or 15) * 60
     info = {"model": model, "stop": None, "turns": 0, "input": 0, "output": 0, "reply": ""}
     start = time.time()
@@ -233,7 +236,7 @@ def run_worker(ledger, s, claims, log, agent, opts, last):
                     info["error"] = str(m["errorMessage"])[:300]
                 text = "".join(c.get("text", "") for c in m.get("content") or [] if c.get("type") == "text")
                 if text.strip():
-                    info["reply"] = text.strip()[:500]
+                    info["reply"] = text.strip()
             p.wait()
             timer.cancel()
             t.join(5)
@@ -279,6 +282,19 @@ def checked_path(claims):
     return claims[:-5] + ".checked.json"
 
 
+def save_reply(reply, claims):
+    """Save the JSON object in a worker's reply (bare or fenced) as its claims file."""
+    a, b = reply.find("{"), reply.rfind("}")
+    if a < 0 or b < a:
+        return
+    try:
+        data = json.loads(reply[a:b + 1])
+    except ValueError:
+        return
+    with open(claims, "w", encoding="utf-8") as f:
+        json.dump(data, f, indent=1)
+
+
 def tally(checked):
     out = {"verified": 0, "flagged": 0, "dropped": 0}
     for c in checked:
@@ -309,6 +325,7 @@ def do_slice(path, ledger, sid, agent, opts):
         if os.path.exists(claims):
             os.unlink(claims)
         info = run_worker(ledger, s, claims, os.path.join(notes, "logs", f"{sid}.try{n}.jsonl"), agent, opts, last)
+        save_reply(info["reply"], claims)
         data, checked = check_claims(ledger, claims)
         counts = tally(checked)
         reasons = []

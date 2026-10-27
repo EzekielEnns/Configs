@@ -144,7 +144,7 @@ def score(run, key, prices):
     facts = {}
     for k in key:
         lo, hi = k.get("span", [-2, 2])
-        here = [c for c in claims if c.get("status") in FOUND and str(c.get("file", "")).lstrip("./") == k["file"]
+        here = [c for c in claims if c.get("status") in FOUND and ("/" + str(c.get("file", "")).lstrip("./")).endswith("/" + k["file"])
                 and k["line"] + lo <= int(c.get("line") or 0) <= k["line"] + hi]
         hit = [c for c in here if all(any(says(str(c.get("claim", "")), t) for t in g) for g in k["terms"])]
         facts[k["id"]] = "found" if hit else "located" if here else "missed"

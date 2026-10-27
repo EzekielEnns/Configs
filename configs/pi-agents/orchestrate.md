@@ -13,14 +13,16 @@ slice once. You never brief workers yourself: the brief comes from a fixed templ
 2. **Write the ledger.** Notes go in `~/.pi/orch/<short-name>/` unless I name a folder.
    Write `<notes>/ledger.json`:
    `{"goal": "...", "root": "<project path>", "slices": [{"id": "s1", "file": "src/x.rs", "lines": [1, 400], "questions": ["..."]}]}`
-   One file per slice, at most 600 lines (smaller is better: a worker has 32k of context).
+   One file per slice, at most 600 lines. A file that fits is one slice: the worker gets the
+   lines in its prompt and answers in one turn (about a minute), 2 at a time, so fewer slices
+   finish sooner.
    1-4 questions per slice, each answerable by a line of code (a call, a name, a constant),
    e.g. "Which function does the POST /search route call?" Then run
    `pi-orch check <notes>/ledger.json` and fix what it reports.
 3. **Show me the plan:** `pi-orch status <notes>/ledger.json`, plus what you skip and why.
    Wait for my ok unless I said to go ahead.
-4. **Run:** `pi-orch run <notes>/ledger.json`. It prints a line per try and takes a few
-   minutes per slice. After it starts, don't change slices' status except to set a failed
+4. **Run:** `pi-orch run <notes>/ledger.json`. It prints a line per try, about a minute
+   per slice. After it starts, don't change slices' status except to set a failed
    one to `redo` (with better questions); you may add new slices as `pending`.
 5. **Read `<notes>/digest.md`** (run writes it; `pi-orch digest` rewrites it). It holds only
    claims whose quote was found in the file. Before using a claim marked `[far]` or
