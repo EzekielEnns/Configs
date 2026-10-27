@@ -36,8 +36,8 @@ diff -ru a/agents.ts b/agents.ts
  			filePath,
 diff -ru a/index.ts b/index.ts
 --- a/index.ts	2026-10-27 10:19:02
-+++ b/index.ts	2026-10-27 10:19:12
-@@ -32,7 +32,50 @@
++++ b/index.ts	2026-10-27 11:24:36
+@@ -32,7 +32,61 @@
  import { type AgentConfig, type AgentScope, discoverAgents } from "./agents.ts";
  
  const MAX_PARALLEL_TASKS = 8;
@@ -67,6 +67,17 @@ diff -ru a/index.ts b/index.ts
 +const HOSTED = new RegExp(process.env.PI_DELEGATE_MODELS ?? "^(cloud-|planner)");
 +const MAX_PER_PROMPT_HOSTED = Number(process.env.PI_SUBAGENT_MAX_PER_PROMPT_HOSTED) || 24;
 +let perPromptLimit = MAX_PER_PROMPT;
++const SESSIONS_DIR = path.join(os.homedir(), ".pi", "agent", "subagent-sessions");
++
++// Briefs name a notes file as the deliverable (/orchestrate). Small models sometimes say
++// they wrote it without calling write; if it's missing after the run, save the final reply
++// there so the orchestrator doesn't have to dig it out of the transcript.
++function missingNotes(task: string, cwd: string): string[] {
++	const paths = [...new Set(task.match(/[\w~./-]*notes[\w~./-]*\.md\b/g) ?? [])];
++	return paths
++		.map((p) => (p.startsWith("~/") ? path.join(os.homedir(), p.slice(2)) : path.resolve(cwd, p)))
++		.filter((p) => !p.includes("<") && !fs.existsSync(p));
++}
 +const ANSWER_CAP = 2500;
 +let spawnedThisPrompt = 0;
 +function getRunDir(): string {
@@ -89,10 +100,11 @@ diff -ru a/index.ts b/index.ts
  const COLLAPSED_ITEM_COUNT = 10;
  const PER_TASK_OUTPUT_CAP = 50 * 1024;
  
-@@ -295,15 +338,35 @@
+@@ -295,15 +349,40 @@
  		};
  	}
  
+-	const args: string[] = ["--mode", "json", "-p", "--no-session"];
 +	if (++spawnedThisPrompt > perPromptLimit) {
 +		return {
 +			agent: agentName,
@@ -106,7 +118,12 @@ diff -ru a/index.ts b/index.ts
 +		};
 +	}
 +
- 	const args: string[] = ["--mode", "json", "-p", "--no-session"];
++	// Keep each sub-agent's transcript (outside the main session list) so a failed worker can
++	// be looked at afterwards; PI_SUBAGENT_SESSIONS=0 goes back to none.
++	const args: string[] =
++		process.env.PI_SUBAGENT_SESSIONS === "0"
++			? ["--mode", "json", "-p", "--no-session"]
++			: ["--mode", "json", "-p", "--session-dir", SESSIONS_DIR];
  	const inheritsDispatchConfig = !agent.model;
  	const model = agent.model ?? dispatchDefaults.model;
  	if (model) args.push("--model", model);
@@ -126,7 +143,7 @@ diff -ru a/index.ts b/index.ts
  	let tmpPromptDir: string | null = null;
  	let tmpPromptPath: string | null = null;
  
-@@ -338,6 +401,8 @@
+@@ -338,6 +417,8 @@
  
  		args.push(`Task: ${task}`);
  		let wasAborted = false;
@@ -135,7 +152,7 @@ diff -ru a/index.ts b/index.ts
  
  		const exitCode = await new Promise<number>((resolve) => {
  			const invocation = getPiInvocation(args);
-@@ -345,7 +410,16 @@
+@@ -345,7 +426,16 @@
  				cwd: cwd ?? defaultCwd,
  				shell: false,
  				stdio: ["ignore", "pipe", "pipe"],
@@ -152,7 +169,7 @@ diff -ru a/index.ts b/index.ts
  			let buffer = "";
  
  			const processLine = (line: string) => {
-@@ -418,10 +492,29 @@
+@@ -418,10 +508,38 @@
  			}
  		});
  
@@ -167,9 +184,18 @@ diff -ru a/index.ts b/index.ts
 +		// context or time before writing its answer.
 +		const notes = readNotes(dir, instanceName);
 +		let answer = getFinalOutput(currentResult.messages).trim();
++		const salvaged: string[] = [];
++		if (answer)
++			for (const p of missingNotes(task, cwd ?? defaultCwd))
++				try {
++					fs.mkdirSync(path.dirname(p), { recursive: true });
++					fs.writeFileSync(p, `_Saved by the subagent tool from ${instanceName}'s final reply: it did not write this file itself._\n\n${answer}\n`);
++					salvaged.push(p);
++				} catch {}
 +		if (answer.length > ANSWER_CAP) answer = `${answer.slice(0, ANSWER_CAP)}\n[answer cut; the notes below have the details]`;
-+		if (notes.length || !answer || answer.endsWith("details]")) {
++		if (notes.length || !answer || answer.endsWith("details]") || salvaged.length) {
 +			const parts = [answer || `(no final answer: ${currentResult.stopReason ?? "stopped"})`];
++			if (salvaged.length) parts.push(`[The worker didn't write ${salvaged.join(", ")}; its final reply was saved there.]`);
 +			if (notes.length) parts.push(`Notes saved by ${instanceName}:\n${notes.slice(0, 12).join("\n")}`);
 +			parts.push(`All notes from this run: ${path.join(dir, "findings.jsonl")}`);
 +			currentResult.messages.push({
@@ -183,7 +209,7 @@ diff -ru a/index.ts b/index.ts
  		if (tmpPromptPath)
  			try {
  				fs.unlinkSync(tmpPromptPath);
-@@ -467,6 +560,12 @@
+@@ -467,6 +585,12 @@
  });
  
  export default function (pi: ExtensionAPI) {
@@ -196,7 +222,7 @@ diff -ru a/index.ts b/index.ts
  	pi.registerTool({
  		name: "subagent",
  		label: "Subagent",
-@@ -479,6 +578,7 @@
+@@ -479,6 +603,7 @@
  		parameters: SubagentParams,
  
  		async execute(_toolCallId, params, signal, onUpdate, ctx) {
