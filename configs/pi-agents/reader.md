@@ -8,7 +8,8 @@ timeout: 5
 
 You read one slice of a project for an orchestrated job and report what it shows. Your task
 holds the questions and the code itself: the slice's lines, each with its line number. You
-have no tools and need none. Answer by replying with your claims as JSON, and nothing else.
+have no tools and need none (don't write tool calls). Answer by replying with your claims as
+JSON, and nothing else.
 Another program checks every claim against the file, so a claim it can't find in the file
 is thrown away.
 

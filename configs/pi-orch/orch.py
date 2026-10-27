@@ -24,6 +24,7 @@ source instead.) The claims go through checkrefs; a slice with no claims, or wit
 mostly unfound quotes, is retried once with what was missing. Standard library only.
 """
 import argparse
+import ast
 import concurrent.futures as cf
 import fcntl
 import json
@@ -282,6 +283,27 @@ def checked_path(claims):
     return claims[:-5] + ".checked.json"
 
 
+def literal(text):
+    """JSON as Flint writes it: Python-style literals are allowed ('single-quoted' strings,
+    which it uses for quotes containing "). Parsed with ast, never evaluated."""
+    names = {"true": True, "false": False, "null": None, "True": True, "False": False, "None": None}
+
+    def conv(n):
+        if isinstance(n, ast.Constant) and isinstance(n.value, (str, int, float, bool, type(None))):
+            return n.value
+        if isinstance(n, ast.Name) and n.id in names:
+            return names[n.id]
+        if isinstance(n, ast.UnaryOp) and isinstance(n.op, ast.USub) and isinstance(n.operand, ast.Constant):
+            return -n.operand.value
+        if isinstance(n, (ast.List, ast.Tuple)):
+            return [conv(x) for x in n.elts]
+        if isinstance(n, ast.Dict) and None not in n.keys:
+            return {str(conv(k)): conv(v) for k, v in zip(n.keys, n.values)}
+        raise ValueError(f"not a literal: {type(n).__name__}")
+
+    return conv(ast.parse(text.strip(), mode="eval").body)
+
+
 def save_reply(reply, claims):
     """Save the JSON object in a worker's reply (bare or fenced) as its claims file."""
     a, b = reply.find("{"), reply.rfind("}")
@@ -290,7 +312,10 @@ def save_reply(reply, claims):
     try:
         data = json.loads(reply[a:b + 1])
     except ValueError:
-        return
+        try:
+            data = literal(reply[a:b + 1])
+        except (ValueError, SyntaxError, TypeError, RecursionError, MemoryError):
+            return
     with open(claims, "w", encoding="utf-8") as f:
         json.dump(data, f, indent=1)
 

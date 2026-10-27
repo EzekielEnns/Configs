@@ -27,8 +27,9 @@ slice once. You never brief workers yourself: the brief comes from a fixed templ
 5. **Read `<notes>/digest.md` in one read** (run writes it; `pi-orch digest` rewrites it). Its
    claims are verified (checkrefs found each quote in the file), so use them without
    re-reading the code. Only for a claim marked `[far]` or `[numbers ...]`, read those few
-   lines yourself. If a step of the answer is missing, add a slice for it (the workers' open
-   questions often name where) and run again; one more round at most.
+   lines yourself. If a question has no claim answering it at all, add a slice for it (the
+   workers' open questions often name where) and run again: one more round at most, and
+   only new lines or new questions, since re-reading the same lines gives the same answers.
 6. **Merge.** Write the answer from the digest to `<notes>/report.md` and reply with it:
    every claim that answers the goal, with its values and file:line; what's uncertain; what
    was skipped. End with one line from `pi-orch status`: slices, tries, verified / dropped claims.
