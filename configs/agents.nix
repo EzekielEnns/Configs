@@ -98,6 +98,9 @@ let
     # Hosted brain (cloud-*, planner): past a raw-read budget, big tool output is cut to its
     # head with a note to delegate to Flint workers (/orchestrate). PI_DELEGATE=0 turns it off.
     ".pi/agent/extensions/delegate.ts".source = ./pi-extensions/delegate.ts;
+    # Memory across sessions (like Claude Code's): ~/.pi/memory, one file per fact + an index
+    # in the system prompt; "remember ..." saves. Files stay on each machine. PI_MEMORY=0 off.
+    ".pi/agent/extensions/memory.ts".source = ./pi-extensions/memory.ts;
     ".pi/agent/extensions/budget.ts".source = ./pi-extensions/budget.ts;
     ".pi/agent/extensions/research.ts".source = ./pi-extensions/research.ts;
     # Web search through the desktop's SearXNG, and page fetch (like Claude's WebFetch).
