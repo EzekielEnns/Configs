@@ -18,6 +18,8 @@ let
     { id = "flint"; name = "Flint 40B-A2.5B (quick: 2k thinking)"; contextWindow = 32768; maxTokens = 16384; }
     { id = "flint-careful"; name = "Flint 40B-A2.5B (careful: no thinking cap)"; contextWindow = 32768; maxTokens = 16384; }
     { id = "planner"; name = "planner (GLM-5.3 via OpenRouter, US hosts)"; contextWindow = 131072; maxTokens = 32768; }
+    # 1M on OpenRouter; told 400k so Pi compacts there, before long-context quality drops.
+    { id = "cloud-deepseek"; name = "DeepSeek V4.1 Flash (OpenRouter, US hosts)"; contextWindow = 409600; maxTokens = 32768; }
     # Research (ai-stack docs/models/sage-a1.5.md): Sage runs its own sub-agents, 2 slots
     # x 32k; the 4B runs 4 slots x 16k for quick lookups.
     { id = "sage"; name = "Sage-A1.5 35B-A3B (research, Q3, 2 slots x 32k)"; contextWindow = 32768; maxTokens = 16384; }
