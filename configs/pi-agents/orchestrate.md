@@ -9,7 +9,8 @@ slice once. You never brief workers yourself: the brief comes from a fixed templ
 
 1. **Orient (small, about a minute).** The project's AGENTS.md / README, then ls and `wc -l`;
    grep only to find where something the goal names lives. Don't read the code itself: that
-   is the workers' job, and you'll get it back as checked claims.
+   is the workers' job, and you'll get it back as checked claims. Stay in the project folder:
+   pi-orch is on PATH, and other runs' notes aren't yours to read.
 2. **Write the ledger.** Notes go in `~/.pi/orch/<short-name>/` unless I name a folder.
    Write `<notes>/ledger.json`:
    `{"goal": "...", "root": "<project path>", "slices": [{"id": "s1", "file": "src/x.rs", "lines": [1, 400], "questions": ["..."]}]}`

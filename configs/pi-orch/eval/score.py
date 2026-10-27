@@ -15,7 +15,8 @@ on, a quote from that line, and terms a claim has to state (any one of each grou
 A key fact is `located` when a claim whose quote checkrefs found (exact, fixed or far) is at
 its line (±2, or the fact's span), and `found` when that claim also states the terms. A
 brain's RUN/report.md is scored the same way, per point (a bullet with its wrapped lines): a
-citation of the fact's file:line (or a range over it), and the terms in that point. Claims
+citation of the fact's file:line (or a range over it, or ":line" after a heading or citation
+names the file), and the terms in that point. Claims
 are counted by checkrefs status; `numbers` is claims stating a number their quote doesn't.
 Cost uses PRICES (US hosts, per 1M in/out); Flint is local, so 0. Wall time runs from the
 first worker's start to the last one's end. The brain's tokens come from its Pi session
@@ -97,7 +98,20 @@ def items(text):
             out[-1] += " " + line.strip()
         else:
             out.append("")
-    return [p for p in out if p.strip()]
+    # Shorthand: after a heading or citation names a file, "`:334`" means that file's line 334.
+    named = re.compile(r"([\w.-]+\.(?:py|ts|rs|go|js|md|nix))(?=\W)")
+    bare = re.compile(r"(?<![\w.])(?=:\d)")
+    current, points = "", []
+    for p in out:
+        if not p.strip():
+            continue
+        if current:
+            p = bare.sub(current, p)
+        found = named.findall(p)
+        if found:
+            current = found[-1]
+        points.append(p)
+    return points
 
 
 def cites(line, k):

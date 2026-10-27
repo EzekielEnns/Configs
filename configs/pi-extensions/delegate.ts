@@ -17,8 +17,13 @@
  * brain is meant to read, so reading them is never counted or cut: cutting them made
  * DeepSeek loop re-reading notes it couldn't see. PI_DELEGATE_LOG=<file> appends a JSON line per counted result, for the
  * orchestration eval (ai-stack docs/ORCHESTRATE-PLAN.md).
+ *
+ * tool_call: searches of the whole disk or home folder (find/fd/du/rg/grep -r/ls -R on /, ~,
+ * $HOME, /Users, /nix) are refused for every model: a brain looking for pi-orch's source ran
+ * `find / -name pi-orch` for 6 minutes of a 3-minute job.
  */
 import { appendFileSync } from "node:fs";
+import { homedir } from "node:os";
 import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
 
 const ON = process.env.PI_DELEGATE !== "0";
@@ -29,6 +34,13 @@ const HEAD = 15;
 const RAW = new Set(["read", "bash", "grep", "find"]);
 const LOG = process.env.PI_DELEGATE_LOG;
 const NOTES = /(^|[\s/'"])notes\/[^\s'"]*\.md\b|notes[\w.-]*\.md\b/;
+const SEARCH = /(^|[\s;&|(])(find|fd|du|rg|grep\s+-\w*[rR]\w*|ls\s+-\w*R\w*)\s/;
+const HOME = homedir().replace(/\/$/, "");
+/** A path that means "everywhere": the root, the home folder, or the store. */
+const everywhere = (p: string) =>
+	["/", "~", "~/", "$HOME", "${HOME}", "/Users", "/home", "/nix", "/nix/store", "/private", HOME, `${HOME}/`].includes(
+		p.replace(/^['"]|['"]$/g, ""),
+	);
 
 function log(entry: Record<string, unknown>) {
 	if (LOG) appendFileSync(LOG, JSON.stringify({ t: Date.now(), ...entry }) + "\n");
@@ -39,6 +51,21 @@ export default function (pi: ExtensionAPI) {
 	let spent = 0;
 	pi.on("session_start", () => {
 		spent = 0;
+	});
+
+	pi.on("tool_call", (event) => {
+		const cmd = event.toolName === "bash" ? String((event.input as { command?: string }).command ?? "") : "";
+		const wide =
+			(SEARCH.test(cmd) && cmd.split(/[\s;&|()]+/).some(everywhere)) ||
+			((event.toolName === "find" || event.toolName === "grep") &&
+				everywhere(String((event.input as { path?: string }).path ?? ".")));
+		if (wide)
+			return {
+				block: true,
+				reason:
+					"Searching the whole disk or home folder is off: it takes minutes. Stay in the project folder " +
+					"(your working directory); tools like pi-orch are on PATH, so run them, not their source.",
+			};
 	});
 
 	pi.on("tool_result", (event, ctx) => {
