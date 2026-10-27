@@ -13,7 +13,9 @@
  * to hand the reading to `worker` subagents. Small results (checks, tool runs, notes) still
  * pass, and subagent results never count. Resets per session. PI_DELEGATE=0 turns it off.
  * 15k, not more: HyMem (arXiv 2608.15703) lost 5-19 points when subtask detail reached the
- * planner. PI_DELEGATE_LOG=<file> appends a JSON line per counted result, for the
+ * planner. Workers' notes (paths under a notes/ folder or named *notes*.md) are what the
+ * brain is meant to read, so reading them is never counted or cut: cutting them made
+ * DeepSeek loop re-reading notes it couldn't see. PI_DELEGATE_LOG=<file> appends a JSON line per counted result, for the
  * orchestration eval (ai-stack docs/ORCHESTRATE-PLAN.md).
  */
 import { appendFileSync } from "node:fs";
@@ -26,6 +28,7 @@ const SMALL = 1500;
 const HEAD = 15;
 const RAW = new Set(["read", "bash", "grep", "find"]);
 const LOG = process.env.PI_DELEGATE_LOG;
+const NOTES = /(^|[\s/'"])notes\/[^\s'"]*\.md\b|notes[\w.-]*\.md\b/;
 
 function log(entry: Record<string, unknown>) {
 	if (LOG) appendFileSync(LOG, JSON.stringify({ t: Date.now(), ...entry }) + "\n");
@@ -40,6 +43,8 @@ export default function (pi: ExtensionAPI) {
 
 	pi.on("tool_result", (event, ctx) => {
 		if (!RAW.has(event.toolName) || !MODELS.test(ctx.model?.id ?? "")) return;
+		const target = String(event.input.path ?? event.input.command ?? "");
+		if ((event.toolName === "read" || event.toolName === "bash") && NOTES.test(target)) return;
 		const text = event.content.map((c) => (c.type === "text" ? c.text : "")).join("\n");
 		const tokens = Math.round(text.length / 3.5);
 		if (spent < BUDGET || text.length <= SMALL) {
