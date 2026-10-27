@@ -47,6 +47,11 @@
             model = "openrouter/deepseek/deepseek-v4.1-flash";
             extra_body.provider = usHosts;
           };
+          # Worker candidate (open weights, OpenAI): cheap reading for pi-orch workers.
+          cloud-gptoss = {
+            model = "openrouter/openai/gpt-oss-120b";
+            extra_body.provider = usHosts;
+          };
           cloud-haiku = "openrouter/anthropic/claude-haiku-5.5";
           cloud-sonnet = "openrouter/anthropic/claude-sonnet-5.5";
           cloud-opus = "openrouter/anthropic/claude-opus-5.5";
