@@ -1,5 +1,5 @@
 ---
-description: Quick web answer: one lookup call (two at most), then a short sourced answer
+description: Quick web answer, one lookup call (two at most), then a short sourced answer
 ---
 Look this up: $@
 
