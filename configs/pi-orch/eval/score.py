@@ -33,7 +33,9 @@ import tempfile
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 REPO = os.path.abspath(os.path.join(HERE, "..", "..", ".."))
-PRICES = {"desktop/flint": (0, 0), "desktop/flint-careful": (0, 0), "desktop/cloud-gptoss": (0.037, 0.17)}
+# In, out, cache read; the low end of each model's US hosts on OpenRouter (2026-10-27).
+PRICES = {"desktop/flint": (0, 0, 0), "desktop/flint-careful": (0, 0, 0), "desktop/cloud-gptoss": (0.037, 0.17, 0.037),
+          "desktop/cloud-deepseek": (0.112, 0.336, 0.003), "desktop/planner": (0.562, 2.50, 0.125)}
 FOUND = ("exact", "fixed", "far")
 STATUSES = ("exact", "fixed", "far", "missing", "nofile", "short")
 
@@ -69,8 +71,8 @@ def cmd_prep(a):
             tar.extractall(src, filter="data")
     if a.brain:
         cwd = os.path.abspath(os.path.join(a.run, plan["root"]))
-        print(f'cd {cwd} && pi --model desktop/cloud-gptoss "/orchestrate {plan["task"]} '
-              f'Notes folder: {os.path.abspath(a.run)}"')
+        print(f'cd {cwd} && pi --model desktop/cloud-deepseek --thinking off "/orchestrate {plan["task"]} '
+              f'Notes folder: {os.path.abspath(a.run)}. Go ahead without waiting for my ok."')
         return
     ledger = {"goal": plan["goal"], "root": plan["root"],
               "slices": [{k: s[k] for k in ("id", "file", "lines", "questions")} for s in plan["slices"]]}
@@ -98,10 +100,10 @@ def cites(line, k):
 
 
 def brain_usage(run):
-    """(model, input, output) summed over the brain's Pi sessions for this run."""
+    """(model, input, cache read, output) summed over the brain's Pi sessions for this run."""
     cwd = os.path.abspath(os.path.join(run, "src", "configs"))
     d = os.path.expanduser(os.path.join("~/.pi/agent/sessions", "--" + cwd.strip("/").replace("/", "-") + "--"))
-    models, tin, tout = set(), 0, 0
+    models, tin, tcache, tout = set(), 0, 0, 0
     for path in glob.glob(os.path.join(d, "*.jsonl")):
         with open(path, encoding="utf-8") as f:
             for line in f:
@@ -112,14 +114,18 @@ def brain_usage(run):
                 u = m.get("usage") if m.get("role") == "assistant" else None
                 if u:
                     models.add(f"{m.get('provider', 'desktop')}/{m.get('model')}" if "/" not in str(m.get("model")) else m["model"])
-                    tin += (u.get("input") or 0) + (u.get("cacheRead") or 0)
+                    tin += u.get("input") or 0
+                    tcache += u.get("cacheRead") or 0
                     tout += u.get("output") or 0
-    return ", ".join(sorted(models)), tin, tout
+    return ", ".join(sorted(models)), tin, tcache, tout
 
 
 def score(run, key, prices):
-    with open(os.path.join(run, "ledger.json"), encoding="utf-8") as f:
-        ledger = json.load(f)
+    try:
+        with open(os.path.join(run, "ledger.json"), encoding="utf-8") as f:
+            ledger = json.load(f)
+    except OSError:
+        ledger = {"slices": []}  # the brain stopped before planning
     try:
         with open(os.path.join(run, "report.md"), encoding="utf-8") as f:
             report = f.read().splitlines()
@@ -155,9 +161,9 @@ def score(run, key, prices):
             cost = None
             break
         cost += (t.get("input", 0) * p[0] + t.get("output", 0) * p[1]) / 1e6
-    bmodel, bin_, bout = brain_usage(run)
+    bmodel, bin_, bcache, bout = brain_usage(run)
     bp = prices.get(bmodel)
-    bcost = None if bp is None else (bin_ * bp[0] + bout * bp[1]) / 1e6
+    bcost = None if bp is None else (bin_ * bp[0] + bout * bp[1] + bcache * bp[2]) / 1e6
     spans = []
     for t, log in ((t, os.path.join(run, "logs", t["claims"][:-5] + ".jsonl")) for t in tries):
         if os.path.exists(log):
@@ -171,7 +177,7 @@ def score(run, key, prices):
         "located": sum(v != "missed" for k, v in facts.items() if k[0] == "k"),
         "report found": "-" if report is None else sum(v == "found" for k, v in facts.items() if k[0] == "r"),
         "report located": "-" if report is None else sum(v != "missed" for k, v in facts.items() if k[0] == "r"),
-        "brain": f"{bmodel} {bin_ / 1000:.0f}k/{bout / 1000:.0f}k" if bmodel else "-",
+        "brain": f"{bmodel} {(bin_ + bcache) / 1000:.0f}k/{bout / 1000:.0f}k" if bmodel else "-",
         "brain cost": "-" if not bmodel else "?" if bcost is None else f"${bcost:.4f}",
         "claims": len(claims), **counts,
         "numbers": sum(bool(c.get("numbers")) for c in claims),
@@ -189,7 +195,7 @@ def cmd_score(a):
     for p in a.price:
         m, _, v = p.partition("=")
         i, _, o = v.partition("/")
-        prices[m] = (float(i), float(o))
+        prices[m] = (float(i), float(o), float(i))
     runs = [score(r, key, prices) for r in a.runs]
     n = len(key)
     rows = [("run", [os.path.basename(os.path.normpath(r)) for r in a.runs])]
