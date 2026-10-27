@@ -456,9 +456,9 @@ def write_digest(path, ledger):
     notes = notes_dir(path)
     out = [f"# Digest: {ledger['goal']}", "",
            "Claims from `reader` workers whose quote checkrefs found in the file (root: "
-           f"`{ledger['root']}`). `[far]`: the quote is elsewhere in the file than cited; "
-           "`[numbers N]`: the claim states a number its quote doesn't show. Check those before "
-           "using them. Unfound quotes are left out and only counted.", ""]
+           f"`{ledger['root']}`), so they're verified: use them as they are. `[far]`: the quote "
+           "is elsewhere in the file than cited; `[numbers N]`: the claim states a number its "
+           "quote doesn't show. Check only those. Unfound quotes are left out and only counted.", ""]
     for s in ledger["slices"]:
         a, b = s["lines"]
         claims, seen, dropped, notes_text, opens = [], set(), 0, [], []
@@ -488,8 +488,9 @@ def write_digest(path, ledger):
                 tag = " [far]" if c.get("status") == "far" else ""
                 if c.get("numbers"):
                     tag += f" [numbers {', '.join(map(str, c['numbers']))}]"
-                claims.append(f"- {clip(c.get('claim', ''), 300)} — `{c.get('file')}:{c.get('line')}`{tag}"
-                              f" `{clip(c.get('quote', ''), 100)}`")
+                # No quote: checkrefs has checked it, and quotes doubled the digest (a brain
+                # then read it in 25 pieces).
+                claims.append(f"- {clip(c.get('claim', ''), 300)} — `{c.get('file')}:{c.get('line')}`{tag}")
         out.append(f"## {s['id']}: {s['file']}:{a}-{b} ({s.get('status', 'pending')}, "
                    f"{s.get('attempts', 0)} tries, {len(claims)} claims, {dropped} dropped)")
         out.append("Questions: " + " / ".join(s["questions"]))

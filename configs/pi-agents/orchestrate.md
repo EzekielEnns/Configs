@@ -7,9 +7,9 @@ You plan and merge. `reader` workers on Flint do the reading, and `pi-orch` (a s
 model) runs them 2 at a time, checks every claim's quote against its file, and retries a
 slice once. You never brief workers yourself: the brief comes from a fixed template.
 
-1. **Orient (small).** The project's AGENTS.md / README, then ls, `wc -l`, and grep for the
-   entry points and names the goal mentions. Don't read whole files; keep your own raw
-   reading under ~200 lines per file.
+1. **Orient (small, about a minute).** The project's AGENTS.md / README, then ls and `wc -l`;
+   grep only to find where something the goal names lives. Don't read the code itself: that
+   is the workers' job, and you'll get it back as checked claims.
 2. **Write the ledger.** Notes go in `~/.pi/orch/<short-name>/` unless I name a folder.
    Write `<notes>/ledger.json`:
    `{"goal": "...", "root": "<project path>", "slices": [{"id": "s1", "file": "src/x.rs", "lines": [1, 400], "questions": ["..."]}]}`
@@ -24,11 +24,11 @@ slice once. You never brief workers yourself: the brief comes from a fixed templ
 4. **Run:** `pi-orch run <notes>/ledger.json`. It prints a line per try, about a minute
    per slice. After it starts, don't change slices' status except to set a failed
    one to `redo` (with better questions); you may add new slices as `pending`.
-5. **Read `<notes>/digest.md`** (run writes it; `pi-orch digest` rewrites it). It holds only
-   claims whose quote was found in the file. Before using a claim marked `[far]` or
-   `[numbers ...]`, read those few lines yourself. If a step of the answer is missing, add a
-   slice for it (the workers' open questions often name where) and run again; one more
-   round at most.
+5. **Read `<notes>/digest.md` in one read** (run writes it; `pi-orch digest` rewrites it). Its
+   claims are verified (checkrefs found each quote in the file), so use them without
+   re-reading the code. Only for a claim marked `[far]` or `[numbers ...]`, read those few
+   lines yourself. If a step of the answer is missing, add a slice for it (the workers' open
+   questions often name where) and run again; one more round at most.
 6. **Merge.** Write the answer from the digest to `<notes>/report.md` and reply with it:
-   each point with file:line, what's uncertain, what was skipped. End with one line from
-   `pi-orch status`: slices, tries, verified / dropped claims.
+   every claim that answers the goal, with its values and file:line; what's uncertain; what
+   was skipped. End with one line from `pi-orch status`: slices, tries, verified / dropped claims.

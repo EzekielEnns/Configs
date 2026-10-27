@@ -3,8 +3,9 @@
  *
  * - `read` without a limit reads PI_READ_LIMIT lines (default 150); Pi then says how to
  *   continue with offset.
- * - Any other tool result over PI_SPILL_CHARS (default 6000) is saved to a file; the model
- *   gets a digest, the size and the path, and digs in with grep or read. The digest keeps the
+ * - Any other tool result over PI_SPILL_CHARS is saved to a file (default 6000 chars, or 15%
+ *   of the context window for big models: a 410k brain read a 21k digest in 25 pieces); the
+ *   model gets a digest, the size and the path, and digs in with grep or read. The digest keeps the
  *   lines that matter in logs (errors, failures, panics and the lines after them) plus the
  *   start and end, and counts the rest: the old first-2000-chars preview cut off test
  *   failures, which come last. With PI_SQUEEZ_URL set, Squeez-2B (a model trained to pick
@@ -23,8 +24,9 @@ import { join } from "node:path";
 import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
 
 const READ_LIMIT = Number(process.env.PI_READ_LIMIT) || 150;
-const SPILL_CHARS = Number(process.env.PI_SPILL_CHARS) || 6000;
-const PREVIEW_CHARS = Math.min(2000, Math.floor(SPILL_CHARS / 3));
+const SPILL_CHARS = Number(process.env.PI_SPILL_CHARS) || 0;
+/** Chars a result may have before it's cut or spilled: 6000 for our 32k models, more for big ones. */
+const spillAt = (window: number | undefined) => SPILL_CHARS || Math.max(6000, Math.round((window ?? 0) * 0.15));
 const ROOT = join(tmpdir(), "pi-spill");
 const DIGEST = process.env.PI_LOG_DIGEST !== "0";
 const SQUEEZ_URL = process.env.PI_SQUEEZ_URL;
@@ -143,22 +145,23 @@ export default function (pi: ExtensionAPI) {
 		if (event.toolName === "read" && event.input.limit === undefined) event.input.limit = READ_LIMIT;
 	});
 
-	pi.on("tool_result", async (event) => {
+	pi.on("tool_result", async (event, ctx) => {
 		const texts = event.content.filter((c) => c.type === "text") as { type: "text"; text: string }[];
 		const text = texts.map((c) => c.text).join("\n");
-		if (text.length <= SPILL_CHARS) return;
+		const limit = spillAt(ctx.model?.contextWindow);
+		if (text.length <= limit) return;
 		const images = event.content.filter((c) => c.type !== "text");
 		const lines = text.split("\n").length;
 
 		if (event.toolName === "read") {
 			const path = String(event.input.path ?? "");
-			const cut = text.slice(0, SPILL_CHARS);
+			const cut = text.slice(0, limit);
 			return {
 				content: [
 					...images,
 					{
 						type: "text",
-						text: `${cut}\n\n[Cut at ${SPILL_CHARS} of ${text.length} chars. Use grep on ${path}, or read it with a smaller offset/limit.]`,
+						text: `${cut}\n\n[Cut at ${limit} of ${text.length} chars. Use grep on ${path}, or read it with a smaller offset/limit.]`,
 					},
 				],
 				structuredContent: event.structuredContent,
@@ -171,7 +174,7 @@ export default function (pi: ExtensionAPI) {
 		writeFileSync(file, text, { mode: 0o600 });
 		const command = String(event.input.command ?? event.toolName);
 		const picked = DIGEST ? await squeez(command, text) : undefined;
-		const shown = picked ?? (DIGEST ? digest(text, SPILL_CHARS / 2) : text.slice(0, PREVIEW_CHARS));
+		const shown = picked ?? (DIGEST ? digest(text, limit / 2) : text.slice(0, Math.min(2000, Math.floor(limit / 3))));
 		const how = picked ? "Lines picked by Squeez" : DIGEST ? "Digest" : "Start";
 		return {
 			content: [
