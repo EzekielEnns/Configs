@@ -14,7 +14,8 @@
  * pass, and subagent results never count. Resets per session. PI_DELEGATE=0 turns it off.
  * 15k, not more: HyMem (arXiv 2608.15703) lost 5-19 points when subtask detail reached the
  * planner. Workers' notes (paths under a notes/ folder or named *notes*.md) are what the
- * brain is meant to read, so reading them is never counted or cut: cutting them made
+ * brain is meant to read, as are pi-orch's digest.md, ledger.json and *.checked.json, so reading
+ * them is never counted or cut: cutting them made
  * DeepSeek loop re-reading notes it couldn't see. PI_DELEGATE_LOG=<file> appends a JSON line per counted result, for the
  * orchestration eval (ai-stack docs/ORCHESTRATE-PLAN.md).
  *
@@ -33,7 +34,7 @@ const SMALL = 1500;
 const HEAD = 15;
 const RAW = new Set(["read", "bash", "grep", "find"]);
 const LOG = process.env.PI_DELEGATE_LOG;
-const NOTES = /(^|[\s/'"])notes\/[^\s'"]*\.md\b|notes[\w.-]*\.md\b/;
+const NOTES = /(^|[\s/'"])notes\/[^\s'"]*\.md\b|notes[\w.-]*\.md\b|\bdigest\.md\b|\bledger\.json\b|\.checked\.json\b/;
 const SEARCH = /(^|[\s;&|(])(find|fd|du|rg|grep\s+-\w*[rR]\w*|ls\s+-\w*R\w*)\s/;
 const HOME = homedir().replace(/\/$/, "");
 /** A path that means "everywhere": the root, the home folder, or the store. */
