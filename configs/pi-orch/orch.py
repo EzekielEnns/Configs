@@ -16,11 +16,12 @@ may set redo, or add new pending slices). Claims files and logs go next to the l
   pi-orch status LEDGER   one line per slice
   pi-orch digest LEDGER   write <notes>/digest.md: the checked claims per slice, for the brain
 
-Each worker is `pi --mode json -p --no-tools` with the agent file's model, thinking and
-prompt, and PI_DELEGATE=0. Its brief holds the slice's lines, numbered, and it replies with
-the claims JSON, which is saved as the claims file: one turn. (Workers that found and read
-the slice themselves took 14+ turns; given only `write`, Flint sometimes overwrote the
-source instead.) The claims go through checkrefs; a slice with no claims, or with no or
+Each worker is one chat call through the gateway (PI_ORCH_GATEWAY, default desktop:4000),
+with the agent file's model and prompt; its brief holds the slice's lines, numbered, and the
+reply is held to the claims JSON schema and saved as the claims file. Not Pi: Pi's own
+system prompt says the model reads files and runs commands, and with no tools Flint then
+wrote tool calls as text and stopped (most failed tries); direct calls answered 36 of 36
+(eval, 2026-10-28). The claims go through checkrefs; a slice with no claims, or with no or
 mostly unfound quotes, is retried once with what was missing.
 
 Gap pass: one pass misses about half of what matters, and a different half each time (eval,
@@ -39,7 +40,6 @@ import json
 import os
 import re
 import shutil
-import signal
 import subprocess
 import sys
 import tempfile
@@ -54,11 +54,25 @@ DROPPED = ("missing", "nofile", "short")
 MAX_LINES = 800
 BLOCK = 10  # lines per block in the gap pass
 GAP_TIMEOUT = 120  # seconds per gap worker, one try: a stuck one cost 5 minutes for nothing (eval)
+GATEWAY = os.environ.get("PI_ORCH_GATEWAY", "http://desktop:4000/v1")
+CLAIMS_SCHEMA = {
+    "type": "object",
+    "properties": {
+        "claims": {"type": "array", "items": {
+            "type": "object",
+            "properties": {"claim": {"type": "string"}, "file": {"type": "string"},
+                           "line": {"type": "integer"}, "quote": {"type": "string"}},
+            "required": ["claim", "file", "line", "quote"]}},
+        "open_questions": {"type": "array", "items": {"type": "string"}},
+        "notes": {"type": "string"},
+        "garbled": {"type": "boolean"},
+    },
+    "required": ["claims"],
+}
 JEV_URL = os.environ.get("PI_ORCH_JEV_URL", "http://desktop:4000/openrouter/decisions")
 JEV_MODEL = os.environ.get("PI_ORCH_JEV_MODEL", "typesafe/jev-1.14")
 
 lock = threading.Lock()
-procs = set()
 
 
 def die(msg):
@@ -231,78 +245,41 @@ def brief(ledger, s, claims, last):
 
 
 def run_worker(ledger, s, claims, log, agent, opts, last):
-    """Run one worker; returns what it did (stop reason, turns, tokens, seconds, reply)."""
-    args = ["pi", "--mode", "json", "-p", "--no-session"]
-    model = opts.model or agent.get("model")
-    thinking = opts.thinking or agent.get("thinking")
-    if model:
-        args += ["--model", model]
-    if thinking:
-        args += ["--thinking", thinking]
-    args.append("--no-tools")
-    env = dict(os.environ)
-    for k in ("PI_RESEARCH_DIR", "PI_DELEGATE_LOG", "PI_CLAIMS_FILE", "PI_TOOL_BUDGET"):
-        env.pop(k, None)
-    env.update(PI_AGENT_NAME=f"reader-{s['id']}", PI_DELEGATE="0")
+    """One worker: a single chat call through the gateway, the reply held to the claims schema.
+    Returns what it did (stop reason, turns, tokens, seconds, reply)."""
+    model = opts.model or agent.get("model") or "desktop/flint"
+    # Pi's names are provider/model; the gateway knows the model part (desktop/flint -> flint).
+    name = model.split("/", 1)[1] if model.startswith("desktop/") else model
+    body = {"model": name, "max_tokens": 16384,
+            "messages": [{"role": "system", "content": agent["prompt"]},
+                         {"role": "user", "content": f"Task: {brief(ledger, s, claims, last)}"}],
+            "response_format": {"type": "json_schema", "json_schema": {"name": "claims", "schema": CLAIMS_SCHEMA}}}
+    if opts.thinking:
+        body["reasoning_effort"] = opts.thinking
     timeout = GAP_TIMEOUT if s.get("of") else float(agent.get("timeout") or 15) * 60
-    info = {"model": model, "stop": None, "turns": 0, "input": 0, "output": 0, "reply": ""}
+    info = {"model": model, "stop": None, "turns": 1, "input": 0, "output": 0, "reply": ""}
     start = time.time()
-    p, timed_out = None, threading.Event()
-    with tempfile.NamedTemporaryFile("w", suffix=".md", prefix="pi-orch-", delete=False) as pf:
-        pf.write(agent["prompt"])
-    args += ["--append-system-prompt", pf.name, f"Task: {brief(ledger, s, claims, last)}"]
-    try:
-        with open(log, "w", encoding="utf-8") as logf:
-            p = subprocess.Popen(args, cwd=ledger["root"], env=env, stdin=subprocess.DEVNULL,
-                                 stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True,
-                                 start_new_session=True)
-            with lock:
-                procs.add(p)
-            timer = threading.Timer(timeout, lambda: (timed_out.set(), kill(p)))
-            timer.start()
-            err = []
-            t = threading.Thread(target=lambda: err.extend(p.stderr), daemon=True)
-            t.start()
-            for line in p.stdout:
-                logf.write(line)
-                try:
-                    ev = json.loads(line)
-                except ValueError:
-                    continue
-                m = ev.get("message") if ev.get("type") == "message_end" else None
-                if not isinstance(m, dict) or m.get("role") != "assistant":
-                    continue
-                info["turns"] += 1
-                u = m.get("usage") or {}
-                info["input"] += u.get("input") or 0
-                info["output"] += u.get("output") or 0
-                info["stop"] = m.get("stopReason") or info["stop"]
-                if m.get("errorMessage"):
-                    info["error"] = str(m["errorMessage"])[:300]
-                text = "".join(c.get("text", "") for c in m.get("content") or [] if c.get("type") == "text")
-                if text.strip():
-                    info["reply"] = text.strip()
-            p.wait()
-            timer.cancel()
-            t.join(5)
-            if timed_out.is_set():
+    req = urllib.request.Request(f"{GATEWAY}/chat/completions", json.dumps(body).encode(),
+                                 {"Content-Type": "application/json"})
+    with open(log, "w", encoding="utf-8") as logf:
+        logf.write(json.dumps({"request": body}) + "\n")
+        try:
+            with urllib.request.urlopen(req, timeout=timeout) as r:
+                d = json.load(r)
+            logf.write(json.dumps({"response": d}) + "\n")
+            choice = d["choices"][0]
+            u = d.get("usage") or {}
+            info.update(stop=choice.get("finish_reason"), input=u.get("prompt_tokens") or 0,
+                        output=u.get("completion_tokens") or 0,
+                        reply=(choice["message"].get("content") or "").strip())
+        except Exception as e:  # noqa: BLE001 - timeouts, HTTP errors, bad JSON: the slice is retried
+            if isinstance(e, TimeoutError) or isinstance(getattr(e, "reason", None), TimeoutError):
                 info["stop"] = "timeout"
-            info["exit"] = p.returncode
-            if p.returncode and err:
-                info["stderr"] = "".join(err)[-500:]
-    finally:
-        os.unlink(pf.name)
-        with lock:
-            procs.discard(p)
+            detail = getattr(e, "read", lambda: b"")()
+            info["error"] = f"{e} {detail[:200].decode(errors='replace')}".strip()[:300]
+            logf.write(json.dumps({"error": info["error"]}) + "\n")
     info["seconds"] = round(time.time() - start)
     return info
-
-
-def kill(p):
-    try:
-        os.killpg(p.pid, signal.SIGTERM)
-    except OSError:
-        pass
 
 
 def check_claims(ledger, claims):
@@ -646,13 +623,12 @@ def run_pool(a, ledger, agent, todo):
     except KeyboardInterrupt:
         pool.shutdown(wait=False, cancel_futures=True)
         with lock:
-            for p in list(procs):
-                kill(p)
             for s in ledger["slices"]:
                 if s["status"] == "running":
                     s["status"] = "pending"
             save(a.ledger, ledger)
-        die("stopped; running slices are back to pending")
+        print("pi-orch: stopped; running slices are back to pending", file=sys.stderr, flush=True)
+        os._exit(2)  # workers are blocked in HTTP calls; don't wait for them
     pool.shutdown()
 
 
@@ -759,7 +735,7 @@ def main():
             p.add_argument("--jobs", type=int, default=2, help="workers at once (Flint has 2 slots)")
             p.add_argument("--tries", type=int, default=2, help="tries per slice in this run")
             p.add_argument("--model", help="worker model instead of the agent file's (e.g. a hosted one)")
-            p.add_argument("--thinking", help="worker thinking level instead of the agent file's")
+            p.add_argument("--thinking", help="reasoning_effort for the worker call (hosted models; Flint's budget is set on the server)")
             p.add_argument("--agent", default="reader", help="agent name in ~/.pi/agent/agents, or a .md path")
             p.add_argument("--only", help="comma-separated slice ids")
             p.add_argument("--gaps", choices=("jev", "rule", "off"), default="jev",
