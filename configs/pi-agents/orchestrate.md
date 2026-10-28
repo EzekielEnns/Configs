@@ -4,10 +4,10 @@ description: Plan a code-reading job as a ledger of slices, run reader workers o
 Goal: $@
 
 You plan and merge. `reader` workers on Flint do the reading, and `pi-orch` (a script, not a
-model) runs them 2 at a time, checks every claim's quote against its file, and retries a
+model) runs them 3 at a time, checks every claim's quote against its file, and retries a
 slice once. Then a gap pass: the lines no claim covered are ranked against the goal and the
-best go to one more worker per slice (slice `<id>g`). You never brief workers yourself: the
-brief comes from a fixed template.
+best go to a few more workers, bundled (slices `g1`, `g2`, ...). You never brief workers
+yourself: the brief comes from a fixed template.
 
 1. **Orient (small, about a minute).** The project's AGENTS.md / README, then ls and `wc -l`;
    grep only to find where something the goal names lives. Don't read the code itself: that
@@ -19,7 +19,7 @@ brief comes from a fixed template.
    `focus` is one sentence on what counts as relevant code for this goal (e.g. "lines that set
    a limit or default, or decide when a call is refused"); the gap pass ranks lines by it.
    One file per slice, at most 800 lines. A worker gets the lines in its prompt and answers in
-   one turn (about a minute), 2 at a time. pi-orch splits a slice over 250 lines into equal
+   one turn (about a minute), 3 at a time. pi-orch splits a slice over 250 lines into equal
    parts (`s1a`, `s1b`, ...) itself, because a worker gives about ten claims however long its
    slice is; so cover a whole file with one slice and let it split.
    1-4 questions per slice, each answerable by a line of code (a call, a name, a constant),

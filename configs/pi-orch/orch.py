@@ -10,7 +10,7 @@ After that this script owns each slice's status (pending, running, done, failed;
 may set redo, or add new pending slices). Claims files and logs go next to the ledger.
 
   pi-orch check LEDGER    validate the plan and fill in defaults
-  pi-orch run LEDGER      run pending/redo slices, 2 at a time, then a gap pass, then write
+  pi-orch run LEDGER      run pending/redo slices, 3 at a time, then a gap pass, then write
                           the digest [--jobs N] [--tries N] [--model M] [--thinking T]
                           [--think-budget N] [--agent NAME|FILE] [--only s1,s2]
                           [--gaps jev|rule|off] [--gap-share F]
@@ -29,8 +29,9 @@ Gap pass: one pass misses about half of what matters, and a different half each 
 2026-10-28), while its quotes are right. So after the slices are done, each slice's 5-line
 blocks are ranked against the goal (or the ledger's optional "focus") by Jev, a decision
 model behind the gateway (a plain rule if it can't be reached), less a penalty per claim
-already in the block; the top ones, up to --gap-share of the slice's lines, go to one more
-worker as slice <id>g ("ranges" instead of one span).
+already in the block. The top ones, up to --gap-share of each slice's lines, are packed into
+a few bundles of about GAP_LINES lines, each one more worker (slice g1, g2, ...; "parts" of one
+or more files instead of one span).
 Standard library only.
 """
 import argparse
@@ -62,7 +63,12 @@ SPLIT_AT = 250
 # question 35% of pass-1 misses fell in the gap ranges, 76% this way (81% vs 64% on limits).
 BLOCK = 5
 COVERED_PENALTY = 1.5  # per verified claim in the block, on Jev's 0-4 scale
-GAP_TIMEOUT = 120  # seconds per gap worker, one try: a stuck one cost 5 minutes for nothing (eval)
+GAP_TIMEOUT = 150  # seconds per gap worker, one try: a stuck one cost 5 minutes for nothing (eval)
+# A worker call costs 30-40 s even for 15 lines, and a gap slice of a small file seldom found
+# anything new (2 facts in 16 small gap slices over 3 flow runs; the 85-line orch.py ones found
+# the rest). So the gap lines go out as bundles of about this many lines, possibly from several
+# files, as many as fill whole rounds of --jobs workers.
+GAP_LINES = 130
 GATEWAY = os.environ.get("PI_ORCH_GATEWAY", "http://desktop:4000/v1")
 CLAIMS_SCHEMA = {
     "type": "object",
@@ -168,6 +174,11 @@ def validate(path, ledger):
             problems.append(f"{where}: ranges cover more than {MAX_LINES} lines")
         elif rs is None and s["lines"][1] - s["lines"][0] + 1 > MAX_LINES:
             problems.append(f"{where}: {s['lines'][1] - s['lines'][0] + 1} lines; split it (at most {MAX_LINES})")
+        for part in s.get("parts") or []:
+            pf = os.path.join(root, str(part.get("file") or ""))
+            if not part.get("file") or not os.path.isfile(pf) or not all(
+                    1 <= a <= b <= count_lines(pf) for a, b in part.get("ranges") or [[0, 0]]):
+                problems.append(f"{where}: part {part.get('file')!r} isn't a file under root with ranges inside it")
         s.setdefault("status", "pending")
         s.setdefault("attempts", 0)
         s.setdefault("tries", [])
@@ -231,20 +242,41 @@ def where(s):
     return ", ".join(f"{a}-{b}" for a, b in ranges(s))
 
 
+def parts(s):
+    """The (file, ranges) a slice covers: one file, or several for a gap bundle."""
+    return s.get("parts") or [{"file": s["file"], "ranges": ranges(s)}]
+
+
+def span(s):
+    return "; ".join(f"{p['file']}:" + ", ".join(f"{a}-{b}" for a, b in p["ranges"]) for p in parts(s))
+
+
+def sources(s):
+    """The slices a gap slice re-reads (its "of": one id before bundles, a list since)."""
+    of = s.get("of")
+    return [] if not of else [of] if isinstance(of, str) else list(of)
+
+
 def brief(ledger, s, claims, last):
     qs = "\n".join(f"{i + 1}. {q}" for i, q in enumerate(s["questions"]))
     # The slice goes in the brief, numbered: a worker left to find and read it spent 14 turns
     # (find /, other files, sed paging past the read cap) on 160 lines.
-    with open(os.path.join(ledger["root"], s["file"]), encoding="utf-8", errors="replace") as f:
-        lines = f.readlines()
-    # Between ranges a plain note, not "...": workers read the gaps as garbled code.
-    code = "".join(
-        (f"(lines {ranges(s)[i - 1][1] + 1}-{a - 1} left out: another worker covered them)\n" if i else "")
-        + "".join(f"{n}\t{lines[n - 1]}" for n in range(a, b + 1))
-        for i, (a, b) in enumerate(ranges(s)))
+    blocks = []
+    for part in parts(s):
+        with open(os.path.join(ledger["root"], part["file"]), encoding="utf-8", errors="replace") as f:
+            lines = f.readlines()
+        rs = part["ranges"]
+        # Between ranges a plain note, not "...": workers read the gaps as garbled code.
+        code = "".join(
+            (f"(lines {rs[i - 1][1] + 1}-{a - 1} left out: another worker covered them)\n" if i else "")
+            + "".join(f"{n}\t{lines[n - 1]}" for n in range(a, b + 1))
+            for i, (a, b) in enumerate(rs))
+        blocks.append(f"{part['file']}, lines {', '.join(f'{a}-{b}' for a, b in rs)}, "
+                      f"each line as <number><tab><text>:\n```\n{code}```")
+    files = [p["file"] for p in parts(s)]
     if s.get("of"):
-        ask = (f"Another worker read {s['file']} for these questions:\n{qs}\n\n"
-               "Its claims were mostly about other lines. The lines below got few or none, yet may bear "
+        ask = (f"Other workers read {', '.join(files)} for the job. What counts: {s['questions'][0]}\n\n"
+               "Their claims were mostly about other lines. The lines below got few or none, yet may bear "
                "on the job. "
                "Give one claim for every fact in them that does: values and defaults, conditions, "
                "what is refused, retried, stopped, failed or checked, and what calls what. Don't "
@@ -256,11 +288,13 @@ def brief(ledger, s, claims, last):
         f"Slice {s['id']} of a larger job. The job: {ledger['goal']}\n\n"
         f"{ask}"
         "Reply with only the claims JSON.\n"
-        f"Use \"file\": \"{s['file']}\" in every claim. Each fact is a claim with its line number "
+        + (f"Use \"file\": \"{files[0]}\" in every claim. " if len(files) == 1 else
+           "Use the file the line is in as \"file\" in each claim. ")
+        + "Each fact is a claim with its line number "
         "and a quote copied from that line (the text after the tab, not the number). If a "
         "question isn't answered in these lines, say so in open_questions, with the name of the "
         "function or file where the answer probably is.\n\n"
-        f"{s['file']}, lines {where(s)}, each line as <number><tab><text>:\n```\n{code}```"
+        + "\n\n".join(blocks)
     )
     if last:
         text += f"\n\nThis is another try at this slice. Last time: {'; '.join(last['reasons'])}."
@@ -435,7 +469,7 @@ def do_slice(path, ledger, sid, agent, opts):
             s["status"] = "running"
             claims = os.path.join(notes, f"{sid}.try{n}.json")
             save(path, ledger)
-        say(f"{sid} try {n}: {s['file']}:{where(s)}")
+        say(f"{sid} try {n}: {span(s)}")
         if os.path.exists(claims):
             os.unlink(claims)
         info = run_worker(ledger, s, claims, os.path.join(notes, "logs", f"{sid}.try{n}.jsonl"), agent, opts, last)
@@ -512,16 +546,17 @@ def jev_rank(question, where_, code):
     return float(ans["rel"]["score"]) + float(ans["part"]["noul"])
 
 
-def plan_gaps(ledger, how, share):
-    """Add a gap slice <id>g for each finished slice that has none yet: its blocks ranked by
+def plan_gaps(ledger, how, share, jobs):
+    """Gap slices for the finished slices that have none yet: each slice's blocks ranked by
     relevance less COVERED_PENALTY per claim already in them, best first, up to `share` of its
-    lines. Returns the new slice ids."""
+    lines, then packed into bundles (g1, g2, ...) that fill whole rounds of `jobs` workers.
+    Returns the new slice ids."""
     covered = {}
     for s in ledger["slices"]:
         for c in s.get("_checked", []):
             if c.get("status") in VERIFIED:
                 covered.setdefault(c.get("file"), []).append(c.get("line"))
-    have = {s.get("of") for s in ledger["slices"]}
+    have = {o for s in ledger["slices"] for o in sources(s)}
     files, blocks = {}, []
     for s in ledger["slices"]:
         if s.get("of") or s["id"] in have or s.get("status") != "done":
@@ -555,7 +590,7 @@ def plan_gaps(ledger, how, share):
             bl["rank"], bl["by"] = r - COVERED_PENALTY * bl["claims"], by
     by = {bl["by"] for bl in blocks}
     say(f"gaps: ranked {len(blocks)} blocks by {'/'.join(sorted(by))} in {time.time() - start:.0f}s")
-    new = []
+    pieces = []
     for s in [x for x in ledger["slices"] if any(bl["sid"] == x["id"] for bl in blocks)]:
         mine = sorted((bl for bl in blocks if bl["sid"] == s["id"]), key=lambda bl: -bl["rank"])
         budget = share * sum(b - a + 1 for a, b in ranges(s))
@@ -573,9 +608,32 @@ def plan_gaps(ledger, how, share):
                 merged[-1][1] = max(merged[-1][1], b)
             else:
                 merged.append([a, b])
-        gid = f"{s['id']}g"
-        ledger["slices"].append({"id": gid, "of": s["id"], "file": s["file"], "questions": s["questions"],
-                                 "lines": [merged[0][0], merged[-1][1]], "ranges": merged,
+        pieces.append({"sid": s["id"], "file": s["file"], "ranges": merged, "n": used})
+    if not pieces:
+        return []
+    # Largest first onto the lightest bundle; a file's pieces then sit together, in line order.
+    total = sum(p["n"] for p in pieces)
+    k = min(len(pieces), jobs * -(-total // (jobs * GAP_LINES)))
+    bins = [[] for _ in range(k)]
+    for p in sorted(pieces, key=lambda p: -p["n"]):
+        min(bins, key=lambda b: sum(x["n"] for x in b)).append(p)
+    ids = {s["id"] for s in ledger["slices"]}
+    order = {s["id"]: i for i, s in enumerate(ledger["slices"])}
+    new = []
+    for b in bins:
+        b.sort(key=lambda p: order[p["sid"]])
+        prts = []
+        for p in b:
+            if prts and prts[-1]["file"] == p["file"]:
+                prts[-1]["ranges"] += p["ranges"]
+            else:
+                prts.append({"file": p["file"], "ranges": list(p["ranges"])})
+        gid = next(f"g{i}" for i in range(1, 1000) if f"g{i}" not in ids)
+        ids.add(gid)
+        ledger["slices"].append({"id": gid, "of": [p["sid"] for p in b], "file": prts[0]["file"],
+                                 "questions": [ledger.get("focus") or ledger["goal"]],
+                                 "lines": [prts[0]["ranges"][0][0], prts[0]["ranges"][-1][1]],
+                                 "ranges": prts[0]["ranges"], "parts": prts,
                                  "status": "pending", "attempts": 0, "tries": []})
         new.append(gid)
     return new
@@ -631,10 +689,10 @@ def cmd_run(a):
         run_pool(a, ledger, agent, todo)
     if a.gaps != "off":
         load_checked(a.ledger, ledger)  # no workers are running now, so no lock (say() takes it)
-        gaps = plan_gaps(ledger, a.gaps, a.gap_share)
+        gaps = plan_gaps(ledger, a.gaps, a.gap_share, a.jobs)
         save(a.ledger, ledger)
         if only is not None:
-            gaps = [g for g in gaps if g[:-1] in only]
+            gaps = [g["id"] for g in ledger["slices"] if g["id"] in gaps and set(sources(g)) & only]
         if gaps:
             say(f"gap pass: {len(gaps)} slices")
             run_pool(a, ledger, agent, gaps)
@@ -671,7 +729,7 @@ def status(ledger):
         for k in tot:
             tot[k] += c[k]
         print(f"{s['id']:<8} {s.get('status', 'pending'):<8} tries {s.get('attempts', 0)}  "
-              f"{c['verified']:>3} ok {c['flagged']:>2} flagged {c['dropped']:>2} dropped  {s['file']}:{where(s)}")
+              f"{c['verified']:>3} ok {c['flagged']:>2} flagged {c['dropped']:>2} dropped  {span(s)}")
     tries = sum(s.get("attempts", 0) for s in ledger["slices"])
     print(f"total: {len(ledger['slices'])} slices, {tries} tries, {tot['verified']} verified, "
           f"{tot['flagged']} flagged, {tot['dropped']} dropped")
@@ -728,10 +786,10 @@ def write_digest(path, ledger):
                 # No quote: checkrefs has checked it, and quotes doubled the digest (a brain
                 # then read it in 25 pieces).
                 claims.append(f"- {clip(c.get('claim', ''), 300)} — `{c.get('file')}:{c.get('line')}`{tag}")
-        out.append(f"## {s['id']}: {s['file']}:{where(s)} ({s.get('status', 'pending')}, "
+        out.append(f"## {s['id']}: {span(s)} ({s.get('status', 'pending')}, "
                    f"{s.get('attempts', 0)} tries, {len(claims)} claims, {dropped} dropped)")
         if s.get("of"):
-            out.append(f"Gap pass of {s['of']}: lines it had no claims on, ranked by relevance to the goal")
+            out.append(f"Gap pass of {', '.join(sources(s))}: lines with few claims, ranked by relevance to the goal")
         else:
             out.append("Questions: " + " / ".join(s["questions"]))
         last = (s.get("tries") or [{}])[-1]
@@ -764,7 +822,7 @@ def main():
         p = sub.add_parser(name)
         p.add_argument("ledger")
         if name == "run":
-            p.add_argument("--jobs", type=int, default=2, help="workers at once (Flint has 2 slots)")
+            p.add_argument("--jobs", type=int, default=3, help="workers at once (Flint has 3 slots)")
             p.add_argument("--tries", type=int, default=2, help="tries per slice in this run")
             p.add_argument("--model", help="worker model instead of the agent file's (e.g. a hosted one)")
             p.add_argument("--thinking", help="reasoning_effort for the worker call (hosted models; Flint's budget is set on the server)")
