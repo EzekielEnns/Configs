@@ -18,9 +18,10 @@ brief comes from a fixed template.
    `{"goal": "...", "focus": "...", "root": "<project path>", "slices": [{"id": "s1", "file": "src/x.rs", "lines": [1, 400], "questions": ["..."]}]}`
    `focus` is one sentence on what counts as relevant code for this goal (e.g. "lines that set
    a limit or default, or decide when a call is refused"); the gap pass ranks lines by it.
-   One file per slice, at most 600 lines. A file that fits is one slice: the worker gets the
-   lines in its prompt and answers in one turn (about a minute), 2 at a time, so fewer slices
-   finish sooner.
+   One file per slice, at most 800 lines. A worker gets the lines in its prompt and answers in
+   one turn (about a minute), 2 at a time. pi-orch splits a slice over 250 lines into equal
+   parts (`s1a`, `s1b`, ...) itself, because a worker gives about ten claims however long its
+   slice is; so cover a whole file with one slice and let it split.
    1-4 questions per slice, each answerable by a line of code (a call, a name, a constant),
    e.g. "Which function does the POST /search route call?" Then run
    `pi-orch check <notes>/ledger.json` and fix what it reports.

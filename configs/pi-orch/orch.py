@@ -53,6 +53,10 @@ RUNNABLE = ("pending", "redo")
 VERIFIED = ("exact", "fixed")
 DROPPED = ("missing", "nofile", "short")
 MAX_LINES = 800
+# A worker writes about 10 claims per call however long its slice (eval), so a long slice
+# loses facts: the brain made all 523 lines of orch.py one slice and found 10/24 where two
+# smaller slices found 15-16. Longer pending slices are split into equal parts.
+SPLIT_AT = 250
 # Gap pass blocks: 5 lines, and a block with claims is ranked lower, not skipped. With 10-line
 # blocks skipped once any claim landed in them, dense code hid its other facts: on the flow
 # question 35% of pass-1 misses fell in the gap ranges, 76% this way (81% vs 64% on limits).
@@ -169,7 +173,26 @@ def validate(path, ledger):
         s.setdefault("tries", [])
         if s["status"] not in ("pending", "running", "done", "failed", "redo"):
             problems.append(f"{where}: unknown status {s['status']!r}")
+    if not problems:
+        ledger["slices"] = [part for s in ledger["slices"] for part in split(s, seen)]
     return problems
+
+
+def split(s, ids):
+    """A long untouched slice as equal parts of at most SPLIT_AT lines (ids s1a, s1b, ...)."""
+    a, b = s["lines"]
+    n = b - a + 1
+    if s.get("ranges") or s.get("of") or s["attempts"] or s["status"] not in RUNNABLE or n <= SPLIT_AT:
+        return [s]
+    k = -(-n // SPLIT_AT)
+    parts, start = [], a
+    for i in range(k):
+        end = a + (n * (i + 1)) // k - 1
+        pid = next(f"{s['id']}{c}" for c in "abcdefghijklmnopqrstuvwxyz" if f"{s['id']}{c}" not in ids)
+        ids.add(pid)
+        parts.append({**s, "id": pid, "lines": [start, end], "split_from": s["id"], "tries": []})
+        start = end + 1
+    return parts
 
 
 # --- workers --------------------------------------------------------------------------
