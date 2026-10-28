@@ -12,6 +12,10 @@ on, a quote from that line, and terms a claim has to state (any one of each grou
                               the task, with RUN as its notes folder (it writes the ledger)
   score.py score RUN...       one column per run [--price MODEL=IN/OUT per 1M tokens]
 
+Each command takes --task NAME for another question on the same kind of snapshot: its
+slices.json and key.json are in tasks/NAME/ (default: the files here, the limits question).
+prep writes the name to RUN/task, and score uses the first run's.
+
 A key fact is `located` when a claim whose quote checkrefs found (exact, fixed or far) is at
 its line (±2, or the fact's span), and `found` when that claim also states the terms. A
 brain's RUN/report.md is scored the same way, per point (a bullet with its wrapped lines): a
@@ -41,8 +45,11 @@ FOUND = ("exact", "fixed", "far")
 STATUSES = ("exact", "fixed", "far", "missing", "nofile", "short")
 
 
+TASK = None  # --task: tasks/<name>/ instead of the files here
+
+
 def load(name):
-    with open(os.path.join(HERE, name), encoding="utf-8") as f:
+    with open(os.path.join(HERE, "tasks", TASK, name) if TASK else os.path.join(HERE, name), encoding="utf-8") as f:
         return json.load(f)
 
 
@@ -65,6 +72,9 @@ def cmd_prep(a):
         sys.exit(f"{a.run} isn't empty")
     src = os.path.join(a.run, "src")
     os.makedirs(src)
+    if TASK:
+        with open(os.path.join(a.run, "task"), "w", encoding="utf-8") as f:
+            f.write(TASK + "\n")
     with tempfile.TemporaryFile() as t:
         subprocess.run(["git", "-C", REPO, "archive", plan["snapshot"], *plan["paths"]], stdout=t, check=True)
         t.seek(0)
@@ -217,6 +227,10 @@ def score(run, key, prices):
 
 
 def cmd_score(a):
+    global TASK
+    if TASK is None and os.path.exists(os.path.join(a.runs[0], "task")):
+        with open(os.path.join(a.runs[0], "task"), encoding="utf-8") as f:
+            TASK = f.read().strip()
     key = load("key.json")
     prices = dict(PRICES)
     for p in a.price:
@@ -254,7 +268,11 @@ def main():
     p = sub.add_parser("score")
     p.add_argument("runs", nargs="+")
     p.add_argument("--price", action="append", default=[], help="MODEL=IN/OUT dollars per 1M tokens")
+    for p in sub.choices.values():
+        p.add_argument("--task", help="question in tasks/NAME/ (default: the limits question here)")
     a = ap.parse_args()
+    global TASK
+    TASK = a.task
     {"check-key": cmd_check_key, "prep": cmd_prep, "score": cmd_score}[a.cmd](a)
 
 

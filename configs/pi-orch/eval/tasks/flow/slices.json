@@ -1,0 +1,88 @@
+{
+ "goal": "how a claim gets from a reader worker into the final report: where the worker writes it, how it's checked and counted, when a slice is retried or failed, how the digest is built, and how the brain turns it into the report",
+ "task": "How does a claim get from a reader worker into the final report in pi-orch (pi-orch/orch.py, pi-orch/checkrefs.py, pi-extensions/claims.ts, pi-agents/reader.md, pi-agents/orchestrate.md)? Trace each step: where the worker writes it, how it's checked and counted, when a slice is retried or marked failed, how the digest is built, and how the brain turns it into the report. Cite file:line for every step.",
+ "snapshot": "02bb7da",
+ "paths": [
+  "configs/pi-orch/orch.py",
+  "configs/pi-orch/checkrefs.py",
+  "configs/pi-extensions/claims.ts",
+  "configs/pi-agents/reader.md",
+  "configs/pi-agents/orchestrate.md"
+ ],
+ "root": "src/configs",
+ "slices": [
+  {
+   "id": "s1",
+   "file": "pi-orch/orch.py",
+   "lines": [
+    150,
+    350
+   ],
+   "questions": [
+    "How does a worker get its task, and where does it put its claims?",
+    "How are a worker's claims checked and counted?",
+    "When is a slice tried again, and what is the new try told?",
+    "When is a slice done or failed?"
+   ]
+  },
+  {
+   "id": "s2",
+   "file": "pi-orch/orch.py",
+   "lines": [
+    400,
+    523
+   ],
+   "questions": [
+    "How is the digest for the brain built from the checked claims, and where is it written?"
+   ]
+  },
+  {
+   "id": "s3",
+   "file": "pi-orch/checkrefs.py",
+   "lines": [
+    1,
+    124
+   ],
+   "questions": [
+    "How is a claim's quote checked against the file?",
+    "What statuses can a claim get, and when?",
+    "What happens to the claim's line number?",
+    "What else gets flagged?"
+   ]
+  },
+  {
+   "id": "s4",
+   "file": "pi-extensions/claims.ts",
+   "lines": [
+    1,
+    68
+   ],
+   "questions": [
+    "What happens when a worker's claims file is missing or wrong?",
+    "What may a reader write?"
+   ]
+  },
+  {
+   "id": "s5",
+   "file": "pi-agents/reader.md",
+   "lines": [
+    1,
+    47
+   ],
+   "questions": [
+    "What must a claim contain, and how must its quote be written?"
+   ]
+  },
+  {
+   "id": "s6",
+   "file": "pi-agents/orchestrate.md",
+   "lines": [
+    1,
+    32
+   ],
+   "questions": [
+    "How does the brain use the digest, and where does the final answer go?"
+   ]
+  }
+ ]
+}

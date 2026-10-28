@@ -12,7 +12,8 @@ may set redo, or add new pending slices). Claims files and logs go next to the l
   pi-orch check LEDGER    validate the plan and fill in defaults
   pi-orch run LEDGER      run pending/redo slices, 2 at a time, then a gap pass, then write
                           the digest [--jobs N] [--tries N] [--model M] [--thinking T]
-                          [--agent NAME|FILE] [--only s1,s2] [--gaps jev|rule|off] [--gap-share F]
+                          [--think-budget N] [--agent NAME|FILE] [--only s1,s2]
+                          [--gaps jev|rule|off] [--gap-share F]
   pi-orch status LEDGER   one line per slice
   pi-orch digest LEDGER   write <notes>/digest.md: the checked claims per slice, for the brain
 
@@ -256,6 +257,8 @@ def run_worker(ledger, s, claims, log, agent, opts, last):
             "response_format": {"type": "json_schema", "json_schema": {"name": "claims", "schema": CLAIMS_SCHEMA}}}
     if opts.thinking:
         body["reasoning_effort"] = opts.thinking
+    if opts.think_budget:  # llama.cpp's per-request cap on thinking tokens (Flint's server default: 2048)
+        body["thinking_budget_tokens"] = opts.think_budget
     timeout = GAP_TIMEOUT if s.get("of") else float(agent.get("timeout") or 15) * 60
     info = {"model": model, "stop": None, "turns": 1, "input": 0, "output": 0, "reply": ""}
     start = time.time()
@@ -736,6 +739,7 @@ def main():
             p.add_argument("--tries", type=int, default=2, help="tries per slice in this run")
             p.add_argument("--model", help="worker model instead of the agent file's (e.g. a hosted one)")
             p.add_argument("--thinking", help="reasoning_effort for the worker call (hosted models; Flint's budget is set on the server)")
+            p.add_argument("--think-budget", type=int, help="most thinking tokens per worker call (llama.cpp models)")
             p.add_argument("--agent", default="reader", help="agent name in ~/.pi/agent/agents, or a .md path")
             p.add_argument("--only", help="comma-separated slice ids")
             p.add_argument("--gaps", choices=("jev", "rule", "off"), default="jev",

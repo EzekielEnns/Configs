@@ -1,0 +1,394 @@
+[
+ {
+  "id": "f1",
+  "slice": "s1",
+  "file": "pi-orch/orch.py",
+  "line": 305,
+  "fact": "Each try writes its own claims file, <notes>/<slice>.try<n>.json.",
+  "quote": "claims = os.path.join(notes, f\"{sid}.try{n}.json\")",
+  "terms": [
+   [
+    "notes",
+    "claims file",
+    "try",
+    "per try",
+    "each try"
+   ]
+  ]
+ },
+ {
+  "id": "f2",
+  "slice": "s1",
+  "file": "pi-orch/orch.py",
+  "line": 196,
+  "fact": "The worker gets its claims file's path in PI_CLAIMS_FILE.",
+  "quote": "PI_CLAIMS_FILE=claims",
+  "terms": [
+   [
+    "PI_CLAIMS_FILE"
+   ]
+  ]
+ },
+ {
+  "id": "f3",
+  "slice": "s1",
+  "file": "pi-orch/orch.py",
+  "line": 184,
+  "fact": "Each worker is a `pi --mode json -p --no-session` process.",
+  "quote": "args = [\"pi\", \"--mode\", \"json\", \"-p\", \"--no-session\"]",
+  "terms": [
+   [
+    "pi"
+   ]
+  ]
+ },
+ {
+  "id": "f4",
+  "slice": "s4",
+  "file": "pi-extensions/claims.ts",
+  "line": 46,
+  "span": [
+   -1,
+   0
+  ],
+  "fact": "A reader may write or edit only its claims file; other writes are blocked.",
+  "quote": "return { block: true, reason: `Readers only write their claims file: ${FILE}` };",
+  "terms": [
+   [
+    "block",
+    "blocked",
+    "blocks",
+    "only",
+    "refused",
+    "refuses"
+   ]
+  ]
+ },
+ {
+  "id": "f5",
+  "slice": "s4",
+  "file": "pi-extensions/claims.ts",
+  "line": 16,
+  "fact": "If the claims file is missing or invalid when the worker would stop, it is told to write it, at most 2 times.",
+  "quote": "const NUDGES = 2;",
+  "terms": [
+   [
+    "2",
+    "two",
+    "twice"
+   ]
+  ]
+ },
+ {
+  "id": "f6",
+  "slice": "s5",
+  "file": "pi-agents/reader.md",
+  "line": 38,
+  "span": [
+   0,
+   1
+  ],
+  "fact": "A quote is copied character for character from the cited line, at least 15 characters.",
+  "quote": "- `quote` is copied character for character from line `line` of `file`: at least 15",
+  "terms": [
+   [
+    "15",
+    "character for character",
+    "exactly",
+    "exact",
+    "verbatim"
+   ]
+  ]
+ },
+ {
+  "id": "f7",
+  "slice": "s1",
+  "file": "pi-orch/orch.py",
+  "line": 265,
+  "fact": "A claims file that isn't a JSON object with a `claims` list counts as no valid claims file.",
+  "quote": "if not isinstance(data, dict) or not isinstance(data.get(\"claims\"), list):",
+  "terms": [
+   [
+    "list",
+    "array",
+    "object",
+    "dict",
+    "valid",
+    "invalid"
+   ]
+  ]
+ },
+ {
+  "id": "f8",
+  "slice": "s1",
+  "file": "pi-orch/orch.py",
+  "line": 269,
+  "fact": "pi-orch runs checkrefs on each claims file (--root, --write).",
+  "quote": "subprocess.run(checkrefs_cmd() + [\"--root\", ledger[\"root\"], \"--write\", claims],",
+  "terms": [
+   [
+    "checkrefs"
+   ]
+  ]
+ },
+ {
+  "id": "f9",
+  "slice": "s3",
+  "file": "pi-orch/checkrefs.py",
+  "line": 69,
+  "fact": "checkrefs searches every line of the file for the quote, ignoring whitespace differences.",
+  "quote": "hits = [i + 1 for i, l in enumerate(lines) if quote in l]",
+  "terms": [
+   [
+    "every line",
+    "whole file",
+    "each line",
+    "anywhere",
+    "all lines",
+    "whitespace",
+    "lines"
+   ]
+  ]
+ },
+ {
+  "id": "f10",
+  "slice": "s3",
+  "file": "pi-orch/checkrefs.py",
+  "line": 73,
+  "fact": "With several matches, the one closest to the cited line is used.",
+  "quote": "best = min(hits, key=lambda h: abs(h - line))",
+  "terms": [
+   [
+    "closest",
+    "nearest"
+   ]
+  ]
+ },
+ {
+  "id": "f11",
+  "slice": "s3",
+  "file": "pi-orch/checkrefs.py",
+  "line": 78,
+  "fact": "Status: exact on the cited line, fixed within --near lines, otherwise far.",
+  "quote": "out[\"status\"] = \"exact\" if best == line else \"fixed\" if abs(best - line) <= near else \"far\"",
+  "terms": [
+   [
+    "fixed",
+    "far"
+   ]
+  ]
+ },
+ {
+  "id": "f12",
+  "slice": "s3",
+  "file": "pi-orch/checkrefs.py",
+  "line": 81,
+  "span": [
+   -2,
+   0
+  ],
+  "fact": "When the quote is on another line, the claim's line is corrected (cited_line keeps the old one).",
+  "quote": "out[\"line\"] = best",
+  "terms": [
+   [
+    "correct",
+    "corrected",
+    "corrects",
+    "updated",
+    "updates",
+    "rewritten",
+    "cited_line",
+    "moved"
+   ]
+  ]
+ },
+ {
+  "id": "f13",
+  "slice": "s3",
+  "file": "pi-orch/checkrefs.py",
+  "line": 71,
+  "fact": "A quote that isn't in the file is `missing`.",
+  "quote": "out[\"status\"] = \"missing\"",
+  "terms": [
+   [
+    "missing"
+   ]
+  ]
+ },
+ {
+  "id": "f14",
+  "slice": "s3",
+  "file": "pi-orch/checkrefs.py",
+  "line": 75,
+  "span": [
+   0,
+   2
+  ],
+  "fact": "A found claim stating a number its quote doesn't show is flagged with `numbers`.",
+  "quote": "unsupported = sorted(n for n in values(str(claim.get(\"claim\") or \"\")) - values(quote) if n > 9 and n != best)",
+  "terms": [
+   [
+    "number",
+    "numbers"
+   ]
+  ]
+ },
+ {
+  "id": "f15",
+  "slice": "s1",
+  "file": "pi-orch/orch.py",
+  "line": 279,
+  "fact": "The checked claims are saved next to the claims file as <name>.checked.json.",
+  "quote": "return claims[:-5] + \".checked.json\"",
+  "terms": [
+   [
+    ".checked.json",
+    "checked"
+   ]
+  ]
+ },
+ {
+  "id": "f16",
+  "slice": "s1",
+  "file": "pi-orch/orch.py",
+  "line": 288,
+  "span": [
+   -4,
+   3
+  ],
+  "fact": "A claim is verified only if exact or fixed with no numbers flag; far or numbers is flagged; missing, nofile and short are dropped.",
+  "quote": "elif st in VERIFIED and not c.get(\"numbers\"):",
+  "terms": [
+   [
+    "verified"
+   ]
+  ]
+ },
+ {
+  "id": "f17",
+  "slice": "s1",
+  "file": "pi-orch/orch.py",
+  "line": 323,
+  "fact": "A try is redone when more of its quotes were dropped than kept.",
+  "quote": "elif counts[\"dropped\"] > counts[\"verified\"] + counts[\"flagged\"]:",
+  "terms": [
+   [
+    "dropped",
+    "not found",
+    "weren't found",
+    "unfound",
+    "missing"
+   ]
+  ]
+ },
+ {
+  "id": "f18",
+  "slice": "s1",
+  "file": "pi-orch/orch.py",
+  "line": 176,
+  "fact": "The retry brief lists up to 8 of the unfound quotes, to fix or leave out.",
+  "quote": "+ \"\\n\".join(f\"- {c['file']}:{c['line']} {c['quote']!r}\" for c in last[\"unfound\"][:8]))",
+  "terms": [
+   [
+    "8",
+    "eight"
+   ]
+  ]
+ },
+ {
+  "id": "f19",
+  "slice": "s1",
+  "file": "pi-orch/orch.py",
+  "line": 344,
+  "fact": "After the last try a slice is done if any claims were kept, otherwise failed.",
+  "quote": "s[\"status\"] = \"done\" if kept else \"failed\"",
+  "terms": [
+   [
+    "failed"
+   ]
+  ]
+ },
+ {
+  "id": "f20",
+  "slice": "s2",
+  "file": "pi-orch/orch.py",
+  "line": 464,
+  "span": [
+   -1,
+   2
+  ],
+  "fact": "The digest leaves dropped claims out and only counts them.",
+  "quote": "if c.get(\"status\") in DROPPED:",
+  "terms": [
+   [
+    "dropped",
+    "left out",
+    "omitted",
+    "skipped",
+    "excluded",
+    "counted"
+   ]
+  ]
+ },
+ {
+  "id": "f21",
+  "slice": "s2",
+  "file": "pi-orch/orch.py",
+  "line": 471,
+  "span": [
+   0,
+   2
+  ],
+  "fact": "Digest claims are tagged [far] or [numbers N] for the brain to check.",
+  "quote": "tag = \" [far]\" if c.get(\"status\") == \"far\" else \"\"",
+  "terms": [
+   [
+    "far"
+   ]
+  ]
+ },
+ {
+  "id": "f22",
+  "slice": "s2",
+  "file": "pi-orch/orch.py",
+  "line": 488,
+  "fact": "The digest is written to <notes>/digest.md.",
+  "quote": "dest = os.path.join(notes, \"digest.md\")",
+  "terms": [
+   [
+    "digest.md"
+   ]
+  ]
+ },
+ {
+  "id": "f23",
+  "slice": "s6",
+  "file": "pi-agents/orchestrate.md",
+  "line": 26,
+  "span": [
+   0,
+   1
+  ],
+  "fact": "The brain reads the lines itself before using a claim marked [far] or [numbers].",
+  "quote": "claims whose quote was found in the file. Before using a claim marked `[far]` or",
+  "terms": [
+   [
+    "far",
+    "numbers"
+   ]
+  ]
+ },
+ {
+  "id": "f24",
+  "slice": "s6",
+  "file": "pi-agents/orchestrate.md",
+  "line": 30,
+  "fact": "The brain writes the answer from the digest to <notes>/report.md, each point with file:line.",
+  "quote": "6. **Merge.** Write the answer from the digest to `<notes>/report.md` and reply with it:",
+  "terms": [
+   [
+    "report.md"
+   ]
+  ]
+ }
+]
