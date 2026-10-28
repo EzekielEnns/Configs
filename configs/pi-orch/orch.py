@@ -26,11 +26,11 @@ wrote tool calls as text and stopped (most failed tries); direct calls answered 
 mostly unfound quotes, is retried once with what was missing.
 
 Gap pass: one pass misses about half of what matters, and a different half each time (eval,
-2026-10-28), while its quotes are right. So after the slices are done, the 10-line blocks with
-no verified claim are ranked against the goal (or the ledger's optional "focus") by Jev, a
-decision model behind the gateway, falling back to a plain rule; the top ones, up to
---gap-share of each slice's lines, go to one more worker as slice <id>g ("ranges" instead of
-one span). In the eval, Jev's top half of the uncovered code held 41 of 46 missed facts.
+2026-10-28), while its quotes are right. So after the slices are done, each slice's 5-line
+blocks are ranked against the goal (or the ledger's optional "focus") by Jev, a decision
+model behind the gateway (a plain rule if it can't be reached), less a penalty per claim
+already in the block; the top ones, up to --gap-share of the slice's lines, go to one more
+worker as slice <id>g ("ranges" instead of one span).
 Standard library only.
 """
 import argparse
@@ -53,7 +53,11 @@ RUNNABLE = ("pending", "redo")
 VERIFIED = ("exact", "fixed")
 DROPPED = ("missing", "nofile", "short")
 MAX_LINES = 800
-BLOCK = 10  # lines per block in the gap pass
+# Gap pass blocks: 5 lines, and a block with claims is ranked lower, not skipped. With 10-line
+# blocks skipped once any claim landed in them, dense code hid its other facts: on the flow
+# question 35% of pass-1 misses fell in the gap ranges, 76% this way (81% vs 64% on limits).
+BLOCK = 5
+COVERED_PENALTY = 1.5  # per verified claim in the block, on Jev's 0-4 scale
 GAP_TIMEOUT = 120  # seconds per gap worker, one try: a stuck one cost 5 minutes for nothing (eval)
 GATEWAY = os.environ.get("PI_ORCH_GATEWAY", "http://desktop:4000/v1")
 CLAIMS_SCHEMA = {
@@ -217,7 +221,8 @@ def brief(ledger, s, claims, last):
         for i, (a, b) in enumerate(ranges(s)))
     if s.get("of"):
         ask = (f"Another worker read {s['file']} for these questions:\n{qs}\n\n"
-               "Its claims covered other lines. The lines below got none, yet may bear on the job. "
+               "Its claims were mostly about other lines. The lines below got few or none, yet may bear "
+               "on the job. "
                "Give one claim for every fact in them that does: values and defaults, conditions, "
                "what is refused, retried, stopped, failed or checked, and what calls what. Don't "
                "stop at a few. If nothing here bears on the job, reply {\"claims\": []}. These lines "
@@ -485,13 +490,14 @@ def jev_rank(question, where_, code):
 
 
 def plan_gaps(ledger, how, share):
-    """Add a gap slice <id>g for each finished slice that has none yet: its uncovered blocks,
-    best first, up to `share` of its lines. Returns the new slice ids."""
+    """Add a gap slice <id>g for each finished slice that has none yet: its blocks ranked by
+    relevance less COVERED_PENALTY per claim already in them, best first, up to `share` of its
+    lines. Returns the new slice ids."""
     covered = {}
     for s in ledger["slices"]:
         for c in s.get("_checked", []):
             if c.get("status") in VERIFIED:
-                covered.setdefault(c.get("file"), set()).add(c.get("line"))
+                covered.setdefault(c.get("file"), []).append(c.get("line"))
     have = {s.get("of") for s in ledger["slices"]}
     files, blocks = {}, []
     for s in ledger["slices"]:
@@ -501,13 +507,13 @@ def plan_gaps(ledger, how, share):
             with open(os.path.join(ledger["root"], s["file"]), encoding="utf-8", errors="replace") as f:
                 files[s["file"]] = f.read().splitlines()
         lines = files[s["file"]]
-        hit = covered.get(s["file"], set())
+        hit = covered.get(s["file"], [])
         for a, b in ranges(s):
             for x in range(a, b + 1, BLOCK):
                 y = min(x + BLOCK - 1, b)
-                if not any(x <= n <= y for n in hit):
-                    code = "\n".join(f"{n}\t{lines[n - 1]}" for n in range(x, y + 1))
-                    blocks.append({"sid": s["id"], "file": s["file"], "a": x, "b": y, "code": code})
+                code = "\n".join(f"{n}\t{lines[n - 1]}" for n in range(x, y + 1))
+                blocks.append({"sid": s["id"], "file": s["file"], "a": x, "b": y, "code": code,
+                               "claims": sum(x <= n <= y for n in hit)})
     if not blocks:
         return []
     question = ledger.get("focus") or ledger["goal"]
@@ -523,9 +529,9 @@ def plan_gaps(ledger, how, share):
     start = time.time()
     with cf.ThreadPoolExecutor(8) as ex:
         for bl, (r, by) in zip(blocks, ex.map(rank, blocks)):
-            bl["rank"], bl["by"] = r, by
+            bl["rank"], bl["by"] = r - COVERED_PENALTY * bl["claims"], by
     by = {bl["by"] for bl in blocks}
-    say(f"gaps: ranked {len(blocks)} uncovered blocks by {'/'.join(sorted(by))} in {time.time() - start:.0f}s")
+    say(f"gaps: ranked {len(blocks)} blocks by {'/'.join(sorted(by))} in {time.time() - start:.0f}s")
     new = []
     for s in [x for x in ledger["slices"] if any(bl["sid"] == x["id"] for bl in blocks)]:
         mine = sorted((bl for bl in blocks if bl["sid"] == s["id"]), key=lambda bl: -bl["rank"])
@@ -743,7 +749,7 @@ def main():
             p.add_argument("--agent", default="reader", help="agent name in ~/.pi/agent/agents, or a .md path")
             p.add_argument("--only", help="comma-separated slice ids")
             p.add_argument("--gaps", choices=("jev", "rule", "off"), default="jev",
-                           help="rank uncovered blocks with Jev (rule if unreachable), the rule alone, or skip the gap pass")
+                           help="rank blocks with Jev (rule if unreachable), the rule alone, or skip the gap pass")
             p.add_argument("--gap-share", type=float, default=0.5,
                            help="most of each slice's lines a gap slice may hold (default 0.5)")
     a = ap.parse_args()
