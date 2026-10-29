@@ -63,7 +63,7 @@ On the desktop (`ssh desktop`):
 3. Who may connect, from `tailscale whois $(tailscale ip -4 <mac>)` or the admin console's
    user name: `sudo install -D -m 644 /dev/stdin /etc/rex/principal <<< "tailscale:<login>"`
 
-In this repo (any machine), once a preview release is at least 14 days old (about 2026-11-04):
+In this repo (14-day rule waived for this beta):
 4. Uncomment the `rex.url` line in `flake.nix`.
 5. Lock it on the desktop (the token lives there): sync the branch to the desktop, then
    `cd ~/Documents/repos/configs && nix flake lock --update-input rex`; bring `flake.lock`
@@ -78,9 +78,14 @@ In this repo (any machine), once a preview release is at least 14 days old (abou
    `rex -S desktop session list` from the Mac; a bell from a desktop tab reaches the Mac;
    `pis` still can't reach :7297.
 
-Open: whether the Mac needs the token too. With the input locked, darwin builds shouldn't
-fetch it (the desktop host is the only one that reads it), but `nix flake update` on the Mac
-would. If it does, update `rex` on the desktop only (`nix flake lock --update-input rex`).
+The Mac doesn't need the token to build (checked 2026-10-29, Nix 2.31.5): with a `rex` entry in
+`flake.lock`, the darwin config evaluates without fetching it. Locking or updating `rex` does
+fetch, so run `nix flake lock --update-input rex` (and any whole-flake `nix flake update`) on
+the desktop, or name the inputs to update on the Mac (`nix flake update nixpkgs …`).
+`nix flake metadata`/`check` on the Mac would also fail on the token.
+
+Channel: preview (both preview and snapshot exist for this wave; preview is the tagged one).
+The 14-day rule is waived for Rex's beta (user, 2026-10-29).
 
 ## What changes after
 
