@@ -33,10 +33,11 @@ done
 case $line in '' | *[!0-9]*) line=1 ;; esac
 case $col in '' | *[!0-9]*) col=1 ;; esac
 
-# Vim script that opens the file (or switches to its window) and puts the cursor there.
+# Vim script that opens the file (or switches to its window) and puts the cursor there. Floating
+# windows (an open picker, a hover) are closed first, so the file lands in a real window.
 vimexpr() {
   local f=${1//\'/\'\'}
-  printf "execute('drop '.fnameescape('%s')).execute('call cursor(%d,%d)').execute('normal! zz')" "$f" "$line" "$col"
+  printf "execute('stopinsert').string(luaeval(\"(function() for _, w in ipairs(vim.api.nvim_list_wins()) do if vim.api.nvim_win_get_config(w).relative ~= '' then pcall(vim.api.nvim_win_close, w, true) end end end)()\")).execute('drop '.fnameescape('%s')).execute('call cursor(%d,%d)').execute('normal! zz')" "$f" "$line" "$col"
 }
 
 rexs=(rex)
