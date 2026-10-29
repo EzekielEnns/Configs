@@ -89,9 +89,19 @@ let
   '';
   checkrefs = pkgs.writeShellScriptBin "checkrefs" ''exec ${pkgs.python3}/bin/python3 -I ${./pi-orch/checkrefs.py} "$@"'';
   # Points of interest: Jev ranks code, diff hunks or web passages against a question (configs/poi).
+  # Code is cut with tree-sitter in a headless Neovim; Neovim and the parsers come from the same
+  # nixpkgs so their ABI matches (the editor's own parsers are built at runtime, and the desktop
+  # has none). Language servers for --follow are whatever is on PATH.
+  poiParsers = pkgs.symlinkJoin {
+    name = "poi-ts-parsers";
+    paths = with pkgs.vimPlugins.nvim-treesitter-parsers; [
+      bash go javascript json lua markdown nix python rust toml tsx typescript yaml
+    ];
+  };
   poi = pkgs.writeShellScriptBin "poi" ''
     export PATH=$PATH:${lib.makeBinPath [ pkgs.git pkgs.ripgrep ]}
-    exec ${pkgs.python3}/bin/python3 -I ${./poi/poi.py} "$@"
+    export POI_NVIM=${pkgs.neovim-unwrapped}/bin/nvim POI_TS_RTP=${poiParsers}
+    exec ${pkgs.python3}/bin/python3 -I ${./poi}/poi.py "$@"
   '';
   # Second opinion on an agent's change: test gaming, scope, risk (configs/jev-check). git for the
   # checkpoint diff; jev-check.ts runs it after each pis run.
