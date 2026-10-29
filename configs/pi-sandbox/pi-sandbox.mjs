@@ -21,10 +21,12 @@
  *   JOB_DIR/.tools, whose bin is first on PATH.
  * - Pi gets its own agent folder, JOB_DIR/.sandbox/pi-agent: links to ~/.pi/agent's extensions,
  *   prompts, agents and models (the gateway's key is in models.json), a copy of settings, and
- *   its sessions there. Not auth.json (other providers' keys) or ~/.pi/memory.
+ *   its sessions there. Not auth.json (other providers' keys).
+ * - Memory: ~/.pi/memory's shared facts read-only, and the job's own project memory.
  * PI_GUARD=1 turns on guard.ts, the per-command classifier, inside the sandbox.
  */
 import { spawn, spawnSync } from "node:child_process";
+import { createHash } from "node:crypto";
 import { appendFileSync, copyFileSync, existsSync, mkdirSync, realpathSync, symlinkSync, writeFileSync } from "node:fs";
 import { homedir } from "node:os";
 import { basename, dirname, join, resolve } from "node:path";
@@ -36,7 +38,7 @@ const GATEWAY = (process.env.PI_SANDBOX_GATEWAY ?? "desktop").split(",");
 const DENY_READ = [
 	"~/.ssh", "~/.gnupg", "~/.aws", "~/.azure", "~/.config/gcloud", "~/.kube", "~/.docker",
 	"~/.netrc", "~/.npmrc", "~/.pypirc", "~/.git-credentials", "~/.config/gh", "~/.config/sops",
-	"~/.config/age", "~/.age", "~/.pi/auth.json", "~/.pi/memory", "~/.srt-settings.json",
+	"~/.config/age", "~/.age", "~/.pi/auth.json", "~/.pi/memory/projects", "~/.srt-settings.json",
 	"~/.zsh_history", "~/.bash_history", "~/.local/share/fish", "~/.histfile",
 	"~/Library/Keychains", "~/Library/Cookies", "~/Library/Mail", "~/Library/Messages",
 	"~/Library/Safari", "~/Library/Application Support", "~/Library/Containers",
@@ -85,13 +87,23 @@ git("add", "-A");
 git("-c", "user.name=pi-sandbox", "-c", "user.email=pi-sandbox@localhost", "commit", "-q", "--allow-empty", "-m",
 	`checkpoint before run ${new Date().toISOString()}`);
 
+// Memory (pi-extensions/memory.ts): the facts for every project, read-only, and this job's
+// own folder, read-write; other projects' memories stay unreadable. Same key as memory.ts.
+const projectKey = (dir) => {
+	const rel = dir.startsWith(HOME) ? dir.slice(HOME.length) : dir;
+	const s = rel.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+	return s.length <= 60 ? s : `${s.slice(-50)}-${createHash("sha256").update(dir).digest("hex").slice(0, 8)}`;
+};
+const memory = join(HOME, ".pi/memory/projects", projectKey(job));
+mkdirSync(memory, { recursive: true });
+
 const netLog = join(meta, "net.log");
 const config = {
 	network: { allowedDomains: GATEWAY, deniedDomains: [] },
 	filesystem: {
 		denyRead: DENY_READ.map((p) => p.replace(/^~/, HOME)),
-		allowRead: [job],
-		allowWrite: [job],
+		allowRead: [job, memory],
+		allowWrite: [job, memory],
 		denyWrite: [],
 	},
 };
@@ -124,7 +136,6 @@ const env = {
 		? {}
 		: { PI_MASK: "0", PI_THINKING: "0", PI_BUDGET_TURN: "0", PI_DELEGATE: "0", PI_READ_LIMIT: "800" }),
 	PI_CODING_AGENT_DIR: agentDir,
-	PI_MEMORY: "0", // ~/.pi/memory is unreadable in here, and a job shouldn't write to it
 	PI_SANDBOX_JOB: job,
 	PI_GUARD: process.env.PI_GUARD ?? "1",
 	...(process.env.PI_GUARD_JEV_URL ? { PI_GUARD_JEV_URL: process.env.PI_GUARD_JEV_URL } : {}),
