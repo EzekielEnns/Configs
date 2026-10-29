@@ -15,8 +15,13 @@ end
 vim.opt.rtp:prepend(lazypath)
 vim.g.mapleader = " "
 vim.g.maplocalleader = "\\"
+-- This config is a Nix-built plugin on the pack path (modules/nvim.nix), and lazy resets the
+-- runtimepath at setup: keep this config's own folder on it, or its modules (poi, notes)
+-- can't be required afterwards.
+local self_root = vim.fs.dirname(vim.fs.dirname(vim.fs.dirname(debug.getinfo(1, "S").source:sub(2))))
 require("lazy").setup({
 spec = { import = "plugins"},
+performance = { rtp = { paths = { self_root } } },
   -- colorscheme that will be used when installing plugins.
   install = { colorscheme = { "gruvbox" } },
 checker = {enable = true},
