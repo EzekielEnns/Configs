@@ -93,6 +93,12 @@ let
     export PATH=$PATH:${lib.makeBinPath [ pkgs.git pkgs.ripgrep ]}
     exec ${pkgs.python3}/bin/python3 -I ${./poi/poi.py} "$@"
   '';
+  # Second opinion on an agent's change: test gaming, scope, risk (configs/jev-check). git for the
+  # checkpoint diff; jev-check.ts runs it after each pis run.
+  jevCheck = pkgs.writeShellScriptBin "jev-check" ''
+    export PATH=$PATH:${lib.makeBinPath [ pkgs.git ]}
+    exec ${pkgs.python3}/bin/python3 -I ${./jev-check/jev_check.py} "$@"
+  '';
 
   writable = name: file: ''
     run mkdir -p "$(dirname "$HOME/${name}")"
@@ -182,6 +188,9 @@ let
     ".pi/agent/extensions/research.ts".source = ./pi-extensions/research.ts;
     # Auto-mode-style review of each command, only under pi-sandbox (PI_GUARD=1).
     ".pi/agent/extensions/guard.ts".source = ./pi-extensions/guard.ts;
+    # After each pis run: Jev and plain rules on the run's changes (on for the small profile;
+    # PI_JEV_CHECK=1|0 or /jev-check on|off per project).
+    ".pi/agent/extensions/jev-check.ts".source = ./pi-extensions/jev-check.ts;
     # Web search through the desktop's SearXNG, and page fetch (like Claude's WebFetch).
     ".pi/agent/extensions/searxng".source = "${piSearxng}/lib/node_modules/pi-searxng";
     # Read from ~/.pi, not Pi's agent dir.
@@ -240,6 +249,7 @@ in
     agentPkgs.pi-coding-agent
     checkrefs
     poi
+    jevCheck
     sandboxRuntime # srt
     piSandbox
     pis

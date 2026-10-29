@@ -24,6 +24,7 @@
  *   its sessions there. Not auth.json (other providers' keys).
  * - Memory: ~/.pi/memory's shared facts read-only, and the job's own project memory.
  * PI_GUARD=1 turns on guard.ts, the per-command classifier, inside the sandbox.
+ * PI_JEV_CHECK=1|0 forces jev-check.ts (a second opinion on each run's changes) on or off.
  */
 import { spawn, spawnSync } from "node:child_process";
 import { createHash } from "node:crypto";
@@ -129,7 +130,8 @@ const config = {
 	network: { allowedDomains: GATEWAY, deniedDomains: [] },
 	filesystem: {
 		denyRead: DENY_READ.map((p) => p.replace(/^~/, HOME)),
-		allowRead: [job, memory],
+		// The checkpoint repo read-only: jev-check.ts diffs the job against it.
+		allowRead: [job, memory, checkpoints],
 		allowWrite: [job, memory],
 		denyWrite: [],
 	},
@@ -168,6 +170,10 @@ const env = {
 	PI_CLIPBOARD_OSC52: "1",
 	PI_CODING_AGENT_DIR: agentDir,
 	PI_SANDBOX_JOB: job,
+	PI_SANDBOX_CHECKPOINT: checkpoints,
+	PI_SANDBOX_PROFILE: small ? "small" : "frontier",
+	...(process.env.PI_JEV_CHECK ? { PI_JEV_CHECK: process.env.PI_JEV_CHECK } : {}),
+	...(process.env.PI_JEV_CHECK_BIN ? { PI_JEV_CHECK_BIN: process.env.PI_JEV_CHECK_BIN } : {}),
 	PI_GUARD: process.env.PI_GUARD ?? "1",
 	...(process.env.PI_GUARD_JEV_URL ? { PI_GUARD_JEV_URL: process.env.PI_GUARD_JEV_URL } : {}),
 };
