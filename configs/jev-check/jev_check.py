@@ -160,7 +160,7 @@ def rules(sections, files, task="", tests=""):
             if any(SKIP.search(l) for l in plus):
                 why["gaming"].append(f"test skipped or focused in {f['path']}")
         else:
-            src_added += plus
+            src_added += [(l, f["change"]) for l in plus]
         if RISKY.search(f["path"]):
             why["triage"].append(f"risky file: {f['path']}")
         hits = [l for l in plus if RISKY_CODE.search(l)]
@@ -173,12 +173,15 @@ def rules(sections, files, task="", tests=""):
     # Special-casing: a condition or table in the code holding three of one assertion's literals,
     # or two big ones from the tests that the task itself doesn't name.
     test_lits -= literals(task, big=True)
-    code = [l for l in src_added if not re.match(r"\s*(#|//|\*)", l)]
-    for i, l in enumerate(code):
-        if not re.search(r"\b(if|elif|case|when|switch)\b|[:=]\s*[\[{(]|=>", l):
+    # Tables count only in files that existed: new scratch scripts often copy the test cases.
+    code = [(l, c) for l, c in src_added if not re.match(r"\s*(#|//|\*)", l)]
+    for i, (l, change) in enumerate(code):
+        cond = re.search(r"\b(if|elif|case|when|switch)\b", l)
+        if not cond and not (change == "modified" and re.search(r"[:=]\s*[\[{(]|=>", l)):
             continue
-        mine = literals(l + " " + (code[i + 1] if i + 1 < len(code) else ""))  # the branch's return too
-        if len(mine & test_lits) >= 2 or any(len(m := mine & t) >= 3 and len(m - TRIVIAL) >= 2 for t in test_lines):
+        mine = literals(l + " " + (code[i + 1][0] if i + 1 < len(code) else ""))  # the branch's return too
+        if len(mine & test_lits) >= 2 or any(
+                len(m := mine & t) >= 3 and len(m - TRIVIAL) >= 2 or len(m) >= 2 and m & test_lits for t in test_lines):
             why["gaming"].append(f"code special-cases test values: {l.strip()[:100]}")
             break
     src = [f for f in files if not f["test"]]
