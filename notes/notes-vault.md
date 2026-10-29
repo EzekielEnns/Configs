@@ -65,18 +65,21 @@ and `config folders notes devices add --device-id ID` on the desktop
    or share only the desktop with her and limit her to port 22000 with an ACL.
 2. Syncthing-Fork (Play Store or F-Droid). Settings → Connections: global discovery, local
    discovery, relays and NAT traversal off.
-3. Add Device: the desktop's ID, address `tcp://100.64.96.125:22000`. Use the IP: Syncthing on
-   Android doesn't resolve MagicDNS names ("no such host"). Add the phone on the desktop and
-   share `notes` with it.
+3. Add Device: the desktop's ID, addresses
+   `tcp://desktop.TAILNET.ts.net:22000, tcp://100.64.96.125:22000` (Syncthing tries each).
+   The name alone failed on the Pixel ("no such host": Syncthing on Android may not use
+   Tailscale's DNS), so the IP stays as the fallback. The IP is fixed while the desktop stays
+   in the tailnet, and it's also baked into the desktop's listen address (modules/notes-sync.nix).
+   Add the phone on the desktop and share `notes` with it.
 4. Accept `notes` and type the full path, `/storage/emulated/0/Documents/Vault` (an empty,
    new folder). The accept dialog can leave the path blank and refuse ("folder path must not
    be empty"), and it refuses a folder that already has files. Allow "manage all files".
    Folder → Ignore patterns: `.git`, `.obsidian/workspace*`, `.trash`.
 5. Obsidian → Open folder as vault → `Documents/Vault`.
 6. Keep it running: Android Settings → Apps → Syncthing-Fork and Tailscale → Battery →
-   Unrestricted. Syncthing-Fork → Settings → Behaviour: start on boot. Silence its
-   always-on notification: long-press it → turn the channel to Silent (or Settings → Apps →
-   Syncthing-Fork → Notifications).
+   Unrestricted. Syncthing-Fork → Settings → Behaviour: start on boot. Silence the always-on
+   notifications (long-press → Silent), rather than swiping them away: a swiped one comes
+   back after a restart, and the app keeps running either way.
 
 ## Notes
 
