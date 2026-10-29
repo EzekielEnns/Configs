@@ -198,6 +198,9 @@ let
     # Memory across sessions (like Claude Code's): ~/.pi/memory, one file per fact + an index
     # in the system prompt; "remember ..." saves. Files stay on each machine. PI_MEMORY=0 off.
     ".pi/agent/extensions/memory.ts".source = ./pi-extensions/memory.ts;
+    # Real cost: OpenRouter's billed cost per reply into the footer and /session; the key's
+    # spend today/week/month in the status line (gateway GET /openrouter/key); /usage. PI_COST=0 off.
+    ".pi/agent/extensions/cost.ts".source = ./pi-extensions/cost.ts;
     ".pi/agent/extensions/budget.ts".source = ./pi-extensions/budget.ts;
     # `reader` workers (PI_CLAIMS_FILE set): can't finish without a valid claims file, and
     # write nothing else. checkrefs checks their quotes (ai-stack docs/ORCHESTRATE-PLAN.md v2).
