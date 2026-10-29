@@ -48,8 +48,12 @@ PARA_MAX = 15       # lines per text paragraph block
 MAX_FILE = 400_000  # bytes: bigger files are generated or data
 MAX_PAGE = 2_000_000
 COST = 0.000016     # dollars per Jev request, measured
-SECRET = re.compile(r"(^|/)(\.env[^/]*|[^/]*\.pem|[^/]*key[^/]*|auth\.json|secrets?[^/]*|id_(rsa|ed25519|ecdsa)[^/]*|"
-                    r"[^/]*\.(p12|pfx|keystore|kdbx))$", re.I)
+# Files that hold secrets by name or type. Source code is never matched by name alone
+# (keys.go, keyboard.ts), and example env files are fine.
+SECRET = re.compile(r"(^|/)(\.env(?!\.(example|sample|template|dist)$)[^/]*|\.envrc|\.netrc|\.npmrc|\.pypirc|"
+                    r"auth\.json|credentials?|secrets?|id_(rsa|ed25519|ecdsa)[^/]*|"
+                    r"[^/]*\.(pem|key|p12|pfx|keystore|jks|kdbx|gpg)|"
+                    r"[^/]*(key|keys|credentials?|secrets?|tokens?)\.(json|ya?ml|txt|ini|cfg|conf|toml|env))$", re.I)
 SKIP = re.compile(r"(^|/)(package-lock\.json|yarn\.lock|pnpm-lock\.yaml|Cargo\.lock|flake\.lock|poetry\.lock|"
                   r"go\.sum|[^/]*\.min\.(js|css)|[^/]*\.map)$|\.(png|jpe?g|gif|ico|pdf|zip|gz|tar|wasm|so|dylib|"
                   r"o|a|bin|exe|parquet|ttf|woff2?|mp[34]|mov|db|sqlite)$", re.I)
@@ -942,6 +946,9 @@ def main():
         nodes = flow_nodes(groups, recs)
         flow_by = sorted(flow_edges(nodes))
         ordered = [as_hit(n) for n in flow_order(nodes)]
+        if not any(n["edges"] for n in nodes):
+            log("flow: no calls link these places; --flow suits a question about one path through the code "
+                "(\"how does a request reach the database\"), --tour a broad one (\"walk me through this code base\")")
         log(f"flow: {sum(len(n['edges']) for n in nodes)} call edges among {len(nodes)} functions "
             f"({', '.join(flow_by) or 'none found'})")
     hits = ordered if o.flow else [h for _, hs in groups for h in hs]
