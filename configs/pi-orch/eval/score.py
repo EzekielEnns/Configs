@@ -109,18 +109,21 @@ def items(text):
         else:
             out.append("")
     # Shorthand: after a heading or citation names a file, "`:334`" means that file's line 334.
-    named = re.compile(r"([\w.-]+\.(?:py|ts|rs|go|js|md|nix))(?=\W)")
-    bare = re.compile(r"(?<![\w.])(?=:\d)")
+    # Left to right, so a file named earlier in the same point counts too.
+    token = re.compile(r"([\w.-]+\.(?:py|ts|rs|go|js|md|nix))(?=\W)|(?<![\w.])(?=:\d)")
     current, points = "", []
     for p in out:
         if not p.strip():
             continue
-        if current:
-            p = bare.sub(current, p)
-        found = named.findall(p)
-        if found:
-            current = found[-1]
-        points.append(p)
+
+        def sub(m):
+            nonlocal current
+            if m.group(1):
+                current = m.group(1)
+                return m.group(1)
+            return current
+
+        points.append(token.sub(sub, p))
     return points
 
 

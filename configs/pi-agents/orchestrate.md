@@ -41,6 +41,7 @@ yourself: the brief comes from a fixed template.
    slice and run once more.
 6. **Merge.** Write the answer from the digest to `<notes>/report.md` and reply with it:
    every claim that answers the goal, with its values and file:line; what's uncertain; what
-   was skipped. Merge claims that say the same thing (keep each file:line), but don't drop a
-   distinct fact to keep the report short: the specifics (how a check compares, which match
-   wins, what gets flagged, each default) are what I need. Group them by step or topic. End with one line from `pi-orch status`: slices, tries, verified / dropped claims.
+   was skipped. Merge claims that say the same thing (keep each file:line) and group them by
+   step or topic. Don't read code to add to or double-check the digest (only the `[far]` /
+   `[numbers]` lines of step 5): the report says what the digest supports, and the rest goes
+   under what's uncertain. End with one line from `pi-orch status`: slices, tries, verified / dropped claims.
