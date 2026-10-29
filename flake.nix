@@ -28,6 +28,11 @@
       url = "github:ryoppippi/nix-claude-code";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+    # Rex Linux server (beta) for the desktop: uncommenting this one line is the switch
+    # (flake.nix's desktop host then imports modules/rex-server.nix). The flake is token-gated:
+    # put the beta token in /etc/nix/netrc first, and lock it on the desktop
+    # (`nix flake lock`). Steps: notes/rex-server-plan.md.
+    # rex.url = "https://pkgs.superlogical.com/rex/nix/preview.tar.gz";
   };
 
   # NOTE: bring `ghostty` & `zellij` into scope by using `inputs.<name>` inside
@@ -129,6 +134,7 @@
             , host
             , hmUser
             , hmImports ? [ ]
+            , extraModules ? [ ]
             ,
             }:
             nixpkgs.lib.nixosSystem {
@@ -143,6 +149,7 @@
                 host
                 ./modules/general.nix
               ]
+              ++ extraModules
               ++ (hmModule {
                 inherit system;
                 user = hmUser;
@@ -160,6 +167,11 @@
             hmImports = [
               ./configs/users.nix
               ./configs/agents.nix
+            ];
+            # Rex Linux server: on once the `rex` input above is uncommented.
+            extraModules = nixpkgs.lib.optionals (inputs ? rex) [
+              inputs.rex.nixosModules.default
+              ./modules/rex-server.nix
             ];
           };
         };

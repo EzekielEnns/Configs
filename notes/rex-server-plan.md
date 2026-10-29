@@ -4,7 +4,7 @@ Goal: Rex sessions that live on the desktop (`#desktop`), opened from Rex for Ma
 Pi jobs, evals and desktop rebuilds keep running while the Mac sleeps, and Claude Code can
 drive them with `rex -S desktop …` instead of ssh panes.
 
-Status (2026-10-29): researched, not installed. Earliest install under the 14-day release
+Status (2026-10-29): prepared and off; sandbox narrowed. Not installed. Earliest install under the 14-day release
 rule: about 2026-11-04 (Linux previews so far: preview.4 on 10-21 to preview.10 on 10-28).
 
 ## What we get
@@ -31,53 +31,56 @@ rule: about 2026-11-04 (Linux previews so far: preview.4 on 10-21 to preview.10 
 - **Auth:** callers are let in by their Tailscale login. Rex has no keys or passwords yet,
   so anything on the tailnet signed in as the user gets a full shell as `ezekiel`.
 
-## Sandbox first (must land before the server)
+## Sandbox (done, e8b1b1c)
 
-`pis` lets agents reach the host `desktop` by name for the model gateway, on any port. With
-Rex on desktop:7297, a sandboxed agent could open a desktop shell outside the sandbox, and
-Rex would see the connection as the user (the Mac's tailnet login).
+`pis` reaches the desktop only on the gateway's ports: `desktop:4000` (LiteLLM: models, Jev)
+and `desktop:8090` (evidence), by name or by its Tailscale IP. Private, Tailscale (100.64/10)
+and ULA addresses are refused by name or literal, and `*:7297` (Rex's server) is denied with a
+reason. Checked from inside the sandbox (2026-10-29): gateway and evidence answer; desktop:22
+and :7297 refused by short name, MagicDNS name and Tailscale IP; LAN addresses refused; public
+hosts allowed. The Mac's own Rex socket was already unreachable ("Operation not permitted").
+Other services on the desktop (notes sync, anything later) are unreachable from `pis` by
+default; add a port to `GATEWAY_PORTS` in `configs/pi-sandbox/pi-sandbox.mjs` only on purpose.
 
-- Narrow `GATEWAY` in `configs/pi-sandbox/pi-sandbox.mjs` to ports: `desktop:4000`
-  (gateway) and `desktop:8090` (evidence service). srt supports a `:port` suffix on
-  `allowedDomains` entries.
-- Add `desktop:7297` and the full `*.ts.net` name to `deniedDomains`, with a
-  `deniedDomainReasons` entry.
-- Check from inside `pis`: the gateway, the evidence service, and a refused connection to
-  the Rex port (by short name, by full tailnet name, and by Tailscale IP).
-- Already fine: the Mac's own Rex socket is unreachable from `pis` (checked 2026-10-29:
-  "Operation not permitted").
+## Prepared (off until the switch)
 
-## Steps
+- `modules/rex-server.nix`: the login server for `ezekiel` over Tailscale Serve. The
+  principal is read from `/etc/rex/principal` (untracked); the build stops with a clear
+  message if it's missing.
+- `flake.nix`: the desktop host imports `rex.nixosModules.default` and the module above only
+  when the `rex` input exists (`inputs ? rex`). The input is a commented line, so nothing
+  token-gated is fetched until then.
+- **The switch:** uncomment `rex.url = …preview.tar.gz` in `flake.nix`'s inputs.
 
-1. **You:** turn on HTTPS certificates for the tailnet in the Tailscale admin console.
-2. **You:** place the beta token in `/etc/nix/netrc` on the desktop. Then check whether the
-   Mac needs it too (`nix flake update` / lock checks may fetch the input there).
-3. The sandbox change above, committed and checked from inside `pis`.
-4. `flake.nix`: add the `rex` input; add `rex.nixosModules.default` and
-   `./modules/rex-server.nix` to the desktop host only.
-5. `modules/rex-server.nix` (desktop only):
+## Steps left
 
-   ```nix
-   { ... }: {
-     # Rex Linux server (beta): sessions live on this box, reached from Rex for Mac over
-     # Tailscale Serve (HTTPS :7297, tailnet only). Login-server mode: programs run as the
-     # caller's own account, and sessions survive Rex upgrades and nixos-rebuild.
-     # Download token: /etc/nix/netrc (root 0600), placed by hand, never in git.
-     services.rex.loginServer = {
-       enable = true;
-       # The Tailscale login, read from an untracked file if it's an email address.
-       accounts.ezekiel.principals = [ "tailscale:<tailscale-login>" ];
-       tailscaleServe.enable = true;
-     };
-   }
-   ```
+On the Tailscale admin console:
+1. Turn on HTTPS certificates for the tailnet (DNS page → HTTPS Certificates).
 
-6. Rebuild the desktop. This first one still runs in a Mac pane over ssh.
-7. Mac: Rex → **Add Remote Host…** → the desktop's tailnet HTTPS name. Use the app, not
-   `rex hosts add`: hosts added from the CLI don't show in the sidebar yet.
-8. Check: open a desktop tab; close the Mac lid and reopen it; the session is still there;
-   `rex -S desktop session list` works from the Mac; a bell or notification from a
-   desktop tab reaches the Mac.
+On the desktop (`ssh desktop`):
+2. The beta token, root-only, never in git:
+   `sudo install -m 600 /dev/stdin /etc/nix/netrc <<< "machine pkgs.superlogical.com login rex password <TOKEN>"`
+3. Who may connect, from `tailscale whois $(tailscale ip -4 <mac>)` or the admin console's
+   user name: `sudo install -D -m 644 /dev/stdin /etc/rex/principal <<< "tailscale:<login>"`
+
+In this repo (any machine), once a preview release is at least 14 days old (about 2026-11-04):
+4. Uncomment the `rex.url` line in `flake.nix`.
+5. Lock it on the desktop (the token lives there): sync the branch to the desktop, then
+   `cd ~/Documents/repos/configs && nix flake lock --update-input rex`; bring `flake.lock`
+   back to the Mac with the commit (`git commit flake.nix flake.lock`).
+6. Rebuild the desktop (this one still runs in a Mac pane over ssh):
+   `sudo nixos-rebuild --flake .#desktop switch --impure`.
+7. Check on the desktop: `systemctl status rex-login-server`, `tailscale serve status` shows
+   :7297, `ls /run/rex/login-server.sock`.
+8. Mac: Rex → **Add Remote Host…** → `https://desktop.<tailnet>.ts.net` (use the app; hosts
+   added with `rex hosts add` don't show in the sidebar yet).
+9. Check: open a desktop tab; close the lid and reopen; the session is still there;
+   `rex -S desktop session list` from the Mac; a bell from a desktop tab reaches the Mac;
+   `pis` still can't reach :7297.
+
+Open: whether the Mac needs the token too. With the input locked, darwin builds shouldn't
+fetch it (the desktop host is the only one that reads it), but `nix flake update` on the Mac
+would. If it does, update `rex` on the desktop only (`nix flake lock --update-input rex`).
 
 ## What changes after
 
