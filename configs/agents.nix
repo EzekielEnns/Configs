@@ -64,6 +64,8 @@ let
   # the tool-watch skill.
   wabt = pkgs.callPackage ./rea/wabt.nix { };
   reaPkg = pkgs.callPackage ./rea { };
+  # `lsp` tool on the installed language servers (configs/lsp-pi/default.nix).
+  lspPi = pkgs.callPackage ./lsp-pi { };
   rea = pkgs.writeShellScriptBin "rea" ''
     export REA_WABT_BIN_DIRECTORY=${wabt}/bin
     export GHIDRA_INSTALL_DIR=${pkgs.ghidra}/lib/ghidra
@@ -192,6 +194,8 @@ let
     # and modules/nvim.nix's dummy OPENAI_API_KEY (for aider) makes that OpenAI.
     defaultProvider = "desktop";
     defaultModel = "flint";
+    # lsp-pi's after-edit diagnostics duplicate check.ts's compile errors; its tool stays.
+    lsp.hookMode = "disabled";
     enabledModels = [ "desktop/*" ];
     # Pi's compaction defaults (start when <16k free, keep the last 20k) assume big
     # windows; on 16-32k slots they'd compact at half full and keep more than fits.
@@ -228,6 +232,7 @@ in
 
   home.file = subagentFiles // {
     ".pi/agent/skills/rea".source = reaSkill;
+    ".pi/agent/extensions/lsp-pi".source = "${lspPi}/lib/node_modules/lsp-pi";
     ".pi/agent/models.json" = {
       force = true;
       source = (pkgs.formats.json { }).generate "pi-models.json" {

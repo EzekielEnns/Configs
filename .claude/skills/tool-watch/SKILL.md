@@ -1,12 +1,13 @@
 ---
 name: tool-watch
-description: Check the agent tools Configs pins by hash (Anthropic's sandbox runtime srt, REA, wabt; later lsp-pi) for new releases and upgrade them safely. Use when asked to update or upgrade agent tools, check for new versions of srt / REA / wabt, or "keep the tools current".
+description: Check the agent tools Configs pins by hash (Anthropic's sandbox runtime srt, REA, wabt, lsp-pi) for new releases and upgrade them safely. Use when asked to update or upgrade agent tools, check for new versions of srt / REA / wabt, or "keep the tools current".
 ---
 
 # Tool watch
 
 Agent tools that nixpkgs doesn't have (or has too old) are pinned in Configs by version and
-hash: `configs/sandbox-runtime` (srt), `configs/rea` (REA) and `configs/rea/wabt.nix`.
+hash: `configs/sandbox-runtime` (srt), `configs/rea` (REA), `configs/rea/wabt.nix` and
+`configs/lsp-pi`.
 Everything else (Ghidra, binaryen, wasm-tools, language servers) follows the flake's nixpkgs
 and upgrades with `nix flake update`.
 

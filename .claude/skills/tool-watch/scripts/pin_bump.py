@@ -18,6 +18,9 @@ FAKE = "sha256-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA="
 PINS = {
     "srt": {"npm": "@anthropic-ai/sandbox-runtime", "dir": "configs/sandbox-runtime"},
     "rea": {"npm": "rea-agents", "dir": "configs/rea"},
+    # Pi provides the peer deps; 3.18 of the protocol package drops the path lsp-pi imports.
+    "lsp-pi": {"npm": "lsp-pi", "dir": "configs/lsp-pi", "strip": ["peerDependencies"],
+               "deps": {"vscode-languageserver-protocol": "3.17.5"}},
     # wabt follows REA: its WASM adapter asks for one exact version.
     "wabt": {"github": "WebAssembly/wabt", "file": "configs/rea/wabt.nix"},
 }
@@ -106,8 +109,9 @@ def bump_npm(name, pin, ver):
     with tarfile.open(tgz) as t:
         pj = json.load(t.extractfile("package/package.json"))
     scripts = {k: v for k, v in pj.get("scripts", {}).items() if "install" in k}
-    for k in ("devDependencies", "scripts", "optionalDependencies"):
+    for k in ("devDependencies", "scripts", "optionalDependencies", *pin.get("strip", [])):
         pj.pop(k, None)
+    pj.setdefault("dependencies", {}).update(pin.get("deps", {}))
     lockdir = os.path.join(tmp, "lock")
     os.makedirs(lockdir)
     json.dump(pj, open(os.path.join(lockdir, "package.json"), "w"), indent=2)
