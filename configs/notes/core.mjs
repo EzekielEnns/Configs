@@ -5,7 +5,7 @@
  * - The vault is NOTES_DIR (default ~/Notes), synced by Syncthing between the machines and
  *   phones. Reads: anything in it but sync/app internals. Writes: anywhere with the user's
  *   approval, but never AGENTS.md, dot-folders, non-.md/.txt files, or the folders listed in
- *   NOTES_PROTECTED (none by default), whatever a grant says.
+ *   NOTES_PROTECTED (default: Configs, the copy of the repo's notes/), whatever a grant says.
  * - A write is a plan (path, mode, the file before and after, a diff), applied only if the file
  *   still matches what the plan was made from, so it never clobbers an edit synced meanwhile.
  * - State lives outside the vault, in ~/.local/state/notes: grants.json (files approved with
@@ -25,7 +25,7 @@ export const VAULT = resolve(process.env.NOTES_DIR || join(homedir(), "Notes"));
 export const STATE = resolve(process.env.NOTES_STATE || join(homedir(), ".local", "state", "notes"));
 export const GRANTS = join(STATE, "grants.json");
 export const OUTBOX = join(STATE, "outbox");
-export const PROTECTED = (process.env.NOTES_PROTECTED ?? "").split(",").map((s) => s.trim()).filter(Boolean);
+export const PROTECTED = (process.env.NOTES_PROTECTED ?? "Configs").split(",").map((s) => s.trim()).filter(Boolean);
 const HIDDEN = /(^|\/)(\.git|\.obsidian|\.stfolder|\.stversions|\.trash)(\/|$)|(^|\/)\.st(ignore|globalignore)$/;
 const MAX_NOTE = 1_000_000; // bytes: a note, not a dataset
 

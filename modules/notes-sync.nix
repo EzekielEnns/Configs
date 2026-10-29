@@ -7,6 +7,10 @@
 # desktop` and open http://127.0.0.1:8385. Devices and the `notes` folder are paired once in
 # the GUI (notes/notes-vault.md) and kept: nothing here overrides them.
 #
+# Configs/ in the vault: a one-way copy of this repo's notes/ (plans, setup docs), refreshed
+# whenever the desktop's checkout changes. The repo is the source: edits made to the copies in
+# Obsidian are overwritten, and agents can't write there (NOTES_PROTECTED).
+#
 # Snapshots: ~/Notes/.git, a local repo that's never pushed (Syncthing ignores .git), committed
 # hourly when something changed. Undo a bad sync or a bad write with `git -C ~/Notes log -p`.
 { pkgs, ... }:
@@ -24,6 +28,13 @@ let
     $git add -A
     $git diff --cached --quiet && exit 0
     $git -c user.name=notes -c user.email=notes@localhost commit -q -m "snapshot $(date -Is)"
+  '';
+  repoNotes = "${home}/Documents/repos/configs/notes";
+  mirror = pkgs.writeShellScript "notes-mirror-configs" ''
+    set -eu
+    [ -d ${home}/Notes ] || exit 0
+    ${pkgs.rsync}/bin/rsync -a --delete --include='*/' --include='*.md' --exclude='*' \
+      ${repoNotes}/ ${home}/Notes/Configs/
   '';
 in
 {
@@ -50,6 +61,27 @@ in
   systemd.services.syncthing = {
     after = [ "tailscaled.service" ];
     wants = [ "tailscaled.service" ];
+  };
+
+  systemd.services.notes-mirror-configs = {
+    description = "Copy the Configs repo's notes into the vault";
+    unitConfig.ConditionPathIsDirectory = repoNotes;
+    serviceConfig = {
+      Type = "oneshot";
+      User = "ezekiel";
+      ExecStart = mirror;
+    };
+  };
+  systemd.paths.notes-mirror-configs = {
+    wantedBy = [ "paths.target" ];
+    pathConfig.PathChanged = repoNotes;
+  };
+  systemd.timers.notes-mirror-configs = {
+    wantedBy = [ "timers.target" ];
+    timerConfig = {
+      OnCalendar = "hourly";
+      Persistent = true;
+    };
   };
 
   systemd.services.notes-snapshot = {
