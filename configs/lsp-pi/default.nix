@@ -23,6 +23,17 @@ buildNpmPackage rec {
       --replace-fail 'const res = await fetch("https://api.github.com/repos/Kotlin/kotlin-lsp/releases/latest"' \
                      'return undefined; const res = await fetch("https://api.github.com/repos/Kotlin/kotlin-lsp/releases/latest"' \
       --replace-fail 'spawn: simpleSpawn("pyright-langserver")' 'spawn: simpleSpawn("basedpyright-langserver")'
+    # Without a UI (pi -p, unattended runs) nothing follows the agent's last turn, but the
+    # language servers kept Pi from exiting: stop them there.
+    substituteInPlace lsp.ts \
+      --replace-fail 'pi.on("agent_end", async (event, ctx) => {' \
+                     'pi.on("agent_end", async (event, ctx) => { if (!ctx.hasUI) { clearIdleShutdownTimer(); await shutdownManager(); activeClients.clear(); return; }'
+    # lsp-tool.ts is loaded as its own extension with its own copy of lsp-core's manager,
+    # and the servers the tool starts belong to that copy.
+    substituteInPlace lsp-tool.ts \
+      --replace-fail 'import { getOrCreateManager,' 'import { shutdownManager, getOrCreateManager,' \
+      --replace-fail 'export default function (pi: ExtensionAPI) {' \
+                     'export default function (pi: ExtensionAPI) { pi.on("agent_end", async (_e, ctx) => { if (!ctx.hasUI) await shutdownManager(); });'
   '';
   npmDepsHash = "sha256-j0mZeZi81cxTpCrSrjMJhV0lo0yDkWEox22hRqqg+1s=";
   dontNpmBuild = true; # plain TypeScript, loaded by Pi directly
