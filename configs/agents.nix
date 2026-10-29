@@ -29,6 +29,13 @@ let
   ];
   withReasoning = map (m: m // { reasoning = true; }) models;
 
+  # Agents with a free hand: Pi in a job folder under Anthropic's sandbox runtime (writes only
+  # there, secrets unreadable, open web, logged), with guard.ts reviewing each command.
+  sandboxRuntime = pkgs.callPackage ./sandbox-runtime { };
+  piSandbox = pkgs.writeShellScriptBin "pi-sandbox" ''
+    export PI_SANDBOX_SRT=${sandboxRuntime}/lib/node_modules/@anthropic-ai/sandbox-runtime/dist/index.js
+    exec ${pkgs.nodejs_22}/bin/node ${./pi-sandbox/pi-sandbox.mjs} "$@"
+  '';
   checkrefs = pkgs.writeShellScriptBin "checkrefs" ''exec ${pkgs.python3}/bin/python3 -I ${./pi-orch/checkrefs.py} "$@"'';
 
   writable = name: file: ''
@@ -113,6 +120,8 @@ let
     # write nothing else. checkrefs checks their quotes (ai-stack docs/ORCHESTRATE-PLAN.md v2).
     ".pi/agent/extensions/claims.ts".source = ./pi-extensions/claims.ts;
     ".pi/agent/extensions/research.ts".source = ./pi-extensions/research.ts;
+    # Auto-mode-style review of each command, only under pi-sandbox (PI_GUARD=1).
+    ".pi/agent/extensions/guard.ts".source = ./pi-extensions/guard.ts;
     # Web search through the desktop's SearXNG, and page fetch (like Claude's WebFetch).
     ".pi/agent/extensions/searxng".source = "${piSearxng}/lib/node_modules/pi-searxng";
     # Read from ~/.pi, not Pi's agent dir.
@@ -155,6 +164,8 @@ in
   home.packages = [
     agentPkgs.pi-coding-agent
     checkrefs
+    sandboxRuntime # srt
+    piSandbox
     # Runs reader workers over a ledger's slices and checks their claims (ORCHESTRATE-PLAN.md v2).
     (pkgs.writeShellScriptBin "pi-orch" ''
       export PI_ORCH_CHECKREFS=${checkrefs}/bin/checkrefs

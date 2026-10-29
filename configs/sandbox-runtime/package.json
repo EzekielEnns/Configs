@@ -1,0 +1,55 @@
+{
+  "name": "@anthropic-ai/sandbox-runtime",
+  "version": "0.0.79",
+  "description": "Anthropic Sandbox Runtime (ASRT) - A general-purpose tool for wrapping security boundaries around arbitrary processes",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "bin": {
+    "srt": "dist/cli.js"
+  },
+  "engines": {
+    "node": ">=22.12.0"
+  },
+  "dependencies": {
+    "@pondwader/socks5-server": "^1.0.10",
+    "commander": "^12.1.0",
+    "node-forge": "^1.4.0",
+    "zod": "^3.25.0"
+  },
+  "files": [
+    "dist",
+    "vendor/seccomp",
+    "vendor/srt-win",
+    "vendor/java-proxy-agent",
+    "README.md",
+    "LICENSE"
+  ],
+  "keywords": [
+    "sandbox",
+    "seatbelt",
+    "sandbox-exec",
+    "anthropic",
+    "claude",
+    "security",
+    "bubblewrap",
+    "network-filtering",
+    "filesystem-restrictions"
+  ],
+  "author": "Anthropic PBC",
+  "license": "Apache-2.0",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/anthropics/sandbox-runtime.git"
+  },
+  "bugs": {
+    "url": "https://github.com/anthropics/sandbox-runtime/issues"
+  },
+  "homepage": "https://github.com/anthropics/sandbox-runtime#readme",
+  "lint-staged": {
+    "*.ts": [
+      "eslint --fix --cache --cache-location=node_modules/.cache/.eslintcache",
+      "prettier --write"
+    ]
+  }
+}
