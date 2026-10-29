@@ -12,10 +12,13 @@
  *   git --git-dir=<parent>/.checkpoints/<name>.git --work-tree=JOB_DIR checkout -f HEAD -- .
  * - Reads: everything except the secret and personal paths in DENY_READ (keys, tokens,
  *   keychains, shell history, browser and mail data, ~/Documents with all the repos).
- * - Network: any public host, each one logged to JOB_DIR/.sandbox/net.log. srt itself refuses
- *   loopback, link-local, cloud-metadata and other private targets; only the gateway is let
- *   through by name. Agents can look things up and download tools; what they can send out
- *   is what's in JOB_DIR, since the rest of the secrets can't be read.
+ * - Network: any public host, each one logged to JOB_DIR/.sandbox/net.log. srt refuses loopback,
+ *   link-local and cloud-metadata targets; private, Tailscale (CGNAT) and ULA addresses are
+ *   refused here too, by name or literal, except the gateway host's own service ports
+ *   (GATEWAY_PORTS: the model gateway and the evidence service). So an agent can't reach ssh,
+ *   Rex's server or anything else on the desktop or the LAN. Agents can look things up and
+ *   download tools; what they can send out is what's in JOB_DIR, since the rest of the
+ *   secrets can't be read.
  * - Environment: built from scratch, nothing inherited from the shell but what's listed.
  *   HOME stays real (Pi reads its config there); npm, pip, cargo and go install into
  *   JOB_DIR/.tools, whose bin is first on PATH.
@@ -29,6 +32,8 @@
 import { spawn, spawnSync } from "node:child_process";
 import { createHash } from "node:crypto";
 import { appendFileSync, existsSync, mkdirSync, readFileSync, realpathSync, symlinkSync, unlinkSync, writeFileSync } from "node:fs";
+import { lookup } from "node:dns/promises";
+import { isIP } from "node:net";
 import { homedir } from "node:os";
 import { basename, dirname, join, resolve } from "node:path";
 
@@ -36,6 +41,29 @@ const { SandboxManager } = await import(process.env.PI_SANDBOX_SRT ?? "@SRT@");
 
 const HOME = homedir();
 const GATEWAY = (process.env.PI_SANDBOX_GATEWAY ?? "desktop").split(",");
+// The gateway host's services the tools use: 4000 the LiteLLM gateway (models, Jev), 8090 the
+// evidence service. Nothing else on that host: not ssh, not Rex's server (7297).
+const GATEWAY_PORTS = (process.env.PI_SANDBOX_GATEWAY_PORTS ?? "4000,8090").split(",");
+// Private-use, Tailscale (100.64/10) and ULA space: names that resolve here, and literals, are
+// refused unless allowed above. srt leaves these open by default (allow-listing an intranet
+// name is legitimate), and the desktop and the LAN live here.
+const PRIVATE = ["10.0.0.0/8", "172.16.0.0/12", "192.168.0.0/16", "100.64.0.0/10", "fc00::/7"];
+const inV4 = (ip, cidr) => {
+	const [net, bits] = cidr.split("/");
+	const n = (a) => a.split(".").reduce((x, o) => x * 256 + Number(o), 0);
+	const size = 2 ** (32 - Number(bits));
+	return Math.floor(n(ip) / size) === Math.floor(n(net) / size);
+};
+const isPrivate = (ip) => {
+	const v4 = ip.startsWith("::ffff:") ? ip.slice(7) : ip;
+	if (isIP(v4) === 4) return PRIVATE.slice(0, 4).some((c) => inV4(v4, c));
+	return /^f[cd]/i.test(ip);
+};
+// The gateway's addresses (srt allows a name into private space only when that address is
+// allowed as a literal on the same port).
+const gatewayIps = (await Promise.all(GATEWAY.map((h) => lookup(h, { all: true }).catch(() => []))))
+	.flat().map((a) => a.address);
+const ALLOWED = [...GATEWAY, ...gatewayIps].flatMap((h) => GATEWAY_PORTS.map((p) => `${h.includes(":") ? `[${h}]` : h}:${p}`));
 const DENY_READ = [
 	"~/.ssh", "~/.gnupg", "~/.aws", "~/.azure", "~/.config/gcloud", "~/.kube", "~/.docker",
 	"~/.netrc", "~/.npmrc", "~/.pypirc", "~/.git-credentials", "~/.config/gh", "~/.config/sops",
@@ -127,7 +155,14 @@ mkdirSync(memory, { recursive: true });
 const netLog = join(meta, "net.log");
 const config = {
 	allowPty: true, // macOS: Pi's interactive screen needs raw mode on its terminal
-	network: { allowedDomains: GATEWAY, deniedDomains: [] },
+	network: {
+		allowedDomains: ALLOWED,
+		deniedDomains: ["*:7297"],
+		deniedDomainReasons: {
+			"*:7297": "Rex's server is off limits: it would be a shell outside the sandbox. Ask the user to run it.",
+		},
+		deniedResolvedAddresses: PRIVATE,
+	},
 	filesystem: {
 		denyRead: DENY_READ.map((p) => p.replace(/^~/, HOME)),
 		// The checkpoint repo read-only: jev-check.ts diffs the job against it.
@@ -138,8 +173,10 @@ const config = {
 };
 // Hosts not on the list: allowed and logged (srt has already refused private addresses).
 const ask = async ({ host, port }) => {
-	appendFileSync(netLog, `${new Date().toISOString()} ${host}:${port}\n`);
-	return true;
+	// A private address typed as a literal: refused here (the resolved-address check covers names).
+	const ok = !(isIP(host.replace(/^\[|\]$/g, "")) && isPrivate(host.replace(/^\[|\]$/g, "")));
+	appendFileSync(netLog, `${new Date().toISOString()} ${host}:${port}${ok ? "" : " refused"}\n`);
+	return ok;
 };
 
 const env = {
