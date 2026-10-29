@@ -88,6 +88,11 @@ let
     awk 'f; /^---$/ && NR > 1 { f = 1 }' $src/SKILL.md >> $out/SKILL.md
   '';
   checkrefs = pkgs.writeShellScriptBin "checkrefs" ''exec ${pkgs.python3}/bin/python3 -I ${./pi-orch/checkrefs.py} "$@"'';
+  # Points of interest: Jev ranks code, diff hunks or web passages against a question (configs/poi).
+  poi = pkgs.writeShellScriptBin "poi" ''
+    export PATH=$PATH:${lib.makeBinPath [ pkgs.git pkgs.ripgrep ]}
+    exec ${pkgs.python3}/bin/python3 -I ${./poi/poi.py} "$@"
+  '';
 
   writable = name: file: ''
     run mkdir -p "$(dirname "$HOME/${name}")"
@@ -234,6 +239,7 @@ in
     pkgs.ghidra
     agentPkgs.pi-coding-agent
     checkrefs
+    poi
     sandboxRuntime # srt
     piSandbox
     pis
