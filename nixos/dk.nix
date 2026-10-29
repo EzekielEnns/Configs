@@ -21,10 +21,25 @@
       # /var/lib/ai-stack/secrets.env, never in this repo.
       braveSearch = true;
       # Web evidence service (ai-stack docs/RAG-PLAN.md), from its own private repo cloned
-      # next to ai-stack. Health check only for now; the pipeline lands step by step.
+      # next to ai-stack: /evidence (search, fetch, rank, prune) and /prune, on :8090. Pi's
+      # lookup and fetch_content use it (configs/pi-extensions/web).
       evidence = {
         enable = true;
         package = (builtins.getFlake "git+file:///home/ezekiel/Documents/repos/evidence").packages.x86_64-linux.evidence;
+        # Open Provence (ONNX export, ~600 MB) copied into the store by hash, since the
+        # service can't read home folders. Re-export: evidence/tools/export_provence.py.
+        provence = {
+          model = builtins.path {
+            path = /home/ezekiel/ai-helpers/models/provence.onnx;
+            name = "provence.onnx";
+            sha256 = "sha256-CnqTmCEV7A5yIclsDZMo9b+TzZ0EcbejUx4vTBH0Ook=";
+          };
+          tokenizer = builtins.path {
+            path = /home/ezekiel/ai-helpers/models/open-provence-en-gte-911517e2/tokenizer.json;
+            name = "provence-tokenizer.json";
+            sha256 = "sha256-ZXjEtileMfdiuamtRcRRZPM7Nvxw+xWKn4VkXa+2/CQ=";
+          };
+        };
       };
       # Cloud models via OpenRouter (prepaid credit). The key is OPENROUTER_API_KEY in
       # /var/lib/ai-stack/secrets.env on the desktop, never in this repo.

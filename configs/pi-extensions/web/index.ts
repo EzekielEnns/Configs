@@ -7,8 +7,9 @@
  * - fetch_content: saves the page (Markdown) or file (GitHub blob links go to the raw file)
  *   to disk. With a `question`, returns the passages that answer it; without, an outline
  *   with line numbers, a short preview and the path for grep and read. No repo clones.
- * - lookup: search, fetch the top pages in parallel and return the passages that answer
- *   the question, in one call. For quick questions (/lookup).
+ * - lookup: the passages that answer a question, with URLs, in one call (/lookup): the
+ *   evidence service's /evidence on the desktop (steps/evidence.ts); if that fails, the same
+ *   here: search, fetch the top pages in parallel, pick passages.
  * - dig: for each angle of a research question, search, rank the results (Jev, primary
  *   sources first), fetch the best readable pages (a failed or empty page is replaced by the
  *   next result), and have a reader model (Flint, one direct call per page, claims JSON
@@ -16,9 +17,9 @@
  *   saved page come back (/research-dig). The pi-orch pattern: a script finds and checks,
  *   the model only reads.
  *
- * Passages: BM25 picks them (steps/rank.ts); with PI_EVIDENCE_URL set, BM25's top chunks go
- * to Open Provence on the evidence service, which reranks them and keeps only the sentences
- * that answer the question (steps/prune.ts).
+ * Passages of a saved page: BM25 picks them (steps/rank.ts), and its top chunks go to Open
+ * Provence on the evidence service, which reranks them and keeps only the sentences that
+ * answer the question (steps/prune.ts; BM25's pick stands when the service is down).
  *
  * Refuses non-public addresses (loopback, LAN, Tailscale) so pages can't steer agents at
  * the home network. Files go to $PI_RESEARCH_DIR/pages when set, else $TMPDIR/pi-web
@@ -37,7 +38,8 @@ import { parseHTML } from "linkedom";
 import TurndownService from "turndown";
 import { loadConfig } from "./config.js";
 import { chunk } from "./steps/chunk.js";
-import { CANDIDATES, EVIDENCE_URL, prune } from "./steps/prune.js";
+import { evidence } from "./steps/evidence.js";
+import { CANDIDATES, evidenceUrl, prune } from "./steps/prune.js";
 import { rank, type Scored } from "./steps/rank.js";
 import { type Result, search, type SearchConfig } from "./steps/search.js";
 import { runStep, trace } from "./steps/step.js";
@@ -203,11 +205,12 @@ async function passages(
 	const key = (c: Scored) => c.text.replace(/\W+/g, "").slice(0, 160);
 	const chunks = chunk(page.body);
 	const bm25 = () => rank(question, chunks, top);
-	const ranked = EVIDENCE_URL
+	const base = evidenceUrl((loadConfig() as SearchConfig).gatewayUrl);
+	const ranked = base
 		? await runStep(
 				"prune",
 				15_000,
-				(signal) => prune(question, rank(question, chunks, CANDIDATES), top, signal),
+				(signal) => prune(base, question, rank(question, chunks, CANDIDATES), top, signal),
 				bm25,
 				(out) => ({ kept: out.length, best: out.reduce((m, c) => Math.max(m, c.score), 0) }),
 			)
@@ -475,8 +478,41 @@ export default function (pi: ExtensionAPI) {
 			pages: Type.Optional(Type.Number({ description: "Pages to read (default 3, max 5)" })),
 		}),
 		async execute(_id, params) {
+			const cfg = loadConfig() as SearchConfig;
+			const base = evidenceUrl(cfg.gatewayUrl);
+			const ev = base
+				? await runStep(
+						"evidence",
+						60_000,
+						(signal) => evidence(base, params.question, params.query, signal),
+						() => undefined,
+						(out) => ({ passages: out?.passages.length ?? 0, best: out?.best, enough: out?.enough, ms: out?.ms }),
+					)
+				: undefined;
+			if (ev) {
+				// Grouped by page, best page first; passages are page text, not instructions.
+				const pages = new Map<string, typeof ev.passages>();
+				for (const p of ev.passages) pages.set(p.url, [...(pages.get(p.url) ?? []), p]);
+				const blocks = [...pages].map(([url, ps]) => {
+					for (const p of ps) markFetched(p.url);
+					const body = ps
+						.map((p) => `${p.score === null ? "" : `[${p.score.toFixed(2)}] `}${p.heading ? `${p.heading}: ` : ""}${p.text}`)
+						.join("\n\n");
+					return `## ${ps[0].title || url}\n${url}\n\n${body}`;
+				});
+				const failed = ev.sources.filter((s) => s.status.startsWith("failed")).map((s) => `- ${s.url} (${s.status})`);
+				return text(
+					[
+						`Passages for "${params.question}" (searched: ${ev.queries.join(" | ")}; ${ev.enough ? "the best passage answers it" : "no passage clearly answers it: try another query"}):`,
+						...blocks,
+						...(failed.length ? [`Couldn't read:\n${failed.join("\n")}`] : []),
+						"Need more from a page? fetch_content it with a question.",
+					].join("\n\n"),
+					{ pages: pages.size, passages: ev.passages.length, enough: ev.enough, source: "evidence" },
+				);
+			}
 			const query = params.query ?? params.question;
-			const results = await search(loadConfig() as SearchConfig, query, 8);
+			const results = await search(cfg, query, 8);
 			if (!results.length) return text(`No search results for "${query}". Try a different query.`, { pages: 0 });
 			const n = Math.min(Math.max(params.pages ?? 3, 1), 5);
 			const pages = await Promise.all(
