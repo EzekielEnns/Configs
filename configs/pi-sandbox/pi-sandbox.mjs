@@ -100,12 +100,8 @@ const meta = join(job, ".sandbox");
 const tools = join(job, ".tools");
 for (const d of [meta, tools, join(job, ".tmp"), join(tools, "bin")]) mkdirSync(d, { recursive: true });
 // The grep and find tools (ripgrep, fd) skip what an .ignore file lists, so searches don't
-// turn up Pi's own session logs or installed tools; a .gitignore of `*` keeps git from ever
-// committing them (sessions hold the code, command output and anything secret the agent saw).
-for (const d of [meta, tools, join(job, ".tmp")]) {
-	writeFileSync(join(d, ".ignore"), "*\n");
-	writeFileSync(join(d, ".gitignore"), "*\n");
-}
+// turn up Pi's own session logs or installed tools.
+for (const d of [meta, tools, join(job, ".tmp")]) writeFileSync(join(d, ".ignore"), "*\n");
 
 // Pi's own agent folder: Pi writes lock files and sessions next to its config.
 const piHome = join(HOME, ".pi/agent");
