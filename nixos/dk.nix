@@ -52,6 +52,24 @@
             model = "openrouter/openai/gpt-oss-120b";
             extra_body.provider = usHosts;
           };
+          # Cheaper frontier candidates for agent work in pis (2026-10-29). Any host, but none
+          # that keeps or trains on prompts.
+          cloud-deepseek-pro = {
+            model = "openrouter/deepseek/deepseek-v4-pro";
+            extra_body.provider.data_collection = "deny";
+          };
+          cloud-grok = {
+            model = "openrouter/x-ai/grok-4.20";
+            extra_body.provider.data_collection = "deny";
+          };
+          cloud-gpt = {
+            model = "openrouter/openai/gpt-6.1-terra";
+            extra_body.provider.data_collection = "deny";
+          };
+          cloud-gemini-flash = {
+            model = "openrouter/google/gemini-3.8-flash";
+            extra_body.provider.data_collection = "deny";
+          };
           cloud-haiku = "openrouter/anthropic/claude-haiku-5.5";
           cloud-sonnet = "openrouter/anthropic/claude-sonnet-5.5";
           cloud-opus = "openrouter/anthropic/claude-opus-5.5";

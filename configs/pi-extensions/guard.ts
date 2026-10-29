@@ -11,7 +11,7 @@
  * binary under decomp, say) must not be able to talk it into anything. If Jev can't be
  * reached, risky-looking commands are blocked and the rest pass.
  *
- * Outside the sandbox it is a tripwire instead: the frontier models (FRONTIER) get no shell
+ * Outside the sandbox it is a tripwire instead: the frontier models in FRONTIER (Claude and the cheaper candidates) get no shell
  * at all unless PI_UNSANDBOXED=1, so one can't end up with a free hand on the real home folder
  * by forgetting `pis`. DeepSeek isn't on the list: it runs pi-orch from ~/pi-eval, which the
  * sandbox can't read.
@@ -28,7 +28,7 @@ const JOB = process.env.PI_SANDBOX_JOB ?? process.cwd();
 const JEV_URL = process.env.PI_GUARD_JEV_URL ?? "http://desktop:4000/openrouter/decisions";
 const JEV_MODEL = process.env.PI_GUARD_JEV_MODEL ?? "typesafe/jev-1.14";
 const LOG = join(JOB, ".sandbox", "guard.log");
-const FRONTIER = /^cloud-(opus|sonnet|haiku)/;
+const FRONTIER = /^cloud-(opus|sonnet|haiku|deepseek-pro|grok|gpt|gemini-flash)$/;
 
 // Every segment of the command starts with one of these and has no write redirection.
 const READ_ONLY =
