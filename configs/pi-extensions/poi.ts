@@ -6,7 +6,8 @@
  * read just those lines, instead of grepping and reading its way there.
  *
  * Frontier models only: for models with windows of 32k or less (Flint, Sage, the 4B) the tool
- * stays inactive, since its description and results cost context they don't have. No --tour
+ * stays inactive, since its description and results cost context they don't have; any model gets
+ * `/poi question`, which runs poi here and hands the list to the model to explain. The tool has no --tour
  * (it would occupy Flint's slots). PI_POI=0 turns it off (the A/B in ai-stack
  * docs/POI-TOOL-AB.md).
  */
@@ -55,9 +56,54 @@ const poiTool = defineTool({
 	},
 });
 
+const USAGE =
+	"/poi [--flow|--tour|--follow] [-n N] question  ·  /poi --diff [REF] [focus]\n" +
+	"Ranks the places in this project that answer the question, then has the model walk you through them.";
+
+/** "/poi --flow -n 8 how does X work" -> poi's arguments; the question is everything after the flags. */
+function commandArgs(arg: string): string[] | undefined {
+	const words = arg.trim().split(/\s+/).filter(Boolean);
+	const flags: string[] = [];
+	while (words[0]?.startsWith("-")) {
+		const w = words.shift()!;
+		if (w === "-n") flags.push("-n", words.shift() ?? "15");
+		else if (w === "--diff") {
+			// An optional ref (anything without spaces that looks like one) before the focus words.
+			const ref = words[0] && /^[\w./~^@-]+(\.\.\.?[\w./~^@-]+)?$/.test(words[0]) && words.length > 1 ? words.shift()! : undefined;
+			return ["--no-links", ...flags, "--diff", ...(ref ? [ref] : []), ...(words.length ? [words.join(" ")] : [])];
+		} else flags.push(w);
+	}
+	if (!words.length) return undefined;
+	return ["--no-links", ...flags, words.join(" "), "."];
+}
+
 export default function (pi: ExtensionAPI) {
 	if (!ON) return;
 	pi.registerTool(poiTool);
+
+	// For any model: poi runs here, its list goes into the conversation, and the model explains it.
+	pi.registerCommand("poi", {
+		description: "Points of interest: rank where the code answers a question, then walk through it",
+		handler: async (arg, ctx) => {
+			const args = commandArgs(arg ?? "");
+			if (!args) return ctx.ui.notify(USAGE, "info");
+			ctx.ui.notify(`poi: ranking${args.includes("--tour") ? " and writing a tour" : ""}…`, "info");
+			const out = await new Promise<string>((done) => {
+				execFile(BIN, args, { cwd: ctx.cwd, timeout: 300_000, maxBuffer: 4 << 20 }, (err, stdout, stderr) => {
+					if (err && !stdout) done(`poi failed: ${(stderr || err.message).trim().slice(0, 600)}`);
+					else done(stdout.trim());
+				});
+			});
+			if (out.startsWith("poi failed")) return ctx.ui.notify(out, "error");
+			const list = out.length > MAX_CHARS ? `${out.slice(0, MAX_CHARS)}\n[... cut]` : out;
+			const msg =
+				`Points of interest for: ${(arg ?? "").trim()}\n\n${list}\n\n` +
+				"Walk me through how this works, starting with the top places. Read the code at those lines before " +
+				"explaining it, and keep it to what the code shows.";
+			pi.sendUserMessage(msg, ctx.isIdle() ? undefined : { deliverAs: "followUp" });
+		},
+	});
+
 	pi.on("before_agent_start", (event, ctx) => {
 		const big = (ctx.model?.contextWindow ?? 0) > 32768;
 		// This run's tools (edited in place; setActiveTools alone only reaches the next run).

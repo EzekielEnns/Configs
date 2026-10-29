@@ -9,8 +9,10 @@ prints a jump list, best first, grouped by file.
   --flat      skip the file stage: rank every block
   --follow    under each of the top 5 hits, its callers and references (language server, else rg)
   --tour      a local model turns the hits into a short guided read (--tour-model, default flint)
-  --flow      order the places along the call graph (language-server call hierarchy, else the text):
-              entry points first, each function's callees in call order; good with --diff for PR review
+  --flow      order the places the way data moves: where it starts (client) to where it ends (storage),
+              infrastructure where the data passes through it (Jev places each step), and within that
+              each function before what it calls (language-server call hierarchy, else the text). With
+              --diff, call order only; good for PR review
   --qf        Vim quickfix lines on stdout:  poi --qf "question" | nvim -q -   (or nvim -q <(poi --qf ...))
   --open      open the result in Neovim (:PoiLoad): a Rex pane to the right when inside Rex
   --json      one line of JSON: hits (and tour stops / flow steps), paths relative to "root", and the cost
@@ -712,6 +714,81 @@ def flow_edges(nodes, use_lsp=True):
     return by
 
 
+STAGES = [
+    "Where the data starts: the client, browser, device, UI or user input that produces or collects it.",
+    "Carrying it in: the client sending it, the network path, gateway, load balancer or the endpoint that receives it.",
+    "Server-side work: handlers, queues and topics, workers and the logic that processes it.",
+    "Where it ends: databases, buckets, files, reports, or the answer sent back.",
+]
+STAGE_NAMES = ["client", "in", "server", "end"]
+
+
+def flow_stages(question, hits, stats):
+    """{index: (stage 0-3, on the data's path 0-1)} for flow steps, from Jev: --flow reads code the way data moves,
+    client to server to storage, with infrastructure where the data passes through it."""
+    def one(h):
+        item = {"label": f"{h['file']}:{h['jump']}" + (f" {h['sym']}" if h["sym"] else ""), "text": h["text"][:6000]}
+        if os.environ.get("POI_JEV_STUB"):
+            low = (item["label"] + item["text"]).lower()
+            st = 0 if any(w in low for w in ("client", "browser", "ui")) else 3 if any(w in low for w in ("db", "store")) else 2
+            return st, 1.0, 0.0
+        body = {"model": JEV_MODEL, "state": [f"Question: {question}", f"{item['label']}:\n{item['text']}"],
+                "questions": {"stage": {"type": "score", "criteria": STAGES, "instructions":
+                                        "Where on the data's path through the system does this code or config sit?"},
+                              "path": {"type": "noul", "instructions": "This code or config produces, carries, "
+                                       "processes or stores the data the question is about (build scripts, CI and "
+                                       "tests do not)."}}}
+        req = urllib.request.Request(JEV_URL, json.dumps(body).encode(), {"Content-Type": "application/json"})
+        with urllib.request.urlopen(req, timeout=60) as r:
+            d = json.load(r)
+        a = d["answers"]
+        return float(a["stage"]["score"]), float(a["path"]["noul"]), float(d.get("usage", {}).get("cost", 0))
+
+    out = {}
+    with cf.ThreadPoolExecutor(8) as ex:
+        futs = {ex.submit(one, h): i for i, h in enumerate(hits)}
+        for f in cf.as_completed(futs):
+            try:
+                st, on, c = f.result()
+                out[futs[f]] = (st, on)
+                stats["cost"] += c
+            except Exception:  # noqa: BLE001 - that step keeps its call-graph place
+                stats["failed"] += 1
+    stats["sent"] += len(hits)
+    return out
+
+
+def by_stage(order, stages):
+    """The call-ordered steps, regrouped along the data's path: each run of linked steps (a caller and what it
+    calls) moves as one, placed by its earliest stage; steps off the data's path go last, marked."""
+    chunks, cur = [], []
+    for i, h in enumerate(order):
+        if cur and not (h["flow_unknown"] or cur[-1]["flow_unknown"]) and any(
+                f"{h['file']}:{h['jump']}" == c for x in cur for c in x.get("calls", [])):
+            cur.append(h)
+        else:
+            if cur:
+                chunks.append(cur)
+            cur = [h]
+    if cur:
+        chunks.append(cur)
+    idx = {id(h): i for i, h in enumerate(order)}
+
+    def key(ch):
+        st = [stages[idx[id(h)]] for h in ch if idx[id(h)] in stages]
+        off = bool(st) and max(on for _, on in st) < 0.5
+        return (off, min(s for s, _ in st) if st else 1.5, idx[id(ch[0])])
+
+    out = []
+    for ch in sorted(chunks, key=key):
+        off = key(ch)[0]
+        for h in ch:
+            sv = stages.get(idx[id(h)])
+            out.append({**h, "flow_unknown": off,
+                        "stage": STAGE_NAMES[min(3, max(0, round(sv[0])))] if sv and not off else None})
+    return out
+
+
 def flow_order(nodes):
     """Reading order: depth-first from the entry points (no incoming edge among the hits; names like main or
     handle first, then by rank), each node's callees in call-site order. Nodes with no edge at all come last,
@@ -792,8 +869,9 @@ Cite only path:line locations given below (a stop may cite a line inside a place
 starting `Answer:` that answers the question in a sentence or two if the code shows it, else says what's missing.
 No preamble."""
 
-FLOW_PROMPT = """You explain one flow through code to a developer. Below are the steps a search found, in call
-order where it is known (S1 runs first); steps marked "order unknown" go wherever they fit in the flow.
+FLOW_PROMPT = """You explain one flow through code to a developer. Below are the steps a search found, in the
+order data moves through them (S1 first): from where it starts (client) to where it ends (storage), with
+infrastructure where the data passes through it. Steps marked "off the data path" go wherever they fit.
 
 Write one line per step, in flow order, at most 12: `N. path:line - what comes into this step and what it
 hands on (data, calls, side effects)`. Cite only the path:line given for each step. End with one line starting
@@ -811,7 +889,7 @@ def tour(question, hits, model, budget_chars, flow=False):
         code = "\n".join(h["text"].split("\n")[:50])
         refs = "".join(f"\n  called at {w}" + (f" in {s}" if s else "") for w, s, _ in h.get("refs", []))
         tag = f"S{i}. " if flow else ""
-        unk = " (order unknown)" if flow and h.get("flow_unknown") else ""
+        unk = " (off the data path)" if flow and h.get("flow_unknown") else ""
         part = f"## {tag}{h['file']}:{h['jump']} (lines {h['a']}-{h['b']})" + \
                (f" in {h['sym']}" if h["sym"] else "") + f"{unk}{refs}\n{code}\n"
         if used + len(part) > budget_chars:
@@ -946,9 +1024,8 @@ def main():
         nodes = flow_nodes(groups, recs)
         flow_by = sorted(flow_edges(nodes))
         ordered = [as_hit(n) for n in flow_order(nodes)]
-        if not any(n["edges"] for n in nodes):
-            log("flow: no calls link these places; --flow suits a question about one path through the code "
-                "(\"how does a request reach the database\"), --tour a broad one (\"walk me through this code base\")")
+        if not o.diff:  # a diff's hunks keep call order; a search reads client to server to storage
+            ordered = by_stage(ordered, flow_stages(question, ordered, stats))
         log(f"flow: {sum(len(n['edges']) for n in nodes)} call edges among {len(nodes)} functions "
             f"({', '.join(flow_by) or 'none found'})")
     hits = ordered if o.flow else [h for _, hs in groups for h in hs]
@@ -1009,6 +1086,8 @@ def build_result(question, o, hits, tr, flow_by, cost):
             d["text"] = stop_text(h, stop_for(h))
             if h.get("calls"):
                 d["calls"] = h["calls"]
+            if h.get("stage"):
+                d["stage"] = h["stage"]
             if h.get("flow_unknown"):
                 d["order_unknown"] = True
         if h.get("refs_by"):
@@ -1067,8 +1146,9 @@ def print_text(result, groups, links):
         print(bold(f"Flow ({len(hits)} steps, call edges from {', '.join(result['flow']['edges_by']) or 'nothing'}):"))
         for h in hits:
             where = f"{h['file']}:{h['line']}"
-            mark = "  (order unknown)" if h.get("order_unknown") else ""
-            print(f"  {h['step']:>2}. {osc8(h['file'], h['line'], where, links)}  {h['text'][:110]}{mark}")
+            mark = "  (off the data path)" if h.get("order_unknown") else ""
+            stage = f"[{h['stage']}] " if h.get("stage") else ""
+            print(f"  {h['step']:>2}. {stage}{osc8(h['file'], h['line'], where, links)}  {h['text'][:110]}{mark}")
             for c in h.get("calls", []):
                 f, n = c.rsplit(":", 1)
                 print(f"        → {osc8(f, int(n), c, links)}")
