@@ -27,7 +27,7 @@
  */
 import { spawn, spawnSync } from "node:child_process";
 import { createHash } from "node:crypto";
-import { appendFileSync, copyFileSync, existsSync, mkdirSync, realpathSync, symlinkSync, unlinkSync, writeFileSync } from "node:fs";
+import { appendFileSync, copyFileSync, existsSync, mkdirSync, readFileSync, realpathSync, symlinkSync, unlinkSync, writeFileSync } from "node:fs";
 import { homedir } from "node:os";
 import { basename, dirname, join, resolve } from "node:path";
 
@@ -78,8 +78,20 @@ for (const [name, target] of Object.entries(links)) {
 	try { unlinkSync(link); } catch {}
 	if (existsSync(join(piHome, target))) symlinkSync(join(piHome, target), link);
 }
-if (existsSync(join(piHome, "settings.json")) && !existsSync(join(agentDir, "settings.json")))
-	copyFileSync(join(piHome, "settings.json"), join(agentDir, "settings.json"));
+// Settings: a copy per job, so a model picked with /model or Ctrl+P is remembered for this
+// job. Frontier runs start on the cheapest hosted model (PI_SANDBOX_MODEL to change it)
+// instead of the global default, Flint.
+const settingsFile = join(agentDir, "settings.json");
+if (existsSync(join(piHome, "settings.json")) && !existsSync(settingsFile))
+	copyFileSync(join(piHome, "settings.json"), settingsFile);
+if (!small && existsSync(settingsFile)) {
+	const settings = JSON.parse(readFileSync(settingsFile, "utf8"));
+	if (!settings.defaultModel || settings.defaultModel === "flint") {
+		settings.defaultProvider = "desktop";
+		settings.defaultModel = process.env.PI_SANDBOX_MODEL ?? "cloud-deepseek";
+		writeFileSync(settingsFile, `${JSON.stringify(settings, null, 2)}\n`);
+	}
+}
 
 // Checkpoint: the job's files, committed to a repo outside the job before every run.
 const checkpoints = join(dirname(job), ".checkpoints", `${basename(job)}.git`);
@@ -106,6 +118,7 @@ mkdirSync(memory, { recursive: true });
 
 const netLog = join(meta, "net.log");
 const config = {
+	allowPty: true, // macOS: Pi's interactive screen needs raw mode on its terminal
 	network: { allowedDomains: GATEWAY, deniedDomains: [] },
 	filesystem: {
 		denyRead: DENY_READ.map((p) => p.replace(/^~/, HOME)),
