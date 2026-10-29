@@ -1,6 +1,6 @@
 diff -ru a/agents.ts b/agents.ts
---- a/agents.ts	2026-10-29 16:03:38
-+++ b/agents.ts	2026-10-29 16:03:38
+--- a/agents.ts	2026-10-29 16:19:10
++++ b/agents.ts	2026-10-29 16:19:10
 @@ -13,6 +13,12 @@
  	description: string;
  	tools?: string[];
@@ -35,8 +35,8 @@ diff -ru a/agents.ts b/agents.ts
  			source,
  			filePath,
 diff -ru a/index.ts b/index.ts
---- a/index.ts	2026-10-29 16:03:38
-+++ b/index.ts	2026-10-29 16:03:53
+--- a/index.ts	2026-10-29 16:19:10
++++ b/index.ts	2026-10-29 16:19:29
 @@ -32,7 +32,89 @@
  import { type AgentConfig, type AgentScope, discoverAgents } from "./agents.ts";
  
@@ -197,7 +197,7 @@ diff -ru a/index.ts b/index.ts
  	let tmpPromptDir: string | null = null;
  	let tmpPromptPath: string | null = null;
  
-@@ -336,8 +462,22 @@
+@@ -336,8 +462,23 @@
  			args.push("--append-system-prompt", tmpPromptPath);
  		}
  
@@ -209,9 +209,10 @@ diff -ru a/index.ts b/index.ts
 +			if (total > CONTEXT_MAX) {
 +				args.push("--no-context-files");
 +				pointer =
-+					"\n\nProject instructions are too long to load here (" +
++					"\n\nThe agent that gave you this task enforces the project's rules and wrote the ones that apply into it: " +
++					"follow them, and it will check your work against the rest. The full instructions are too long to load here (" +
 +					ctx.map((f) => `${f.path}, ${Math.round(f.size / 1024)} KB`).join("; ") +
-+					"). Don't read them whole: grep them for the part your task touches (e.g. `grep -n '^#' FILE` for the headings).";
++					"); if your task needs more, grep them for that part (e.g. `grep -n '^#' FILE` for the headings), don't read them whole.";
 +			}
 +		}
 +		args.push(`Task: ${task}${pointer}`);
@@ -221,7 +222,7 @@ diff -ru a/index.ts b/index.ts
  
  		const exitCode = await new Promise<number>((resolve) => {
  			const invocation = getPiInvocation(args);
-@@ -345,7 +485,16 @@
+@@ -345,7 +486,16 @@
  				cwd: cwd ?? defaultCwd,
  				shell: false,
  				stdio: ["ignore", "pipe", "pipe"],
@@ -238,7 +239,7 @@ diff -ru a/index.ts b/index.ts
  			let buffer = "";
  
  			const processLine = (line: string) => {
-@@ -418,10 +567,42 @@
+@@ -418,10 +568,42 @@
  			}
  		});
  
@@ -282,7 +283,7 @@ diff -ru a/index.ts b/index.ts
  		if (tmpPromptPath)
  			try {
  				fs.unlinkSync(tmpPromptPath);
-@@ -467,6 +648,12 @@
+@@ -467,6 +649,12 @@
  });
  
  export default function (pi: ExtensionAPI) {
@@ -295,7 +296,15 @@ diff -ru a/index.ts b/index.ts
  	pi.registerTool({
  		name: "subagent",
  		label: "Subagent",
-@@ -479,6 +666,7 @@
+@@ -475,10 +663,15 @@
+ 			"Modes: single (agent + task), parallel (tasks array), chain (sequential with {previous} placeholder).",
+ 			`Default agent scope is "user" (from ${path.join(getAgentDir(), "agents")}).`,
+ 			`To enable project-local agents in ${CONFIG_DIR_NAME}/agents, set agentScope: "both" (or "project").`,
++			"You are in charge of the project's rules (AGENTS.md / CLAUDE.md): agents on local models don't load",
++			`instructions longer than ${Math.round(CONTEXT_MAX / 1024)} KB. Write the rules that apply into each task`,
++			"(conventions, what not to touch, how to test), and check every result against the project's rules before",
++			"you use or report it.",
+ 		].join(" "),
  		parameters: SubagentParams,
  
  		async execute(_toolCallId, params, signal, onUpdate, ctx) {
