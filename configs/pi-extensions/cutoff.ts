@@ -12,7 +12,7 @@
  * here would skip that and fill the context with 1-token replies.
  *
  * turn_end: add a short instruction and continue, at most MAX_RESUMES times in a row. The
- * system prompt (pi-agents/APPEND_SYSTEM.md) asks for files in parts so it rarely comes to this.
+ * system prompt (pi-agents/system-small.md) asks for files in parts so it rarely comes to this.
  */
 import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
 

@@ -120,7 +120,11 @@ let
     # Output cut off at the token limit: continue with a nudge instead of ending the run.
     ".pi/agent/extensions/cutoff.ts".source = ./pi-extensions/cutoff.ts;
     # Write big files in parts (the bake-off's Rust runs all died on one huge write).
-    ".pi/agent/APPEND_SYSTEM.md".source = ./pi-agents/APPEND_SYSTEM.md;
+    # Every session: plan, tests first, check as you go (system-code). Local models also get
+    # the output-limit rules (system-small); pis gives frontier models only system-code.
+    ".pi/agent/APPEND_SYSTEM.md".text =
+      builtins.readFile ./pi-agents/system-code.md + "\n" + builtins.readFile ./pi-agents/system-small.md;
+    ".pi/agent/system-frontier.md".source = ./pi-agents/system-code.md;
     # Context and speed for small models (ai-stack docs/CODING-PLAN.md). Each has an off
     # switch, PI_<NAME>=0: EDITS, CHECK, BUDGET_TURN, MASK, THINKING, LOG_DIGEST (spill).
     ".pi/agent/extensions/edits.ts".source = ./pi-extensions/edits.ts; # edit, don't rewrite

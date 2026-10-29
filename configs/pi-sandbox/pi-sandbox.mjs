@@ -27,7 +27,7 @@
  */
 import { spawn, spawnSync } from "node:child_process";
 import { createHash } from "node:crypto";
-import { appendFileSync, copyFileSync, existsSync, mkdirSync, realpathSync, symlinkSync, writeFileSync } from "node:fs";
+import { appendFileSync, copyFileSync, existsSync, mkdirSync, realpathSync, symlinkSync, unlinkSync, writeFileSync } from "node:fs";
 import { homedir } from "node:os";
 import { basename, dirname, join, resolve } from "node:path";
 
@@ -67,9 +67,16 @@ for (const d of [meta, tools, join(job, ".tmp"), join(tools, "bin")]) mkdirSync(
 const piHome = join(HOME, ".pi/agent");
 const agentDir = join(meta, "pi-agent");
 mkdirSync(join(agentDir, "sessions"), { recursive: true });
-for (const name of ["agents", "APPEND_SYSTEM.md", "bin", "extensions", "models.json", "prompts"]) {
+const small = process.env.PI_SANDBOX_PROFILE === "small";
+const links = {
+	agents: "agents", bin: "bin", extensions: "extensions", "models.json": "models.json", prompts: "prompts",
+	// Frontier models skip the local models' 16k-output rules (write in 150-line parts).
+	"APPEND_SYSTEM.md": small ? "APPEND_SYSTEM.md" : "system-frontier.md",
+};
+for (const [name, target] of Object.entries(links)) {
 	const link = join(agentDir, name);
-	if (existsSync(join(piHome, name)) && !existsSync(link)) symlinkSync(join(piHome, name), link);
+	try { unlinkSync(link); } catch {}
+	if (existsSync(join(piHome, target))) symlinkSync(join(piHome, target), link);
 }
 if (existsSync(join(piHome, "settings.json")) && !existsSync(join(agentDir, "settings.json")))
 	copyFileSync(join(piHome, "settings.json"), join(agentDir, "settings.json"));
@@ -131,10 +138,11 @@ const env = {
 	XDG_CACHE_HOME: join(tools, "cache"),
 	// Frontier profile: these helpers trim history for 32k local slots, but rewriting old
 	// messages breaks a hosted model's prompt cache on every turn, and the delegate budget
-	// would cut a frontier brain's reads. PI_SANDBOX_PROFILE=small keeps them.
-	...(process.env.PI_SANDBOX_PROFILE === "small"
+	// would cut a frontier brain's reads, and 150-line writes suit a 16k output cap, not 64k.
+	// PI_SANDBOX_PROFILE=small keeps them.
+	...(small
 		? {}
-		: { PI_MASK: "0", PI_THINKING: "0", PI_BUDGET_TURN: "0", PI_DELEGATE: "0", PI_READ_LIMIT: "800" }),
+		: { PI_MASK: "0", PI_THINKING: "0", PI_BUDGET_TURN: "0", PI_DELEGATE: "0", PI_READ_LIMIT: "800", PI_WRITE_MAX_LINES: "800" }),
 	PI_CODING_AGENT_DIR: agentDir,
 	PI_SANDBOX_JOB: job,
 	PI_GUARD: process.env.PI_GUARD ?? "1",
