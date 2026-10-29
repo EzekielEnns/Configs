@@ -27,10 +27,14 @@ let
     { id = "cloud-haiku"; name = "Claude Haiku 5.5 $ ~$0.20 ($0.10 in / $0.50 out)"; contextWindow = 409600; maxTokens = 65536; }
     # Frontier candidates for agent work in pis (nixos/dk.nix cloud-*): 1M+ context, told 400k
     # and 64k like DeepSeek, so Pi compacts before a run's history gets long and costly.
-    { id = "cloud-deepseek-pro"; name = "DeepSeek V4 Pro $$ ~$1.10 ($0.88 in / $1.77 out)"; contextWindow = 409600; maxTokens = 65536; }
+    # Every cloud model goes only to zero-data-retention hosts (nixos/dk.nix). The "-retain"
+    # twins skip that for personal projects: cheaper, but the host may keep prompts a while.
+    { id = "cloud-deepseek-pro"; name = "DeepSeek V4 Pro $$ ~$1.63 ($1.30 in / $2.60 out)"; contextWindow = 409600; maxTokens = 65536; }
+    { id = "cloud-deepseek-pro-retain"; name = "DeepSeek V4 Pro, keeps data $$ ~$1.10 ($0.88 in / $1.77 out)"; contextWindow = 409600; maxTokens = 65536; }
     { id = "cloud-grok"; name = "Grok 4.20 $$ ~$1.56 ($1.25 in / $2.50 out)"; contextWindow = 409600; maxTokens = 65536; }
     { id = "cloud-gemini-flash"; name = "Gemini 3.8 Flash $$ ~$1.65 ($0.83 in / $4.13 out)"; contextWindow = 409600; maxTokens = 65536; }
-    { id = "cloud-gpt"; name = "GPT-6.1 Terra $$ ~$2.00 ($1.00 in / $5.00 out)"; contextWindow = 409600; maxTokens = 65536; }
+    { id = "cloud-gpt"; name = "GPT-6.1 Terra $$ ~$2.40 ($1.20 in / $6.00 out)"; contextWindow = 409600; maxTokens = 65536; }
+    { id = "cloud-gpt-retain"; name = "GPT-6.1 Terra, keeps data $$ ~$2.00 ($1.00 in / $5.00 out)"; contextWindow = 409600; maxTokens = 65536; }
     { id = "cloud-sonnet"; name = "Claude Sonnet 5.5 $$$ ~$4.00 ($2 in / $10 out)"; contextWindow = 409600; maxTokens = 65536; }
     { id = "cloud-opus"; name = "Claude Opus 5.5 $$$$ ~$8.00 ($4 in / $20 out)"; contextWindow = 409600; maxTokens = 65536; }
     # Worker candidate for pi-orch (`--model desktop/cloud-gptoss`); hosted only, too big for the GPU.

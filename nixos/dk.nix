@@ -79,6 +79,16 @@
               allow_fallbacks = false;
             };
           };
+          # Personal-project twins of the two models ZDR makes pricier: no training on prompts,
+          # but the host may keep them a while (abuse review). Not for work or red-team data.
+          cloud-deepseek-pro-retain = {
+            model = "openrouter/deepseek/deepseek-v4-pro";
+            extra_body.provider.data_collection = "deny";
+          };
+          cloud-gpt-retain = {
+            model = "openrouter/openai/gpt-6.1-terra";
+            extra_body.provider.data_collection = "deny";
+          };
           cloud-grok = {
             model = "openrouter/x-ai/grok-4.20";
             extra_body.provider = zdr;

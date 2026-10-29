@@ -28,7 +28,7 @@ const JOB = process.env.PI_SANDBOX_JOB ?? process.cwd();
 const JEV_URL = process.env.PI_GUARD_JEV_URL ?? "http://desktop:4000/openrouter/decisions";
 const JEV_MODEL = process.env.PI_GUARD_JEV_MODEL ?? "typesafe/jev-1.14";
 const LOG = join(JOB, ".sandbox", "guard.log");
-const FRONTIER = /^cloud-(opus|sonnet|haiku|deepseek-pro|grok|gpt|gemini-flash)$/;
+const FRONTIER = /^cloud-(opus|sonnet|haiku|deepseek-pro|grok|gpt|gemini-flash)(-retain)?$/;
 
 // Every segment of the command starts with one of these and has no write redirection.
 const READ_ONLY =
