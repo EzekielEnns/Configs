@@ -225,6 +225,7 @@ const env = {
 	PI_SANDBOX_CHECKPOINT: checkpoints,
 	PI_SANDBOX_PROFILE: small ? "small" : "frontier",
 	...(process.env.PI_JEV_CHECK ? { PI_JEV_CHECK: process.env.PI_JEV_CHECK } : {}),
+	...(process.env.PI_POI ? { PI_POI: process.env.PI_POI } : {}),
 	...(process.env.PI_JEV_CHECK_BIN ? { PI_JEV_CHECK_BIN: process.env.PI_JEV_CHECK_BIN } : {}),
 	// Where the notes vault and its state live, if not ~/Notes (configs/notes/core.mjs).
 	...Object.fromEntries(["NOTES_DIR", "NOTES_STATE", "NOTES_PROTECTED"].filter((k) => process.env[k]).map((k) => [k, process.env[k]])),

@@ -171,5 +171,35 @@ in
       If the command fails, the installed Rex version predates the guide. Start with
       `rex whoami --json`, then use `rex --help` and `rex COMMAND --help`.
     '';
+
+    # poi (configs/poi): Jev-ranked points of interest in a code base or a diff.
+    home.file.".claude/skills/poi/SKILL.md".text = ''
+      ---
+      name: poi
+      description: Rank where in a code base (or a diff) something is handled, configured or decided, as path:line hits, with the `poi` CLI. Use when finding your way in unfamiliar code ("where is X configured", "what handles Y"), reviewing a diff or PR, or tracing how data flows through calls.
+      ---
+
+      # poi
+
+      `poi` asks Jev (a small decision model behind the desktop gateway; it keeps no data) to
+      rank a repo's files, then their functions, against a question. One call takes seconds and
+      costs a fraction of a cent. Use it to pick what to read, then Read just those lines.
+      Plain grep is still better for an exact string you already know.
+
+      Run it with Bash, always with `--json --no-links` (one compact line; paths relative to
+      `root`):
+
+      ```sh
+      poi --json --no-links "where is compaction configured" .        # code under paths (default .)
+      poi --json --no-links -n 10 "what handles retries" src lib      # fewer hits, given folders
+      poi --json --no-links --follow "where is the token checked" .   # + each hit's callers
+      poi --json --no-links --flow --diff main...HEAD "auth changes"  # a diff, in call order
+      ```
+
+      Each hit has `file`, `line`, `symbol`, `score` (0-4) and a preview. Scores bunch near the
+      top, so read the top few rather than trusting the order further down. Over about 600
+      blocks it stops and asks for `--yes`; narrow the paths instead. Never `--tour` (it
+      occupies the desktop's local model).
+    '';
   };
 }
