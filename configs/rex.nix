@@ -10,6 +10,8 @@ let
   gruvboxId = "custom-339FE27E-DA72-4178-AD24-933E145C97E0";
 in
 {
+  imports = [ ./nvim-open ];
+
   config = {
     home.sessionPath = [ rexBin ];
 

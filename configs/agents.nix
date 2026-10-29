@@ -201,6 +201,7 @@ let
     # After each pis run: Jev and plain rules on the run's changes (on for the small profile;
     # PI_JEV_CHECK=1|0 or /jev-check on|off per project).
     ".pi/agent/extensions/jev-check.ts".source = ./pi-extensions/jev-check.ts;
+    ".pi/agent/extensions/links.ts".source = ./pi-extensions/links.ts; # nvim-open:// code links in Rex
     # Web search through the desktop's SearXNG, and page fetch (like Claude's WebFetch).
     ".pi/agent/extensions/searxng".source = "${piSearxng}/lib/node_modules/pi-searxng";
     # Read from ~/.pi, not Pi's agent dir.

@@ -13,6 +13,20 @@ let
       > "$dir/$(printf %s "$REX_BLOCK" | tr -c 'A-Za-z0-9-' _)"
   '';
 
+  # In Rex, tells Claude how to write code locations so a click opens them in Neovim
+  # in this tab (configs/nvim-open). SessionStart output becomes context; outside Rex
+  # it prints nothing.
+  nvimLinksHook = pkgs.writeShellScript "claude-nvim-links" ''
+    [ -n "''${REX_BLOCK:-}" ] || exit 0
+    enc() { ${pkgs.jq}/bin/jq -rn --arg s "$1" '$s | @uri'; }
+    base="nvim-open://open?host=$(hostname -s)&session=$(enc "''${REX_SESSION:-}")&block=$(enc "$REX_BLOCK")"
+    cat <<EOF
+    Code links: this terminal opens nvim-open:// links in the user's Neovim. When you point at a specific line of a file, write it as a markdown link with the path and line as its text and this target, adding the line and the absolute path (spaces as %20):
+    [src/app.ts:42]($base&line=42&file=/abs/path/src/app.ts)
+    Plain paths are fine for whole files or long lists of files.
+    EOF
+  '';
+
   # Reads the session JSON on stdin. rate_limits only exists for Pro/Max
   # subscribers and only after the first API response, hence the `// empty`s.
   statusLine = pkgs.writeShellScript "claude-statusline" ''
@@ -71,6 +85,10 @@ in
           # inheriting Opus. Agent frontmatter still wins; built-in Explore/Plan
           # are unaffected (add CLAUDE_CODE_SUBAGENT_MODEL_FORCE = "1" to cover them).
           CLAUDE_CODE_SUBAGENT_MODEL = "sonnet";
+          # Claude Code doesn't detect Rex as a terminal with clickable links, so
+          # markdown links printed as "text (url)". This makes them real links,
+          # which nvim-open:// needs (configs/nvim-open).
+          FORCE_HYPERLINK = "1";
         };
 
         # Emit an OSC 777 desktop notification, which ghostty turns into a real
@@ -96,6 +114,11 @@ in
                 # `claude --resume <id>` after a Rex server restart.
                 type = "command";
                 command = "${rexPaneHook}";
+                timeout = 5;
+              }
+              {
+                type = "command";
+                command = "${nvimLinksHook}";
                 timeout = 5;
               }
             ];

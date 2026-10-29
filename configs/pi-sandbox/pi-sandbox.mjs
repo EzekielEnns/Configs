@@ -168,6 +168,9 @@ const env = {
 	// The sandbox blocks macOS's pasteboard service, so Pi's copy also goes out through the
 	// terminal (OSC 52), as it does over SSH.
 	PI_CLIPBOARD_OSC52: "1",
+	// Rex's IDs (not its control socket): Pi detects Rex for clickable links, and links.ts
+	// writes nvim-open:// links that open in this tab (configs/nvim-open).
+	...Object.fromEntries(["TERM_PROGRAM", "REX_SESSION", "REX_BLOCK"].filter((k) => process.env[k]).map((k) => [k, process.env[k]])),
 	PI_CODING_AGENT_DIR: agentDir,
 	PI_SANDBOX_JOB: job,
 	PI_SANDBOX_CHECKPOINT: checkpoints,
