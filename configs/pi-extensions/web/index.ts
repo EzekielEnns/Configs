@@ -9,6 +9,10 @@
  *   with line numbers, a short preview and the path for grep and read. No repo clones.
  * - lookup: search, fetch the top pages in parallel and return the passages that answer
  *   the question, in one call. For quick questions (/lookup).
+ * - dig: for each angle of a research question, search, fetch the top pages, and have a
+ *   reader model (Flint, one direct call per page, claims JSON schema) list the facts in
+ *   each page's passages; only claims whose quote is found on the saved page come back
+ *   (/research-dig). The pi-orch pattern: a script finds and checks, the model only reads.
  *
  * Passages: BM25 picks them (steps/rank.ts); with PI_EVIDENCE_URL set, BM25's top chunks go
  * to Open Provence on the evidence service, which reranks them and keeps only the sentences
@@ -34,7 +38,7 @@ import { chunk } from "./steps/chunk.js";
 import { CANDIDATES, EVIDENCE_URL, prune } from "./steps/prune.js";
 import { rank, type Scored } from "./steps/rank.js";
 import { search, type SearchConfig } from "./steps/search.js";
-import { runStep } from "./steps/step.js";
+import { runStep, trace } from "./steps/step.js";
 
 const RUN_DIR = process.env.PI_RESEARCH_DIR;
 const PAGES = RUN_DIR ? join(RUN_DIR, "pages") : join(tmpdir(), "pi-web");
@@ -42,6 +46,12 @@ const MAX_BYTES = 5 * 1024 * 1024;
 const TIMEOUT = 30_000;
 const DAY = 24 * 60 * 60 * 1000;
 const turndown = new TurndownService({ headingStyle: "atx", codeBlockStyle: "fenced" });
+// dig's reader: one chat call per page through the gateway, at most READER_SLOTS at once
+// (Flint's llama.cpp slots).
+const READER_URL = process.env.PI_READER_GATEWAY ?? "http://desktop:4000/v1";
+const READER_MODEL = process.env.PI_READER_MODEL ?? "flint";
+const READER_SLOTS = Number(process.env.PI_READER_SLOTS) || 3;
+const READER_TIMEOUT = 150_000;
 
 const text = (t: string, details?: unknown) => ({ content: [{ type: "text" as const, text: t }], details });
 
@@ -208,6 +218,86 @@ async function passages(
 	return { text: parts.join("\n\n"), picked };
 }
 
+// --- dig: reader calls and quote checks ----------------------------------------------------
+const CLAIMS_SCHEMA = {
+	type: "object",
+	properties: {
+		claims: {
+			type: "array",
+			items: {
+				type: "object",
+				properties: { claim: { type: "string" }, quote: { type: "string" }, date: { type: "string" } },
+				required: ["claim", "quote"],
+			},
+		},
+	},
+	required: ["claims"],
+};
+const READER_PROMPT =
+	"You read passages from one web page for a research question and list the facts in them that bear on it, " +
+	"as claims. Each claim states one fact in one sentence, as the fact itself (\"X supports Y\", not \"the page states that X supports Y\"), with a quote copied exactly from the passages (a phrase " +
+	"or sentence, at least a few words, not changed or joined from two places) and, if the page states it, the " +
+	"date or version it applies to. Give one claim for every relevant fact: names, versions, dates, numbers, " +
+	"links or commands, what is recommended, required or deprecated. Don't add what you know but the page " +
+	"doesn't say. If nothing bears on the question, reply {\"claims\": []}. Reply with only the JSON.";
+
+let readersBusy = 0;
+const readerQueue: (() => void)[] = [];
+async function readerSlot<T>(fn: () => Promise<T>): Promise<T> {
+	if (readersBusy >= READER_SLOTS) await new Promise<void>((r) => readerQueue.push(r));
+	readersBusy++;
+	try {
+		return await fn();
+	} finally {
+		readersBusy--;
+		readerQueue.shift()?.();
+	}
+}
+
+interface Claim {
+	claim: string;
+	quote: string;
+	date?: string;
+}
+
+async function readPage(question: string, today: string, url: string, title: string, found: string): Promise<Claim[]> {
+	const body = {
+		model: READER_MODEL,
+		max_tokens: 8192,
+		messages: [
+			{ role: "system", content: READER_PROMPT },
+			{
+				role: "user",
+				content: `Today is ${today}. Research question: ${question}\n\nPage: ${title}\n${url}\n\nPassages ([L..] marks where each is on the page):\n\n${found}`,
+			},
+		],
+		response_format: { type: "json_schema", json_schema: { name: "claims", schema: CLAIMS_SCHEMA } },
+	};
+	const res = await fetch(`${READER_URL}/chat/completions`, {
+		method: "POST",
+		headers: { "Content-Type": "application/json" },
+		body: JSON.stringify(body),
+		signal: AbortSignal.timeout(READER_TIMEOUT),
+	});
+	if (!res.ok) throw new Error(`reader HTTP ${res.status}`);
+	const data = (await res.json()) as { choices: { message: { content?: string } }[] };
+	const reply = data.choices?.[0]?.message?.content ?? "";
+	const parsed = JSON.parse(reply.slice(reply.indexOf("{"), reply.lastIndexOf("}") + 1)) as { claims?: Claim[] };
+	return (parsed.claims ?? []).filter((c) => c && typeof c.claim === "string" && typeof c.quote === "string");
+}
+
+/** Text for quote matching: link targets, Markdown marks, case and spacing don't count. */
+function plain(s: string): string {
+	return s
+		.replace(/\]\([^)]*\)/g, "]")
+		.replace(/[*_`#>[\]|]/g, " ")
+		.replace(/[‘’]/g, "'")
+		.replace(/[“”]/g, '"')
+		.replace(/\s+/g, " ")
+		.trim()
+		.toLowerCase();
+}
+
 export default function (pi: ExtensionAPI) {
 	pi.on("session_start", () => {
 		if (RUN_DIR) return;
@@ -328,6 +418,96 @@ export default function (pi: ExtensionAPI) {
 			return text(
 				[`Results for "${query}":`, ...blocks, ...(more.length ? [`Other results (not read):\n${more.join("\n")}`] : [])].join("\n\n"),
 				{ pages: pages.filter((p) => p.page).length, source: results[0].source },
+			);
+		},
+	});
+
+	pi.registerTool({
+		name: "dig",
+		label: "Dig",
+		description:
+			"Research angles of a question in one call. For each angle: searches its queries, fetches the top pages, and a reader " +
+			"model lists the facts in each page; only facts whose quote is found on the page come back, with URLs. " +
+			"Put all angles in one call: they run at the same time.",
+		parameters: Type.Object({
+			today: Type.String({ description: "Today's date, YYYY-MM-DD" }),
+			angles: Type.Array(
+				Type.Object({
+					question: Type.String({ description: "What this angle must answer, in full" }),
+					queries: Type.Array(Type.String(), { description: "1-3 search queries; add the year or 'latest' for current info" }),
+				}),
+				{ description: "1-3 angles that don't overlap" },
+			),
+			pages: Type.Optional(Type.Number({ description: "Pages to read per angle (default 3, max 5)" })),
+		}),
+		async execute(_id, params) {
+			const n = Math.min(Math.max(params.pages ?? 3, 1), 5);
+			const seenPages = fetchedUrls();
+			const taken = new Set<string>();
+			const out = await Promise.all(
+				params.angles.slice(0, 3).map(async (angle) => {
+					// Results of all its queries, interleaved, minus pages already read in this run.
+					const lists = await Promise.all(
+						angle.queries.slice(0, 3).map((q) => search(loadConfig() as SearchConfig, q, 8).catch(() => [])),
+					);
+					const picks: (typeof lists)[number] = [];
+					for (let i = 0; i < 8; i++)
+						for (const list of lists) {
+							const r = list[i];
+							if (r && !seenPages.has(r.url) && !taken.has(r.url) && !picks.some((p) => p.url === r.url)) picks.push(r);
+						}
+					const chosen = picks.slice(0, n);
+					for (const r of chosen) taken.add(r.url);
+					const pages = await Promise.all(
+						chosen.map(async (r) => {
+							const page = await runStep("fetch", 20_000, () => savePage(r.url), () => undefined,
+								(p) => ({ url: r.url, chars: p?.body.length ?? 0 }));
+							if (!page) return { r, error: "couldn't fetch" };
+							markFetched(r.url);
+							const { text: found, picked } = await passages(angle.question, page, 6, 6000);
+							if (!picked.length) return { r, page, claims: [] as Claim[], dropped: 0 };
+							const start = Date.now();
+							try {
+								const claims = await readerSlot(() => readPage(angle.question, params.today, r.url, page.title || r.title, found));
+								const text_ = plain(page.body);
+								const ok = claims.filter((c) => plain(c.quote).length >= 12 && text_.includes(plain(c.quote)));
+								trace({ step: "read", ms: Date.now() - start, ok: true, url: r.url, claims: claims.length, verified: ok.length });
+								if (RUN_DIR && ok.length) {
+									mkdirSync(RUN_DIR, { recursive: true });
+									for (const c of ok)
+										appendFileSync(join(RUN_DIR, "findings.jsonl"),
+											`${JSON.stringify({ agent: "dig", time: new Date().toISOString(), claim: c.claim, url: r.url, quote: c.quote, date: c.date ?? r.date })}\n`);
+								}
+								return { r, page, claims: ok, dropped: claims.length - ok.length };
+							} catch (e) {
+								trace({ step: "read", ms: Date.now() - start, ok: false, url: r.url, error: String(e).slice(0, 200) });
+								return { r, page, error: `reader failed: ${String(e).slice(0, 80)}` };
+							}
+						}),
+					);
+					const blocks = pages.map((p) => {
+						const date = p.r.date ? ` (${p.r.date})` : "";
+						const head = `### ${p.page?.title || p.r.title}${date}\n${p.r.url}`;
+						if ("error" in p && p.error) return `${head}\n(${p.error}; snippet: ${p.r.snippet.slice(0, 200)})`;
+						const cs = p.claims ?? [];
+						const lines = cs.map((c) => `- ${c.claim}${c.date ? ` [${c.date}]` : ""}`);
+						return `${head}\n${lines.join("\n") || "- (nothing on the question)"}${p.dropped ? `\n(${p.dropped} claims dropped: quote not on the page)` : ""}`;
+					});
+					const rest = picks.slice(n, n + 4).map((r) => `- ${r.title}: ${r.url}`);
+					const verified = pages.reduce((s, p) => s + (p.claims?.length ?? 0), 0);
+					const dropped = pages.reduce((s, p) => s + (("dropped" in p && p.dropped) || 0), 0);
+					return {
+						verified,
+						dropped,
+						text: [`## ${angle.question}`, ...blocks, ...(rest.length ? [`Not read:\n${rest.join("\n")}`] : [])].join("\n\n"),
+					};
+				}),
+			);
+			const verified = out.reduce((s, a) => s + a.verified, 0);
+			const dropped = out.reduce((s, a) => s + a.dropped, 0);
+			return text(
+				[`Facts whose quote was found on the page (${verified} kept, ${dropped} dropped):`, ...out.map((a) => a.text)].join("\n\n"),
+				{ verified, dropped },
 			);
 		},
 	});

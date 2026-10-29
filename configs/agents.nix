@@ -82,7 +82,7 @@ let
     [ "researcher" "researcher-fast" "architect" "reader" ])
   // lib.listToAttrs (map
     (name: lib.nameValuePair ".pi/agent/prompts/${name}.md" { source = ./pi-agents/${name}.md; })
-    [ "research" "research-fast" "research-design-build" "lookup" "orchestrate" ])
+    [ "research" "research-dig" "research-fast" "research-design-build" "lookup" "orchestrate" ])
   // {
     ".pi/agent/extensions/subagent/index.ts".source = "${subagentDir}/index.ts";
     ".pi/agent/extensions/subagent/agents.ts".source = "${subagentDir}/agents.ts";
