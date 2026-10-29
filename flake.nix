@@ -32,7 +32,7 @@
     # (flake.nix's desktop host then imports modules/rex-server.nix). The flake is token-gated:
     # put the beta token in /etc/nix/netrc first, and lock it on the desktop
     # (`nix flake lock`). Steps: notes/rex-server-plan.md.
-    # rex.url = "https://pkgs.superlogical.com/rex/nix/preview.tar.gz";
+    rex.url = "https://pkgs.superlogical.com/rex/nix/preview.tar.gz";
   };
 
   # NOTE: bring `ghostty` & `zellij` into scope by using `inputs.<name>` inside
