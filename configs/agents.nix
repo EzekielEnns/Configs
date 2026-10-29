@@ -61,7 +61,7 @@ let
   # wired in, plus binaryen and wasm-tools, and nixpkgs' ps: REA checks its cleanup with ps,
   # and the macOS sandbox won't run /bin/ps, which is setuid. REA's own skill assumes its MCP
   # server; Pi has none, so ours says to call the same operations through the CLI. Upgrades:
-  # pin-bump.
+  # the tool-watch skill.
   wabt = pkgs.callPackage ./rea/wabt.nix { };
   reaPkg = pkgs.callPackage ./rea { };
   rea = pkgs.writeShellScriptBin "rea" ''

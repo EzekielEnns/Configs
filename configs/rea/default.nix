@@ -1,8 +1,8 @@
 # REA (github.com/morluto/rea): reverse-engineering workflows for agents, from JS bundles and
 # WASM to native binaries through Ghidra. Run locally; agents use its CLI (`rea`) from bash,
 # since Pi has no MCP client. Pinned to the newest release at least two weeks old, like srt;
-# package.json is the published one without dev/optional deps and scripts. Upgrade with
-# `pin-bump rea` (configs/pin-bump).
+# package.json is the published one without dev/optional deps and scripts. Upgrades: the
+# tool-watch skill (.claude/skills/tool-watch).
 { buildNpmPackage, fetchurl, lib }:
 
 buildNpmPackage rec {
