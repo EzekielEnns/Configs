@@ -45,12 +45,15 @@
       # /var/lib/ai-stack/secrets.env on the desktop, never in this repo.
       cloudModels =
         let
+          # Zero data retention: only hosts that store no prompts or outputs at all, not even
+          # for abuse review (OpenRouter's ZDR list). Red-team work goes through here, so a
+          # request with no ZDR host fails instead of landing on one that keeps it.
+          zdr = { zdr = true; data_collection = "deny"; };
           # Open-weight models from PRC labs: only established US hosts, never the lab's
-          # own API, and no provider that keeps or trains on prompts.
-          usHosts = {
+          # own API. All four are on the ZDR list for these models (checked 2026-10-29).
+          usHosts = zdr // {
             only = [ "deepinfra" "together" "fireworks" "baseten" ];
             allow_fallbacks = false;
-            data_collection = "deny";
           };
         in
         {
@@ -67,23 +70,26 @@
             model = "openrouter/openai/gpt-oss-120b";
             extra_body.provider = usHosts;
           };
-          # Cheaper frontier candidates for agent work in pis (2026-10-29). Any host, but none
-          # that keeps or trains on prompts.
+          # Cheaper frontier candidates for agent work in pis (2026-10-29), ZDR hosts only.
+          # V4 Pro's ZDR hosts don't include usHosts' four: DeepInfra, Azure US and Crusoe.
           cloud-deepseek-pro = {
             model = "openrouter/deepseek/deepseek-v4-pro";
-            extra_body.provider.data_collection = "deny";
+            extra_body.provider = zdr // {
+              only = [ "deepinfra" "azure" "crusoe" ];
+              allow_fallbacks = false;
+            };
           };
           cloud-grok = {
             model = "openrouter/x-ai/grok-4.20";
-            extra_body.provider.data_collection = "deny";
+            extra_body.provider = zdr;
           };
           cloud-gpt = {
             model = "openrouter/openai/gpt-6.1-terra";
-            extra_body.provider.data_collection = "deny";
+            extra_body.provider = zdr;
           };
           cloud-gemini-flash = {
             model = "openrouter/google/gemini-3.8-flash";
-            extra_body.provider.data_collection = "deny";
+            extra_body.provider = zdr;
           };
         }
         # Claude caches only what a request marks with cache_control, and Pi's OpenAI-style
@@ -93,6 +99,8 @@
         // lib.listToAttrs (map
           (m: lib.nameValuePair "cloud-${m}" {
             model = "openrouter/anthropic/claude-${m}-5.5";
+            # ZDR serves Claude from Bedrock and Vertex, not Anthropic's own API.
+            extra_body.provider = zdr;
             cache_control_injection_points = [
               { location = "message"; role = "system"; }
               { location = "message"; index = -1; }
