@@ -12,7 +12,8 @@ yourself.
 2. Split the question into 2-3 angles that don't overlap, each a full question with 1-3
    search queries. Aim queries at primary sources (official docs, specs, release notes,
    repos) and add the year or "latest" for anything versioned.
-3. Call `dig` once with all the angles (they run at the same time, about a minute).
+3. Call `dig` once with the whole question as asked and all the angles (they run at the
+   same time, a minute or two).
 4. Only if something the question needs is still missing, call `dig` once more with 1-2
    angles on exactly those gaps, with new queries. There is no third call.
 5. Write the answer from dig's facts, at most ~500 words:
@@ -24,5 +25,7 @@ yourself.
    - **Uncertain**: 1-3 bullets, only real open questions or conflicts.
    - **Sources**: one list numbered 1..N, each a URL dig returned, with its date or version.
      Drop sources nothing cites.
-   Use only dig's facts; prefer the newest source when they disagree. Start directly with
-   **Answer**.
+   Use only dig's facts; prefer the newest source when they disagree. A page dig couldn't
+   read shows only its search snippet, which nobody checked: never state it as a fact; at
+   most mention it under **Uncertain**, saying it is an unverified snippet, and you may list
+   its link under **Where to start**. Start directly with **Answer**.

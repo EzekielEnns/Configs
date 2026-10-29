@@ -9,10 +9,12 @@
  *   with line numbers, a short preview and the path for grep and read. No repo clones.
  * - lookup: search, fetch the top pages in parallel and return the passages that answer
  *   the question, in one call. For quick questions (/lookup).
- * - dig: for each angle of a research question, search, fetch the top pages, and have a
- *   reader model (Flint, one direct call per page, claims JSON schema) list the facts in
- *   each page's passages; only claims whose quote is found on the saved page come back
- *   (/research-dig). The pi-orch pattern: a script finds and checks, the model only reads.
+ * - dig: for each angle of a research question, search, rank the results (Jev, primary
+ *   sources first), fetch the best readable pages (a failed or empty page is replaced by the
+ *   next result), and have a reader model (Flint, one direct call per page, claims JSON
+ *   schema) list the facts in each page's passages; only claims whose quote is found on the
+ *   saved page come back (/research-dig). The pi-orch pattern: a script finds and checks,
+ *   the model only reads.
  *
  * Passages: BM25 picks them (steps/rank.ts); with PI_EVIDENCE_URL set, BM25's top chunks go
  * to Open Provence on the evidence service, which reranks them and keeps only the sentences
@@ -37,7 +39,7 @@ import { loadConfig } from "./config.js";
 import { chunk } from "./steps/chunk.js";
 import { CANDIDATES, EVIDENCE_URL, prune } from "./steps/prune.js";
 import { rank, type Scored } from "./steps/rank.js";
-import { search, type SearchConfig } from "./steps/search.js";
+import { type Result, search, type SearchConfig } from "./steps/search.js";
 import { runStep, trace } from "./steps/step.js";
 
 const RUN_DIR = process.env.PI_RESEARCH_DIR;
@@ -52,6 +54,12 @@ const READER_URL = process.env.PI_READER_GATEWAY ?? "http://desktop:4000/v1";
 const READER_MODEL = process.env.PI_READER_MODEL ?? "flint";
 const READER_SLOTS = Number(process.env.PI_READER_SLOTS) || 3;
 const READER_TIMEOUT = 150_000;
+// dig ranks search results before fetching: Jev (a decision model on OpenRouter, through the
+// gateway's pass-through, which adds the key) scores each one; a plain rule if it fails.
+const JEV_URL = process.env.PI_DIG_JEV_URL ?? "http://desktop:4000/openrouter/decisions";
+const JEV_MODEL = process.env.PI_DIG_JEV_MODEL ?? "typesafe/jev-1.14";
+const JEV_TIMEOUT = 8_000;
+const MIN_PAGE = 800; // chars of text: shorter is a login wall, an error page or a stub
 
 const text = (t: string, details?: unknown) => ({ content: [{ type: "text" as const, text: t }], details });
 
@@ -234,12 +242,14 @@ const CLAIMS_SCHEMA = {
 	required: ["claims"],
 };
 const READER_PROMPT =
-	"You read passages from one web page for a research question and list the facts in them that bear on it, " +
+	"You read passages from one web page for a research question and list the facts in them that bear on it " +
+	"(on the whole question or on the angle the page was found for: both count), " +
 	"as claims. Each claim states one fact in one sentence, as the fact itself (\"X supports Y\", not \"the page states that X supports Y\"), with a quote copied exactly from the passages (a phrase " +
 	"or sentence, at least a few words, not changed or joined from two places) and, if the page states it, the " +
 	"date or version it applies to. Give one claim for every relevant fact: names, versions, dates, numbers, " +
 	"links or commands, what is recommended, required or deprecated. Don't add what you know but the page " +
-	"doesn't say. If nothing bears on the question, reply {\"claims\": []}. Reply with only the JSON.";
+	"doesn't say. If nothing bears on the question, reply {\"claims\": []}. Reply with only the JSON. " +
+	"Think briefly: don't draft the claims while thinking; write them only in the JSON answer.";
 
 let readersBusy = 0;
 const readerQueue: (() => void)[] = [];
@@ -260,30 +270,109 @@ interface Claim {
 	date?: string;
 }
 
-async function readPage(question: string, today: string, url: string, title: string, found: string): Promise<Claim[]> {
-	const body = {
-		model: READER_MODEL,
-		max_tokens: 8192,
-		messages: [
-			{ role: "system", content: READER_PROMPT },
-			{
-				role: "user",
-				content: `Today is ${today}. Research question: ${question}\n\nPage: ${title}\n${url}\n\nPassages ([L..] marks where each is on the page):\n\n${found}`,
-			},
-		],
-		response_format: { type: "json_schema", json_schema: { name: "claims", schema: CLAIMS_SCHEMA } },
+async function readPage(
+	question: string,
+	angle: string,
+	today: string,
+	url: string,
+	title: string,
+	found: string,
+): Promise<Claim[]> {
+	const ask = async (schema: boolean) => {
+		const body = {
+			model: READER_MODEL,
+			max_tokens: 8192,
+			messages: [
+				{ role: "system", content: READER_PROMPT },
+				{
+					role: "user",
+					content:
+						`Today is ${today}. Research question: ${question}\nThis page was found for the angle: ${angle}\n\n` +
+						`Page: ${title}\n${url}\n\nPassages ([L..] marks where each is on the page):\n\n${found}`,
+				},
+			],
+			...(schema ? { response_format: { type: "json_schema", json_schema: { name: "claims", schema: CLAIMS_SCHEMA } } } : {}),
+		};
+		const res = await fetch(`${READER_URL}/chat/completions`, {
+			method: "POST",
+			headers: { "Content-Type": "application/json" },
+			body: JSON.stringify(body),
+			signal: AbortSignal.timeout(READER_TIMEOUT),
+		});
+		if (!res.ok) throw new Error(`reader HTTP ${res.status}`);
+		const data = (await res.json()) as { choices: { message: { content?: string; reasoning_content?: string } }[] };
+		const msg = data.choices?.[0]?.message ?? {};
+		const reply = msg.content ?? "";
+		const parsed = JSON.parse(reply.slice(reply.indexOf("{"), reply.lastIndexOf("}") + 1)) as { claims?: Claim[] };
+		const claims = (parsed.claims ?? []).filter((c) => c && typeof c.claim === "string" && typeof c.quote === "string");
+		return { claims, cut: (msg.reasoning_content ?? "").includes("Thinking budget reached") };
 	};
-	const res = await fetch(`${READER_URL}/chat/completions`, {
+	// Flint sometimes drafts the claims while thinking, hits its thinking budget, and the
+	// schema-held answer then comes out empty (eval: 3 relevant pages, 0 claims). Once more
+	// without the schema in that case; the reply is still parsed as JSON.
+	const first = await ask(true);
+	if (first.claims.length || !first.cut) return first.claims;
+	trace({ step: "reread", ms: 0, ok: true, url });
+	return (await ask(false).catch(() => first)).claims;
+}
+
+const RANK_LEVELS = [
+	"Unrelated, or a page that won't hold the answer (SEO farm, aggregator, forum chatter off the topic).",
+	"A related secondary source (blog, tutorial, news) that may answer part of it.",
+	"A good source that directly answers part of it, or a primary source on a neighbouring part.",
+	"A primary source (official docs, spec, release notes, source repo, the vendor's or project's own page) that directly answers it and looks current.",
+];
+
+/** 0-4: Jev's level for a search result plus its yes-probability that it's a primary source that answers. */
+async function jevScore(question: string, angle: string, today: string, r: Result): Promise<number> {
+	const body = {
+		model: JEV_MODEL,
+		state: [
+			`Today is ${today}. Research question: ${question}\nAngle being searched: ${angle}`,
+			`Search result:\nTitle: ${r.title}\nURL: ${r.url}${r.date ? `\nDate: ${r.date}` : ""}\nSnippet: ${r.snippet.slice(0, 400)}`,
+		],
+		questions: {
+			rel: { type: "score", instructions: "How good is this result to read for the angle?", criteria: RANK_LEVELS },
+			primary: { type: "noul", instructions: "This result is a primary source that directly answers the angle." },
+		},
+	};
+	const res = await fetch(JEV_URL, {
 		method: "POST",
 		headers: { "Content-Type": "application/json" },
 		body: JSON.stringify(body),
-		signal: AbortSignal.timeout(READER_TIMEOUT),
+		signal: AbortSignal.timeout(JEV_TIMEOUT),
 	});
-	if (!res.ok) throw new Error(`reader HTTP ${res.status}`);
-	const data = (await res.json()) as { choices: { message: { content?: string } }[] };
-	const reply = data.choices?.[0]?.message?.content ?? "";
-	const parsed = JSON.parse(reply.slice(reply.indexOf("{"), reply.lastIndexOf("}") + 1)) as { claims?: Claim[] };
-	return (parsed.claims ?? []).filter((c) => c && typeof c.claim === "string" && typeof c.quote === "string");
+	if (!res.ok) throw new Error(`jev HTTP ${res.status}`);
+	const ans = ((await res.json()) as { answers: Record<string, { score?: number; noul?: number }> }).answers;
+	return Number(ans.rel.score) + Number(ans.primary.noul);
+}
+
+/** Without Jev: primary-looking hosts first, then search order. */
+function ruleScore(r: Result): number {
+	let u: URL;
+	try {
+		u = new URL(r.url);
+	} catch {
+		return -1;
+	}
+	const host = u.hostname.replace(/^www\./, "");
+	let s = 0;
+	if (/^(docs|developer|developers|learn|api|spec|specs)\./.test(host) || host === "github.com") s += 2;
+	if (/\/(docs|spec|specification|reference|releases|changelog)(\/|$)/i.test(u.pathname)) s += 1;
+	if (/(^|\.)(reddit|quora|medium|linkedin|youtube|pinterest|facebook)\.com$/.test(host)) s -= 1;
+	return s;
+}
+
+/** Candidates best first, and how they were ranked. */
+async function rankResults(question: string, angle: string, today: string, rs: Result[]): Promise<{ order: Result[]; by: string }> {
+	const start = Date.now();
+	const scores = await Promise.all(rs.map((r) => jevScore(question, angle, today, r).catch(() => undefined)));
+	const ok = scores.filter((s) => s !== undefined).length;
+	const by = ok >= Math.ceil(rs.length / 2) ? "jev" : "rule";
+	const keyed = rs.map((r, i) => ({ r, i, s: by === "jev" ? (scores[i] ?? ruleScore(r) / 2) : ruleScore(r) }));
+	keyed.sort((a, b) => b.s - a.s || a.i - b.i);
+	trace({ step: "rank", ms: Date.now() - start, ok: true, by, candidates: rs.length, scored: ok, top: keyed[0]?.r.url });
+	return { order: keyed.map((k) => k.r), by };
 }
 
 /** Text for quote matching: link targets, Markdown marks, case and spacing don't count. */
@@ -426,11 +515,12 @@ export default function (pi: ExtensionAPI) {
 		name: "dig",
 		label: "Dig",
 		description:
-			"Research angles of a question in one call. For each angle: searches its queries, fetches the top pages, and a reader " +
-			"model lists the facts in each page; only facts whose quote is found on the page come back, with URLs. " +
-			"Put all angles in one call: they run at the same time.",
+			"Research angles of a question in one call. For each angle: searches its queries, ranks the results (primary sources " +
+			"first), fetches the best readable pages, and a reader model lists the facts in each; only facts whose quote is found " +
+			"on the page come back, with URLs. Put all angles in one call: they run at the same time.",
 		parameters: Type.Object({
 			today: Type.String({ description: "Today's date, YYYY-MM-DD" }),
+			question: Type.String({ description: "The whole research question, as asked" }),
 			angles: Type.Array(
 				Type.Object({
 					question: Type.String({ description: "What this angle must answer, in full" }),
@@ -442,35 +532,57 @@ export default function (pi: ExtensionAPI) {
 		}),
 		async execute(_id, params) {
 			const n = Math.min(Math.max(params.pages ?? 3, 1), 5);
+			const whole = params.question;
 			const seenPages = fetchedUrls();
 			const taken = new Set<string>();
 			const out = await Promise.all(
 				params.angles.slice(0, 3).map(async (angle) => {
-					// Results of all its queries, interleaved, minus pages already read in this run.
+					// Results of all its queries, interleaved, minus pages already tried in this run.
 					const lists = await Promise.all(
-						angle.queries.slice(0, 3).map((q) => search(loadConfig() as SearchConfig, q, 8).catch(() => [])),
+						angle.queries.slice(0, 3).map((q) => search(loadConfig() as SearchConfig, q, 8).catch(() => [] as Result[])),
 					);
-					const picks: (typeof lists)[number] = [];
+					const picks: Result[] = [];
 					for (let i = 0; i < 8; i++)
 						for (const list of lists) {
 							const r = list[i];
-							if (r && !seenPages.has(r.url) && !taken.has(r.url) && !picks.some((p) => p.url === r.url)) picks.push(r);
+							if (r && !seenPages.has(r.url) && !picks.some((p) => p.url === r.url)) picks.push(r);
 						}
-					const chosen = picks.slice(0, n);
-					for (const r of chosen) taken.add(r.url);
-					const pages = await Promise.all(
-						chosen.map(async (r) => {
+					const { order, by } = await rankResults(whole, angle.question, params.today, picks.slice(0, 12));
+					type Read = { r: Result; title: string; claims: Claim[]; dropped: number };
+					type Skip = { r: Result; why: string; fetchFailed: boolean };
+					const reads: Read[] = [];
+					const skipped: Skip[] = [];
+					let next = 0;
+					let empty = 0; // fetched but nothing to read: these cost time, failed fetches don't
+					// n lanes; each takes the next ranked result until it has read one page (back-fill).
+					const lane = async () => {
+						while (next < order.length && empty <= n) {
+							const r = order[next++];
+							if (taken.has(r.url)) continue;
+							taken.add(r.url);
 							const page = await runStep("fetch", 20_000, () => savePage(r.url), () => undefined,
 								(p) => ({ url: r.url, chars: p?.body.length ?? 0 }));
-							if (!page) return { r, error: "couldn't fetch" };
-							markFetched(r.url);
-							const { text: found, picked } = await passages(angle.question, page, 6, 6000);
-							if (!picked.length) return { r, page, claims: [] as Claim[], dropped: 0 };
+							markFetched(r.url); // tried: a second dig call won't pick it again, readable or not
+							if (!page) {
+								skipped.push({ r, why: "couldn't fetch", fetchFailed: true });
+								continue;
+							}
+							if (page.body.split("\n").slice(2).join("\n").trim().length < MIN_PAGE) {
+								skipped.push({ r, why: "page too short (login wall or stub)", fetchFailed: true });
+								continue;
+							}
+							const { text: found, picked } = await passages(`${angle.question} ${whole}`, page, 6, 6000);
+							if (!picked.length) {
+								empty++;
+								skipped.push({ r, why: "no passage on the question", fetchFailed: false });
+								continue;
+							}
 							const start = Date.now();
 							try {
-								const claims = await readerSlot(() => readPage(angle.question, params.today, r.url, page.title || r.title, found));
-								const text_ = plain(page.body);
-								const ok = claims.filter((c) => plain(c.quote).length >= 12 && text_.includes(plain(c.quote)));
+								const claims = await readerSlot(() =>
+									readPage(whole, angle.question, params.today, r.url, page.title || r.title, found));
+								const body = plain(page.body);
+								const ok = claims.filter((c) => plain(c.quote).length >= 12 && body.includes(plain(c.quote)));
 								trace({ step: "read", ms: Date.now() - start, ok: true, url: r.url, claims: claims.length, verified: ok.length });
 								if (RUN_DIR && ok.length) {
 									mkdirSync(RUN_DIR, { recursive: true });
@@ -478,28 +590,39 @@ export default function (pi: ExtensionAPI) {
 										appendFileSync(join(RUN_DIR, "findings.jsonl"),
 											`${JSON.stringify({ agent: "dig", time: new Date().toISOString(), claim: c.claim, url: r.url, quote: c.quote, date: c.date ?? r.date })}\n`);
 								}
-								return { r, page, claims: ok, dropped: claims.length - ok.length };
+								reads.push({ r, title: page.title || r.title, claims: ok, dropped: claims.length - ok.length });
+								return;
 							} catch (e) {
 								trace({ step: "read", ms: Date.now() - start, ok: false, url: r.url, error: String(e).slice(0, 200) });
-								return { r, page, error: `reader failed: ${String(e).slice(0, 80)}` };
+								skipped.push({ r, why: `reader failed: ${String(e).slice(0, 80)}`, fetchFailed: false });
 							}
-						}),
-					);
-					const blocks = pages.map((p) => {
+						}
+					};
+					await Promise.all(Array.from({ length: n }, lane));
+					trace({ step: "dig-angle", ms: 0, ok: true, by, read: reads.length, skipped: skipped.length,
+						backfilled: Math.max(0, reads.length + skipped.length - n) });
+					const blocks = reads.map((p) => {
 						const date = p.r.date ? ` (${p.r.date})` : "";
-						const head = `### ${p.page?.title || p.r.title}${date}\n${p.r.url}`;
-						if ("error" in p && p.error) return `${head}\n(${p.error}; snippet: ${p.r.snippet.slice(0, 200)})`;
-						const cs = p.claims ?? [];
-						const lines = cs.map((c) => `- ${c.claim}${c.date ? ` [${c.date}]` : ""}`);
-						return `${head}\n${lines.join("\n") || "- (nothing on the question)"}${p.dropped ? `\n(${p.dropped} claims dropped: quote not on the page)` : ""}`;
+						const lines = p.claims.map((c) => `- ${c.claim}${c.date ? ` [${c.date}]` : ""}`);
+						return `### ${p.title}${date}\n${p.r.url}\n${lines.join("\n") || "- (nothing on the question)"}` +
+							(p.dropped ? `\n(${p.dropped} claims dropped: quote not on the page)` : "");
 					});
-					const rest = picks.slice(n, n + 4).map((r) => `- ${r.title}: ${r.url}`);
-					const verified = pages.reduce((s, p) => s + (p.claims?.length ?? 0), 0);
-					const dropped = pages.reduce((s, p) => s + (("dropped" in p && p.dropped) || 0), 0);
+					// Pages we couldn't read: only their search snippet, which nobody checked.
+					const unread = skipped.filter((s) => s.fetchFailed).map((s) =>
+						`- ${s.r.title}: ${s.r.url} (${s.why}; unverified search snippet: ${s.r.snippet.slice(0, 200)})`);
+					const tried = new Set([...reads.map((p) => p.r.url), ...skipped.map((s) => s.r.url)]);
+					const rest = order.filter((r) => !tried.has(r.url)).slice(0, 4).map((r) => `- ${r.title}: ${r.url}`);
+					const verified = reads.reduce((s, p) => s + p.claims.length, 0);
+					const dropped = reads.reduce((s, p) => s + p.dropped, 0);
 					return {
 						verified,
 						dropped,
-						text: [`## ${angle.question}`, ...blocks, ...(rest.length ? [`Not read:\n${rest.join("\n")}`] : [])].join("\n\n"),
+						text: [
+							`## ${angle.question}`,
+							...blocks,
+							...(unread.length ? [`Couldn't read (not facts; snippets are unverified):\n${unread.join("\n")}`] : []),
+							...(rest.length ? [`Not read:\n${rest.join("\n")}`] : []),
+						].join("\n\n"),
 					};
 				}),
 			);
