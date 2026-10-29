@@ -31,7 +31,10 @@ read-only for agents, list it in `NOTES_PROTECTED` (comma-separated; none by def
   elicitation dialog; `claude -p` (no one to answer) queues to the outbox.
 - `configs/notes/notes.mjs` (`notes`): `notes review` (the outbox), `notes grants`,
   `notes revoke PATH`.
-- `nvim/lua/notes.lua`: `:Notes`, `:Notes search`, `new`, `today`, `review`, `grants`.
+- `nvim/lua/notes.lua`: `:Notes` (find), `search`, `new`, `today`, `links`, `backlinks`, `tags`,
+  `review`, `grants`. obsidian.nvim (`nvim/lua/plugins/obsidian.lua`, v3.16.9 pinned by commit)
+  loads only with `:Notes`: then `gd` follows a `[[link]]` and `grr` lists backlinks. It adds no
+  keymaps or frontmatter.
 - `configs/notes/default.nix`: the tools, the vault's folders, the Mac's Syncthing.
 - `modules/notes-sync.nix`: the desktop's Syncthing and the hourly git snapshot
   (`git -C ~/Notes log`; local only, never pushed).
@@ -76,4 +79,3 @@ The same steps work for the user's phone.
 - Plain `pi` blocks bash commands that write into the vault on a best-effort basis; `pis`
   enforces it (read-only mount). Claude Code denies Edit/Write on `~/Notes/**`, but its bash
   isn't blocked.
-- obsidian.nvim isn't installed: waiting on the user's approval (v3.16.9).

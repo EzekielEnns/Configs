@@ -1,8 +1,11 @@
 -- notes: the shared notes vault (~/Notes, configs/notes) from Neovim. One command, loaded on first
--- use (plugins/notes.lua); no keymaps.
+-- use with obsidian.nvim (plugins/notes.lua); no keymaps. After :Notes, vault notes get
+-- obsidian.nvim's in-process LSP: gd follows a [[link]], grr lists backlinks, gf works on links.
 --
---   :Notes                 find a note                 :Notes new <title>   Inbox/<title>.md
---   :Notes search [text]   grep the vault              :Notes today         Daily/YYYY-MM-DD.md
+--   :Notes                 find a note (by title/alias)   :Notes new <title>   Inbox/<title>.md
+--   :Notes search [text]   grep the vault                 :Notes today         Daily/YYYY-MM-DD.md
+--   :Notes links           links in this note             :Notes backlinks     notes linking here
+--   :Notes tags [tag]      notes by #tag
 --   :Notes review          agent writes waiting in the outbox: diff preview, then apply,
 --                          apply and always allow that file, or reject (the `notes` CLI)
 --   :Notes grants          files agents may write without asking; pick one to revoke it
@@ -16,7 +19,13 @@ end
 
 -- Runs the `notes` CLI; returns stdout, or nil after reporting the error.
 local function cli(args)
-	local r = vim.system(vim.list_extend({ "notes" }, args), { text = true }):wait()
+	local ok, r = pcall(function()
+		return vim.system(vim.list_extend({ "notes" }, args), { text = true }):wait()
+	end)
+	if not ok then
+		notify("the `notes` CLI isn't on PATH (configs/notes)", vim.log.levels.ERROR)
+		return nil
+	end
 	if r.code ~= 0 then
 		notify(vim.trim(r.stderr ~= "" and r.stderr or r.stdout), vim.log.levels.ERROR)
 		return nil
@@ -115,10 +124,37 @@ local function grants()
 	})
 end
 
+-- obsidian.nvim for links, backlinks, tags and finding notes. Kept from changing notes on its own:
+-- no frontmatter added on save, no default keymaps, no conceal UI (render-markdown draws these).
+local function obsidian()
+	vim.g.obsidian_default_keymap = false
+	require("obsidian").setup({
+		legacy_commands = false,
+		workspaces = { { name = "notes", path = vault } },
+		picker = { name = "snacks.picker" },
+		frontmatter = { enabled = false },
+		ui = { enable = false },
+		daily_notes = { folder = "Daily", date_format = "%Y-%m-%d", default_tags = {}, workdays_only = false },
+		notes_subdir = "Inbox",
+		new_notes_location = "notes_subdir",
+		-- Obsidian on the phones names notes by title, so do the same instead of random IDs.
+		note_id_func = function(title)
+			return title
+		end,
+	})
+end
+
+local function obsidian_cmd(cmd)
+	return function(arg)
+		vim.cmd("Obsidian " .. cmd .. (arg ~= "" and " " .. arg or ""))
+	end
+end
+
 local subcommands = {
-	search = function(arg)
-		Snacks.picker.grep({ cwd = vault, search = arg ~= "" and arg or nil, hidden = false })
-	end,
+	search = obsidian_cmd("search"),
+	links = obsidian_cmd("links"),
+	backlinks = obsidian_cmd("backlinks"),
+	tags = obsidian_cmd("tags"),
 	new = function(arg)
 		if arg == "" then
 			return notify("usage: :Notes new <title>", vim.log.levels.WARN)
@@ -135,14 +171,15 @@ local subcommands = {
 }
 
 function M.setup()
+	obsidian()
 	vim.api.nvim_create_user_command("Notes", function(opts)
 		local sub, arg = opts.args:match("^(%S*)%s*(.-)%s*$")
 		if sub == "" then
-			return Snacks.picker.files({ cwd = vault, title = "Notes" })
+			return vim.cmd("Obsidian quick_switch")
 		end
 		local fn = subcommands[sub]
 		if not fn then
-			return notify("unknown :Notes " .. sub .. " (search, new, today, review, grants)", vim.log.levels.WARN)
+			return notify("unknown :Notes " .. sub .. " (search, new, today, links, backlinks, tags, review, grants)", vim.log.levels.WARN)
 		end
 		fn(arg)
 	end, {
