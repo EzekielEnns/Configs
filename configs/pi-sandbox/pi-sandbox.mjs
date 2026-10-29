@@ -156,6 +156,9 @@ const env = {
 	...(small
 		? {}
 		: { PI_MASK: "0", PI_THINKING: "0", PI_BUDGET_TURN: "0", PI_DELEGATE: "0", PI_READ_LIMIT: "800", PI_WRITE_MAX_LINES: "800" }),
+	// The sandbox blocks macOS's pasteboard service, so Pi's copy also goes out through the
+	// terminal (OSC 52), as it does over SSH.
+	PI_CLIPBOARD_OSC52: "1",
 	PI_CODING_AGENT_DIR: agentDir,
 	PI_SANDBOX_JOB: job,
 	PI_GUARD: process.env.PI_GUARD ?? "1",
