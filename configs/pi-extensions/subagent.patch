@@ -1,6 +1,6 @@
 diff -ru a/agents.ts b/agents.ts
---- a/agents.ts	2026-10-27 10:19:02
-+++ b/agents.ts	2026-10-27 10:19:02
+--- a/agents.ts	2026-10-29 16:03:38
++++ b/agents.ts	2026-10-29 16:03:38
 @@ -13,6 +13,12 @@
  	description: string;
  	tools?: string[];
@@ -35,9 +35,9 @@ diff -ru a/agents.ts b/agents.ts
  			source,
  			filePath,
 diff -ru a/index.ts b/index.ts
---- a/index.ts	2026-10-27 10:19:02
-+++ b/index.ts	2026-10-27 12:32:05
-@@ -32,7 +32,61 @@
+--- a/index.ts	2026-10-29 16:03:38
++++ b/index.ts	2026-10-29 16:03:53
+@@ -32,7 +32,89 @@
  import { type AgentConfig, type AgentScope, discoverAgents } from "./agents.ts";
  
  const MAX_PARALLEL_TASKS = 8;
@@ -80,6 +80,34 @@ diff -ru a/index.ts b/index.ts
 +}
 +const ANSWER_CAP = 2500;
 +let spawnedThisPrompt = 0;
++
++// Project instructions (AGENTS.md / CLAUDE.md here and in every parent folder) load into each
++// sub-agent's prompt. A big one leaves a 32k local model no room: a 60 KB CLAUDE.md started
++// every Flint worker at 27k tokens and each stopped after one. Above this size, local models
++// skip them and get a pointer instead; PI_SUBAGENT_CONTEXT_MAX sets it (bytes, 0 = always load).
++const CONTEXT_MAX = Number(process.env.PI_SUBAGENT_CONTEXT_MAX ?? 16000);
++const CONTEXT_NAMES = ["AGENTS.override.md", "AGENTS.md", "AGENTS.MD", "CLAUDE.md", "CLAUDE.MD"];
++
++function contextFiles(dir: string): { path: string; size: number }[] {
++	const found: { path: string; size: number }[] = [];
++	for (let d = path.resolve(dir); ; d = path.dirname(d)) {
++		for (const n of CONTEXT_NAMES) {
++			try {
++				const st = fs.statSync(path.join(d, n));
++				if (st.isFile()) {
++					found.push({ path: path.join(d, n), size: st.size });
++					break; // one per folder, like Pi
++				}
++			} catch {}
++		}
++		if (path.dirname(d) === d) return found;
++	}
++}
++
++/** Local models (the desktop's own, not its cloud-* routes) have small windows. */
++function smallModel(model: string | undefined): boolean {
++	return !!model && /^desktop\/(?!cloud-)/.test(model);
++}
 +function getRunDir(): string {
 +	if (!runDir) runDir = fs.mkdtempSync(path.join(os.tmpdir(), "pi-research-"));
 +	return runDir;
@@ -100,7 +128,7 @@ diff -ru a/index.ts b/index.ts
  const COLLAPSED_ITEM_COUNT = 10;
  const PER_TASK_OUTPUT_CAP = 50 * 1024;
  
-@@ -177,6 +231,25 @@
+@@ -177,6 +259,25 @@
  	return "";
  }
  
@@ -126,7 +154,7 @@ diff -ru a/index.ts b/index.ts
  function isFailedResult(result: SingleResult): boolean {
  	return result.exitCode !== 0 || result.stopReason === "error" || result.stopReason === "aborted";
  }
-@@ -295,15 +368,40 @@
+@@ -295,15 +396,40 @@
  		};
  	}
  
@@ -169,16 +197,31 @@ diff -ru a/index.ts b/index.ts
  	let tmpPromptDir: string | null = null;
  	let tmpPromptPath: string | null = null;
  
-@@ -338,6 +436,8 @@
+@@ -336,8 +462,22 @@
+ 			args.push("--append-system-prompt", tmpPromptPath);
+ 		}
  
- 		args.push(`Task: ${task}`);
+-		args.push(`Task: ${task}`);
++		let pointer = "";
++		if (CONTEXT_MAX > 0 && smallModel(model)) {
++			const ctx = contextFiles(cwd ?? defaultCwd);
++			const total = ctx.reduce((a, f) => a + f.size, 0);
++			if (total > CONTEXT_MAX) {
++				args.push("--no-context-files");
++				pointer =
++					"\n\nProject instructions are too long to load here (" +
++					ctx.map((f) => `${f.path}, ${Math.round(f.size / 1024)} KB`).join("; ") +
++					"). Don't read them whole: grep them for the part your task touches (e.g. `grep -n '^#' FILE` for the headings).";
++			}
++		}
++		args.push(`Task: ${task}${pointer}`);
  		let wasAborted = false;
 +		let timedOut = false;
 +		release = await acquireSlot();
  
  		const exitCode = await new Promise<number>((resolve) => {
  			const invocation = getPiInvocation(args);
-@@ -345,7 +445,16 @@
+@@ -345,7 +485,16 @@
  				cwd: cwd ?? defaultCwd,
  				shell: false,
  				stdio: ["ignore", "pipe", "pipe"],
@@ -195,7 +238,7 @@ diff -ru a/index.ts b/index.ts
  			let buffer = "";
  
  			const processLine = (line: string) => {
-@@ -418,10 +527,42 @@
+@@ -418,10 +567,42 @@
  			}
  		});
  
@@ -239,7 +282,7 @@ diff -ru a/index.ts b/index.ts
  		if (tmpPromptPath)
  			try {
  				fs.unlinkSync(tmpPromptPath);
-@@ -467,6 +608,12 @@
+@@ -467,6 +648,12 @@
  });
  
  export default function (pi: ExtensionAPI) {
@@ -252,7 +295,7 @@ diff -ru a/index.ts b/index.ts
  	pi.registerTool({
  		name: "subagent",
  		label: "Subagent",
-@@ -479,6 +626,7 @@
+@@ -479,6 +666,7 @@
  		parameters: SubagentParams,
  
  		async execute(_toolCallId, params, signal, onUpdate, ctx) {

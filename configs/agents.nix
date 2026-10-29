@@ -135,7 +135,8 @@ let
   # Claude models, so ours keep the prompts and use the desktop's. Patched
   # (pi-extensions/subagent.patch) for our 2 llama.cpp slots: at most 2 run at once across
   # calls, per-agent thinking / tool budget / timeout, a shared run directory for notes and
-  # pages, and saved notes returned even when an agent dies.
+  # pages, saved notes returned even when an agent dies, and local-model agents skip project
+  # instructions over 16 KB (a pointer instead), which otherwise fill a 32k window.
   subagentDir = pkgs.applyPatches {
     name = "pi-subagent";
     src = "${agentPkgs.pi-coding-agent}/lib/node_modules/pi-monorepo/examples/extensions/subagent";
