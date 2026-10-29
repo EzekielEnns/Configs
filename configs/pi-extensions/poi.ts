@@ -88,16 +88,20 @@ export default function (pi: ExtensionAPI) {
 			const args = commandArgs(arg ?? "");
 			if (!args) return ctx.ui.notify(USAGE, "info");
 			ctx.ui.notify(`poi: ranking${args.includes("--tour") ? " and writing a tour" : ""}…`, "info");
+			let jev = "";
 			const out = await new Promise<string>((done) => {
 				execFile(BIN, args, { cwd: ctx.cwd, timeout: 300_000, maxBuffer: 4 << 20 }, (err, stdout, stderr) => {
+					// poi's summary line on stderr: "poi: 628 Jev requests in 25s, $0.0161"
+					jev = /\d+ Jev requests[^\n]*/.exec(stderr ?? "")?.[0] ?? "";
 					if (err && !stdout) done(`poi failed: ${(stderr || err.message).trim().slice(0, 600)}`);
 					else done(stdout.trim());
 				});
 			});
 			if (out.startsWith("poi failed")) return ctx.ui.notify(out, "error");
+			ctx.ui.notify(`poi: ranked by Jev (${jev || "no Jev summary; cached or failed"})`, "info");
 			const list = out.length > MAX_CHARS ? `${out.slice(0, MAX_CHARS)}\n[... cut]` : out;
 			const msg =
-				`Points of interest for: ${(arg ?? "").trim()}\n\n${list}\n\n` +
+				`Points of interest for: ${(arg ?? "").trim()} (ranked by Jev${jev ? `: ${jev}` : ""})\n\n${list}\n\n` +
 				"Walk me through how this works, starting with the top places. Read the code at those lines before " +
 				"explaining it, and keep it to what the code shows.";
 			pi.sendUserMessage(msg, ctx.isIdle() ? undefined : { deliverAs: "followUp" });
