@@ -116,7 +116,7 @@ export function diff(before, after, label) {
 	try {
 		writeFileSync(join(d, "a"), before);
 		writeFileSync(join(d, "b"), after);
-		const p = spawnSync("diff", ["-u", "--label", `a/${label}`, "--label", `b/${label}`, join(d, "a"), join(d, "b")], { encoding: "utf8" });
+		const p = spawnSync(process.env.NOTES_DIFF || "diff", ["-u", "--label", `a/${label}`, "--label", `b/${label}`, join(d, "a"), join(d, "b")], { encoding: "utf8" });
 		return p.stdout || "";
 	} finally {
 		rmSync(d, { recursive: true, force: true });

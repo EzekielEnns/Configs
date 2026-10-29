@@ -179,7 +179,7 @@ const writeTool = defineTool({
 		let always = false;
 		if (!notes.granted(plan.path)) {
 			if (!ctx.hasUI || SUBAGENT) return reply(`Not written yet: ${toOutbox({ ...req, source, diff: plan.diff })}.`);
-			const shown = plan.diff.split("\n").slice(2, 42).join("\n");
+			const shown = plan.diff.split("\n").slice(2).filter((l) => !l.startsWith("@@")).slice(0, 40).join("\n");
 			const choice = await ctx.ui.select(
 				`Write ${plan.path} (${p.mode})?\n\n${shown}${plan.diff.split("\n").length > 44 ? "\n[...]" : ""}`,
 				["Allow once", "Always for this file", "Deny"],

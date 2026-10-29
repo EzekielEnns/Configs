@@ -11,6 +11,7 @@
   # already uses) instead of being a flake input the Mac would also have to fetch.
   imports = [
     (builtins.getFlake "git+file:///home/ezekiel/Documents/repos/ai-stack").nixosModules.default
+    ../modules/notes-sync.nix # the shared notes vault: Syncthing over Tailscale, hourly snapshots
   ];
 
   config = {

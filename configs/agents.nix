@@ -49,8 +49,11 @@ let
   # Agents with a free hand: Pi in a job folder under Anthropic's sandbox runtime (writes only
   # there, secrets unreadable, open web, logged), with guard.ts reviewing each command.
   sandboxRuntime = pkgs.callPackage ./sandbox-runtime { };
+  notesTools = pkgs.callPackage ./notes/package.nix { };
   piSandbox = pkgs.writeShellScriptBin "pi-sandbox" ''
     export PI_SANDBOX_SRT=${sandboxRuntime}/lib/node_modules/@anthropic-ai/sandbox-runtime/dist/index.js
+    # The notes vault: read-only inside, notes_write goes through the launcher (configs/notes).
+    export PI_SANDBOX_NOTES_CORE=${notesTools}/lib/notes/core.mjs
     # srt on Linux runs bubblewrap (NixOS's setuid wrapper is already on PATH) and needs socat
     # to bridge the network proxy into the sandbox. ripgrep and fd back Pi's grep and find
     # tools (Pi would download its own copies otherwise).
@@ -251,6 +254,8 @@ let
   };
 in
 {
+  imports = [ ./notes ]; # the shared notes vault's tools, for Pi and the shell
+
   home.packages = [
     rea
     wabt

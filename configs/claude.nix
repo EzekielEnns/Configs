@@ -67,6 +67,10 @@ in
         tui = "fullscreen";
         editorMode = "vim";
         permissions.defaultMode = "auto";
+        # The notes vault (configs/notes): its tools only. notes_write asks with its own
+        # dialog (MCP elicitation), so no permission prompt on top; direct edits are denied.
+        permissions.allow = [ "mcp__notes__notes_search" "mcp__notes__notes_read" "mcp__notes__notes_recent" "mcp__notes__notes_write" ];
+        permissions.deny = [ "Edit(~/Notes/**)" "Write(~/Notes/**)" ];
 
         # Compact at ~400K tokens instead of the ~967K default on a 1M window.
         # Plain integer; a per-model value saved by /autocompact would override it.
@@ -137,6 +141,15 @@ in
         skipWorkflowUsageWarning = true;
       };
     };
+
+    # The notes MCP server (configs/notes), for every project. User-scope servers live in
+    # ~/.claude.json, which Claude Code rewrites, so it's added there once rather than owned.
+    home.activation.claudeNotesMcp = ''
+      claude="$HOME/.local/bin/claude"
+      if [ -x "$claude" ] && ! "$claude" mcp get notes >/dev/null 2>&1; then
+        run "$claude" mcp add -s user notes -- /etc/profiles/per-user/$USER/bin/notes-mcp || true
+      fi
+    '';
 
     # The module doesn't set force, and a real settings.json already exists on
     # this machine; without this, activation refuses to clobber it.
