@@ -15,6 +15,17 @@
   nixpkgs.config.allowUnfree = true;
   nix.package = pkgs.nix;
   nix.settings.experimental-features = "nix-command flakes";
+  # No auto-upgrade on the Mac; only cleanup, Sunday evening: drop every generation but the
+  # current one, then hard-link identical files. launchd runs a missed slot at the next wake.
+  nix.gc = {
+    automatic = true;
+    interval = [ { Weekday = 0; Hour = 21; Minute = 30; } ];
+    options = "--delete-old";
+  };
+  nix.optimise = {
+    automatic = true;
+    interval = [ { Weekday = 0; Hour = 22; Minute = 0; } ];
+  };
 
   # Same as nixos/dk.nix: compromised eMudhra intermediates
   # (https://harry.id/blog/emudhra-ca-compromise-macos-curl). Drop once nixpkgs cacert is patched.

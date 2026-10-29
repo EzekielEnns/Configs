@@ -2,6 +2,9 @@
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-25.11";
     nixpkgs-unstable.url = "github:nixos/nixpkgs/nixos-unstable";
+    # Tailscale alone, for the desktop: the weekly auto-upgrade (nixos/dk.nix) rebuilds with this
+    # overridden to the newest nixos-unstable, so security fixes land without moving anything else.
+    nixpkgs-tailscale.url = "github:nixos/nixpkgs/nixos-unstable";
 
     home-manager = {
       url = "github:nix-community/home-manager/release-25.11";

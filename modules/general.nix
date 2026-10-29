@@ -110,12 +110,18 @@
         };
       };
     };
+    # Keep only the current generation: the weekly auto-upgrade (nixos/dk.nix) starts this right
+    # after a successful switch; the timer is the fallback. Boot menu trimmed to match.
     nix.gc = {
       automatic = true;
-      dates = "weekly";
-      options = "--delete-older-than 30d";
+      dates = "Sun 21:30";
+      options = "--delete-old";
     };
-    nix.optimise.automatic = true;
+    nix.optimise = {
+      automatic = true;
+      dates = [ "Sun 22:00" ];
+    };
+    boot.loader.systemd-boot.configurationLimit = 3;
     nix.settings.auto-optimise-store = true;
     # Auto-GC during builds: when free space drops below min-free (5 GiB),
     # nix frees garbage until max-free (20 GiB) is available. Previously 100 MiB,

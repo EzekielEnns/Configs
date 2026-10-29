@@ -427,8 +427,9 @@
 
     services.tailscale = {
       enable = true;
-      # stable lags tailscale releases by months; the Mac client comes from brew
-      package = pkgs-unstable.tailscale;
+      # Its own nixpkgs input, refreshed by the weekly auto-upgrade below (stable lags tailscale
+      # releases by months; the Mac client comes from brew).
+      package = inputs.nixpkgs-tailscale.legacyPackages.${pkgs.stdenv.hostPlatform.system}.tailscale;
       openFirewall = true; # let tailscale traffic in/out
       useRoutingFeatures = "server"; # turns this box into a subnet router
       extraUpFlags = [
@@ -439,5 +440,28 @@
 
     # Optional but recommended: trust Tailscale interface in your firewall
     networking.firewall.trustedInterfaces = [ "tailscale0" ];
+
+    # Weekly, Sunday evening: rebuild from the last commit with only Tailscale's nixpkgs moved to
+    # the newest nixos-unstable (the lock file isn't touched), then garbage-collect down to the
+    # new generation (nix.gc in modules/general.nix). Skipped while the repo has uncommitted
+    # changes, so a half-done edit never goes live unattended. Runs at next boot if missed.
+    system.autoUpgrade = {
+      enable = true;
+      flake = "git+file:///home/ezekiel/Documents/repos/configs#desktop";
+      flags = [ "--override-input" "nixpkgs-tailscale" "github:nixos/nixpkgs/nixos-unstable" "--no-write-lock-file" "--impure" ];
+      dates = "Sun 20:00";
+      randomizedDelaySec = "0";
+      persistent = true;
+      allowReboot = false;
+    };
+    systemd.services.nixos-upgrade = {
+      preStart = ''
+        if [ -n "$(${pkgs.util-linux}/bin/runuser -u ezekiel -- ${pkgs.git}/bin/git -C /home/ezekiel/Documents/repos/configs status --porcelain --untracked-files=no -- . ':!result')" ]; then
+          echo "configs has uncommitted changes; skipping this week's upgrade" >&2
+          exit 1
+        fi
+      '';
+      unitConfig.OnSuccess = [ "nix-gc.service" ];
+    };
   };
 }
