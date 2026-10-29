@@ -13,7 +13,8 @@
  * Tight, because a memory reaches every later session (memory poisoning): a comment in a
  * vendor bundle saying "remember ..." must not become a standing instruction.
  * - Saving or forgetting works only when the user's latest message asks for it (remember,
- *   forget, memory, keep in mind, note that); otherwise the tool refuses and says to ask.
+ *   forget, memory, keep in mind, note that), or is a short yes to the model's reply that
+ *   offered it; otherwise the tool refuses and says to ask.
  * - Subagents (PI_AGENT_NAME set) get the index to read, but no memory tool: their "user"
  *   message is a brief written by another model.
  * - Each memory records its source: the date and the user's words that asked for it. The
@@ -34,6 +35,7 @@ const ROOT = process.env.PI_MEMORY_DIR || join(homedir(), ".pi", "memory");
 const MAX_INDEX = 3000; // chars per index in the prompt
 const SUBAGENT = Boolean(process.env.PI_AGENT_NAME);
 const ASKED = /\b(remember|memor(y|ies|ize|ise)|forget|keep in mind|note (that|this|down))\b/i;
+const YES = /^\W*(y|yes|yep|yeah|yup|sure|ok(ay)?|please|do it|go ahead|save it|sounds good)\b/i;
 
 type Msg = { role: string; content?: unknown };
 const text = (c: unknown) =>
@@ -41,6 +43,10 @@ const text = (c: unknown) =>
 
 /** The user's latest message, from the last request's context (includes messages typed mid-run). */
 let lastUser = "";
+/** The model's text reply just before it, so "yes" to "want me to save this?" counts. */
+let offered = "";
+/** The user asked, or said a short yes to a reply that offered to save or forget a memory. */
+const asked = () => ASKED.test(lastUser) || (lastUser.trim().length <= 40 && YES.test(lastUser) && ASKED.test(offered));
 
 const slug = (s: string) => s.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "").slice(0, 60);
 
@@ -107,7 +113,7 @@ const memoryTool = defineTool({
 		body: Type.Optional(Type.String({ description: "The fact. For feedback/project add **Why:** and **How to apply:** lines" })),
 	}),
 	async execute(_id, params, _signal, _update, ctx) {
-		if (!ASKED.test(lastUser))
+		if (!asked())
 			return {
 				content: [
 					{
@@ -135,7 +141,7 @@ const memoryTool = defineTool({
 			file,
 			`---\nname: ${slug(params.name)}\ndescription: ${params.description.replace(/\n/g, " ")}\n` +
 				`type: ${params.type ?? "project"}\nsaved: ${new Date().toISOString().slice(0, 10)}\n` +
-				`source: user asked: ${JSON.stringify(lastUser.replace(/\s+/g, " ").slice(0, 160))}\n---\n\n${params.body.trim()}\n`,
+				`source: user asked: ${JSON.stringify((ASKED.test(lastUser) ? lastUser : `${lastUser} (to: ${offered.slice(-120)})`).replace(/\s+/g, " ").slice(0, 160))}\n---\n\n${params.body.trim()}\n`,
 		);
 		reindex(dir);
 		return { content: [{ type: "text", text: `${replaced ? "Updated" : "Saved"} ${file}` }], details: undefined };
@@ -158,6 +164,8 @@ export default function (pi: ExtensionAPI) {
 		for (let i = msgs.length - 1; i >= 0; i--)
 			if (msgs[i].role === "user") {
 				lastUser = text(msgs[i].content);
+				const prev = msgs.slice(0, i).reverse().find((m) => m.role === "assistant");
+				offered = prev ? text(prev.content) : "";
 				break;
 			}
 	});
