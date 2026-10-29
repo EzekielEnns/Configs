@@ -27,7 +27,7 @@
  */
 import { spawn, spawnSync } from "node:child_process";
 import { createHash } from "node:crypto";
-import { appendFileSync, copyFileSync, existsSync, mkdirSync, readFileSync, realpathSync, symlinkSync, unlinkSync, writeFileSync } from "node:fs";
+import { appendFileSync, existsSync, mkdirSync, readFileSync, realpathSync, symlinkSync, unlinkSync, writeFileSync } from "node:fs";
 import { homedir } from "node:os";
 import { basename, dirname, join, resolve } from "node:path";
 
@@ -78,20 +78,21 @@ for (const [name, target] of Object.entries(links)) {
 	try { unlinkSync(link); } catch {}
 	if (existsSync(join(piHome, target))) symlinkSync(join(piHome, target), link);
 }
-// Settings: a copy per job, so a model picked with /model or Ctrl+P is remembered for this
-// job. Frontier runs start on the cheapest hosted model (PI_SANDBOX_MODEL to change it)
-// instead of the global default, Flint.
+// Settings: the global ones, refreshed every run so config changes reach old jobs, plus this
+// job's model: a pick made with /model or Ctrl+P is remembered here. Frontier runs start on
+// the cheapest hosted model (PI_SANDBOX_MODEL to change it) instead of the global Flint.
 const settingsFile = join(agentDir, "settings.json");
-if (existsSync(join(piHome, "settings.json")) && !existsSync(settingsFile))
-	copyFileSync(join(piHome, "settings.json"), settingsFile);
-if (!small && existsSync(settingsFile)) {
-	const settings = JSON.parse(readFileSync(settingsFile, "utf8"));
-	if (!settings.defaultModel || settings.defaultModel === "flint") {
-		settings.defaultProvider = "desktop";
-		settings.defaultModel = process.env.PI_SANDBOX_MODEL ?? "cloud-deepseek";
-		writeFileSync(settingsFile, `${JSON.stringify(settings, null, 2)}\n`);
-	}
+const readJson = (f) => { try { return JSON.parse(readFileSync(f, "utf8")); } catch { return {}; } };
+const saved = readJson(settingsFile);
+const settings = { ...readJson(join(piHome, "settings.json")) };
+if (saved.defaultModel && !(saved.defaultModel === "flint" && !small)) {
+	settings.defaultProvider = saved.defaultProvider ?? "desktop";
+	settings.defaultModel = saved.defaultModel;
+} else if (!small) {
+	settings.defaultProvider = "desktop";
+	settings.defaultModel = process.env.PI_SANDBOX_MODEL ?? "cloud-deepseek";
 }
+writeFileSync(settingsFile, `${JSON.stringify(settings, null, 2)}\n`);
 
 // Checkpoint: the job's files, committed to a repo outside the job before every run.
 const checkpoints = join(dirname(job), ".checkpoints", `${basename(job)}.git`);

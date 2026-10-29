@@ -198,15 +198,23 @@ let
     # lsp-pi's after-edit diagnostics duplicate check.ts's compile errors; its tool stays.
     lsp.hookMode = "disabled";
     enabledModels = [ "desktop/*" ];
-    # Pi's compaction defaults (start when <16k free, keep the last 20k) assume big
-    # windows; on 16-32k slots they'd compact at half full and keep more than fits.
-    # Use a quarter of the window for each instead.
-    compaction.modelOverrides = lib.listToAttrs (map
-      (m: lib.nameValuePair "desktop/${m.id}" {
-        reserveTokens = m.contextWindow / 4;
-        keepRecentTokens = m.contextWindow / 4;
-      })
-      (lib.filter (m: m.contextWindow <= 32768) models));
+    # Pi compacts when the context passes the window minus reserveTokens, keeping the last
+    # keepRecentTokens. Its defaults (16k, 20k) assume big windows; on 16-32k slots they'd
+    # compact at half full and keep more than fits, so those use a quarter of the window for
+    # each. Hosted models would run to ~393k of their 400k: long contexts answer worse and
+    # cost more per turn, so they compact at 200k ($ models) or 150k ($$ and up), keeping
+    # the default 20k.
+    compaction.modelOverrides = lib.listToAttrs (lib.concatMap
+      (m:
+        let compactAt = if lib.hasInfix " $ ~" m.name then 200000 else 150000; in
+        if m.contextWindow <= 32768 then [
+          (lib.nameValuePair "desktop/${m.id}" {
+            reserveTokens = m.contextWindow / 4;
+            keepRecentTokens = m.contextWindow / 4;
+          })
+        ] else lib.optional (m.contextWindow > compactAt + 16384)
+          (lib.nameValuePair "desktop/${m.id}" { reserveTokens = m.contextWindow - compactAt; }))
+      models);
     hideThinkingBlock = true; # Ctrl+T shows it
     showHardwareCursor = true; # Pi's drawn cursor looked squished
     editorPaddingX = 1;
