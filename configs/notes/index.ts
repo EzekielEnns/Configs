@@ -7,8 +7,8 @@
  * - notes_write: create, append or replace. A file the user approved with "Always for this
  *   file" (grants.json, every project) is written straight away; any other asks in Pi:
  *   Allow once / Always for this file / Deny, with the diff. No one to ask (pi -p, a
- *   subagent): the write goes to the outbox for `notes review`. Personal/, Wife/ and AGENTS.md
- *   are never written, grant or not.
+ *   subagent): the write goes to the outbox for `notes review`. AGENTS.md and non-notes are
+ *   never written, grant or not.
  * - Plain pi writes the file itself. Under pis the vault is read-only, so the write goes to the
  *   broker in the pis launcher (pi-sandbox.mjs, outside the sandbox), signed with a key the
  *   launcher hands this extension on an inherited pipe: read and closed at load, before any
@@ -159,7 +159,7 @@ const writeTool = defineTool({
 	description:
 		"Write to the user's notes vault: create a new note, append to one, or replace one (the whole note, or one exact " +
 		"passage given as old). The user approves each new file; put your own notes in Agents/ and quick captures in " +
-		"Inbox/. Personal/ and Wife/ are the user's own notes: read them, never write them.",
+		"Inbox/; each person's own folder (Personal/, Wife/) only when they ask.",
 	promptSnippet: "notes_write: create, append or replace a note (the user approves)",
 	parameters: Type.Object({
 		path: Type.String({ description: "Vault-relative path ending in .md, e.g. Agents/2026-10-29-trip-research.md" }),

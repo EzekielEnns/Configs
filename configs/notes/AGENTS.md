@@ -16,10 +16,10 @@ synced with Syncthing). Agents (Pi, Claude Code) get it through the notes tools:
   - `Shared/`: the household's shared lists and plans. Append or change one passage; don't
     rewrite what someone wrote.
   - `Daily/`: one note per day, `Daily/YYYY-MM-DD.md`. Append only.
-- **Never write `Personal/` or `Wife/`** (each person's own notes), this file, or anything
-  in `.obsidian/`. The tools refuse those, grant or not.
+  - `Personal/`, `Wife/`: each person's own notes. Write there only when that person asks.
+- **Never write** this file or anything in `.obsidian/`, and only `.md`/`.txt` notes. The
+  tools refuse those, grant or not.
 - Keep notes short and in Markdown. No secrets, passwords or codes in notes.
 - If a note changed since you read it, read it again before writing.
 
-The folder names are the defaults; rename `Wife/` in Obsidian and set `NOTES_PROTECTED` to
-match (configs/notes in the Configs repo).
+`Wife/` is a placeholder name; rename it in Obsidian.

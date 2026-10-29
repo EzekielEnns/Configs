@@ -12,11 +12,12 @@ yes. Built 2026-10-29.
 | `Shared/` | the household's lists and plans | write with approval |
 | `Daily/` | one note a day, `:Notes today` | write with approval |
 | `Agents/` | agents' own notes and logs | write with approval |
-| `Personal/`, `Wife/` | each person's own notes | read only, always |
+| `Personal/`, `Wife/` | each person's own notes | write with approval, when asked |
 | `AGENTS.md` | the rules agents follow | read only, always |
 
-`Wife/` is a placeholder: rename it in Obsidian, then set `NOTES_PROTECTED` (default
-`Personal,Wife`) in `configs/notes/core.mjs` to the new name and rebuild.
+`Wife/` is a placeholder: rename it in Obsidian (and in `folders` in
+`configs/notes/default.nix`, or the rebuild recreates an empty `Wife/`). To make a folder
+read-only for agents, list it in `NOTES_PROTECTED` (comma-separated; none by default).
 
 ## Pieces (all in this repo)
 

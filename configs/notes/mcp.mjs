@@ -53,7 +53,7 @@ const tools = [
 		description:
 			"Write to the user's notes vault: create a note, append to one, or replace one (the whole note, or one exact " +
 			"passage given as old). The user approves each new file; put your own notes in Agents/ and quick captures in " +
-			"Inbox/. Personal/ and Wife/ are the user's own: read them, never write them.",
+			"Inbox/; each person's own folder only when they ask.",
 		inputSchema: {
 			type: "object",
 			properties: {

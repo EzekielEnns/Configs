@@ -3,8 +3,9 @@
  * Claude Code MCP server, the `notes` CLI). Node built-ins only.
  *
  * - The vault is NOTES_DIR (default ~/Notes), synced by Syncthing between the machines and
- *   phones. Reads: anything in it but sync/app internals. Writes: never the folders in
- *   NOTES_PROTECTED (default Personal,Wife), nor AGENTS.md or dot-folders, whatever a grant says.
+ *   phones. Reads: anything in it but sync/app internals. Writes: anywhere with the user's
+ *   approval, but never AGENTS.md, dot-folders, non-.md/.txt files, or the folders listed in
+ *   NOTES_PROTECTED (none by default), whatever a grant says.
  * - A write is a plan (path, mode, the file before and after, a diff), applied only if the file
  *   still matches what the plan was made from, so it never clobbers an edit synced meanwhile.
  * - State lives outside the vault, in ~/.local/state/notes: grants.json (files approved with
@@ -24,7 +25,7 @@ export const VAULT = resolve(process.env.NOTES_DIR || join(homedir(), "Notes"));
 export const STATE = resolve(process.env.NOTES_STATE || join(homedir(), ".local", "state", "notes"));
 export const GRANTS = join(STATE, "grants.json");
 export const OUTBOX = join(STATE, "outbox");
-export const PROTECTED = (process.env.NOTES_PROTECTED ?? "Personal,Wife").split(",").map((s) => s.trim()).filter(Boolean);
+export const PROTECTED = (process.env.NOTES_PROTECTED ?? "").split(",").map((s) => s.trim()).filter(Boolean);
 const HIDDEN = /(^|\/)(\.git|\.obsidian|\.stfolder|\.stversions|\.trash)(\/|$)|(^|\/)\.st(ignore|globalignore)$/;
 const MAX_NOTE = 1_000_000; // bytes: a note, not a dataset
 
@@ -51,7 +52,7 @@ export function notePath(rel) {
 /** Why a vault path can't be written, or null. */
 export function writeBlock(rel) {
 	const top = rel.split("/")[0];
-	if (PROTECTED.includes(top)) return `${top}/ is the user's own notes: agents may read it, never write it`;
+	if (PROTECTED.includes(top)) return `${top}/ is read-only for agents (NOTES_PROTECTED)`;
 	if (rel === "AGENTS.md") return "AGENTS.md holds the vault's rules and is managed by the user";
 	if (!/\.(md|txt)$/i.test(rel)) return "only .md and .txt notes can be written";
 	return null;
