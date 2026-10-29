@@ -19,21 +19,22 @@ let
     { id = "flint-careful"; name = "Flint 40B-A2.5B (careful: no thinking cap)"; contextWindow = 32768; maxTokens = 16384; }
     # Hosted models end with a price tag for the model picker: $ to $$$$ by blended cost per
     # 1M tokens (3 parts input to 1 output, since agent turns are mostly input): $ under $0.50,
-    # $$ under $3, $$$ under $6, $$$$ above. Then input / output $ per 1M (OpenRouter, 2026-10-29).
-    { id = "planner"; name = "planner: GLM-5.3, US hosts $ ($0.07 / $1.40)"; contextWindow = 131072; maxTokens = 32768; }
+    # $$ under $3, $$$ under $6, $$$$ above. Then that typical cost, and input / output, all $ per
+    # 1M tokens (OpenRouter, 2026-10-29).
+    { id = "planner"; name = "planner: GLM-5.3, US hosts $ ~$0.40 ($0.07 in / $1.40 out)"; contextWindow = 131072; maxTokens = 32768; }
     # 1M on OpenRouter; told 400k so Pi compacts there, before long-context quality drops.
-    { id = "cloud-deepseek"; name = "DeepSeek V4.1 Flash, US hosts $ ($0.05 / $0.50)"; contextWindow = 409600; maxTokens = 32768; }
-    { id = "cloud-haiku"; name = "Claude Haiku 5.5 $ ($0.10 / $0.50)"; contextWindow = 409600; maxTokens = 65536; }
+    { id = "cloud-deepseek"; name = "DeepSeek V4.1 Flash, US hosts $ ~$0.16 ($0.05 in / $0.50 out)"; contextWindow = 409600; maxTokens = 32768; }
+    { id = "cloud-haiku"; name = "Claude Haiku 5.5 $ ~$0.20 ($0.10 in / $0.50 out)"; contextWindow = 409600; maxTokens = 65536; }
     # Frontier candidates for agent work in pis (nixos/dk.nix cloud-*): 1M+ context, told 400k
     # and 64k like DeepSeek, so Pi compacts before a run's history gets long and costly.
-    { id = "cloud-deepseek-pro"; name = "DeepSeek V4 Pro $$ ($0.88 / $1.77)"; contextWindow = 409600; maxTokens = 65536; }
-    { id = "cloud-grok"; name = "Grok 4.20 $$ ($1.25 / $2.50)"; contextWindow = 409600; maxTokens = 65536; }
-    { id = "cloud-gemini-flash"; name = "Gemini 3.8 Flash $$ ($0.83 / $4.13)"; contextWindow = 409600; maxTokens = 65536; }
-    { id = "cloud-gpt"; name = "GPT-6.1 Terra $$ ($1.00 / $5.00)"; contextWindow = 409600; maxTokens = 65536; }
-    { id = "cloud-sonnet"; name = "Claude Sonnet 5.5 $$$ ($2 / $10)"; contextWindow = 409600; maxTokens = 65536; }
-    { id = "cloud-opus"; name = "Claude Opus 5.5 $$$$ ($4 / $20)"; contextWindow = 409600; maxTokens = 65536; }
+    { id = "cloud-deepseek-pro"; name = "DeepSeek V4 Pro $$ ~$1.10 ($0.88 in / $1.77 out)"; contextWindow = 409600; maxTokens = 65536; }
+    { id = "cloud-grok"; name = "Grok 4.20 $$ ~$1.56 ($1.25 in / $2.50 out)"; contextWindow = 409600; maxTokens = 65536; }
+    { id = "cloud-gemini-flash"; name = "Gemini 3.8 Flash $$ ~$1.65 ($0.83 in / $4.13 out)"; contextWindow = 409600; maxTokens = 65536; }
+    { id = "cloud-gpt"; name = "GPT-6.1 Terra $$ ~$2.00 ($1.00 in / $5.00 out)"; contextWindow = 409600; maxTokens = 65536; }
+    { id = "cloud-sonnet"; name = "Claude Sonnet 5.5 $$$ ~$4.00 ($2 in / $10 out)"; contextWindow = 409600; maxTokens = 65536; }
+    { id = "cloud-opus"; name = "Claude Opus 5.5 $$$$ ~$8.00 ($4 in / $20 out)"; contextWindow = 409600; maxTokens = 65536; }
     # Worker candidate for pi-orch (`--model desktop/cloud-gptoss`); hosted only, too big for the GPU.
-    { id = "cloud-gptoss"; name = "gpt-oss-120b, US hosts $ ($0.15 / $0.60)"; contextWindow = 131072; maxTokens = 16384; }
+    { id = "cloud-gptoss"; name = "gpt-oss-120b, US hosts $ ~$0.26 ($0.15 in / $0.60 out)"; contextWindow = 131072; maxTokens = 16384; }
     # Research (ai-stack docs/models/sage-a1.5.md): Sage runs its own sub-agents, 2 slots
     # x 32k; the 4B runs 4 slots x 16k for quick lookups.
     { id = "sage"; name = "Sage-A1.5 35B-A3B (research, Q3, 2 slots x 32k)"; contextWindow = 32768; maxTokens = 16384; }
