@@ -11,6 +11,11 @@
  * binary under decomp, say) must not be able to talk it into anything. If Jev can't be
  * reached, risky-looking commands are blocked and the rest pass.
  *
+ * Outside the sandbox it is a tripwire instead: the frontier models (FRONTIER) get no shell
+ * at all unless PI_UNSANDBOXED=1, so one can't end up with a free hand on the real home folder
+ * by forgetting `pis`. DeepSeek isn't on the list: it runs pi-orch from ~/pi-eval, which the
+ * sandbox can't read.
+ *
  * A block steers the model to another way. 3 blocks in a row or 20 in a run stop the run (with
  * a UI, it asks you instead). Every decision goes to $PI_SANDBOX_JOB/.sandbox/guard.log.
  */
@@ -23,6 +28,7 @@ const JOB = process.env.PI_SANDBOX_JOB ?? process.cwd();
 const JEV_URL = process.env.PI_GUARD_JEV_URL ?? "http://desktop:4000/openrouter/decisions";
 const JEV_MODEL = process.env.PI_GUARD_JEV_MODEL ?? "typesafe/jev-1.14";
 const LOG = join(JOB, ".sandbox", "guard.log");
+const FRONTIER = /^cloud-(opus|sonnet|haiku)/;
 
 // Every segment of the command starts with one of these and has no write redirection.
 const READ_ONLY =
@@ -90,7 +96,19 @@ async function askJev(cmd: string, why: string): Promise<{ risky: boolean; by: s
 }
 
 export default function (pi: ExtensionAPI) {
-	if (!ON) return;
+	if (!ON) {
+		if (process.env.PI_UNSANDBOXED === "1") return;
+		pi.on("tool_call", async (event, ctx) => {
+			if (event.toolName !== "bash" || !FRONTIER.test(ctx.model?.id ?? "")) return;
+			return {
+				block: true,
+				reason:
+					"Not run: this model only gets a shell inside the sandbox. Tell the user to start you with " +
+					"`pis JOB_DIR` (or PI_UNSANDBOXED=1 to allow it here), and stop",
+			};
+		});
+		return;
+	}
 	let streak = 0;
 	let total = 0;
 

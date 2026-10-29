@@ -41,7 +41,13 @@ let
     export PI_SANDBOX_SRT=${sandboxRuntime}/lib/node_modules/@anthropic-ai/sandbox-runtime/dist/index.js
     exec ${pkgs.nodejs_22}/bin/node ${./pi-sandbox/pi-sandbox.mjs} "$@"
   '';
-  checkrefs = pkgs.writeShellScriptBin "checkrefs" ''exec ${pkgs.python3}/bin/python3 -I ${./pi-orch/checkrefs.py} "$@"'';
+  # pis [JOB_DIR] [PI_ARGS...]: Pi in the sandbox, job folder defaulting to the current one.
+  pis = pkgs.writeShellScriptBin "pis" ''
+    job=.
+    if [ $# -gt 0 ] && [ "''${1#-}" = "$1" ]; then job=$1; shift; fi
+    exec ${piSandbox}/bin/pi-sandbox "$job" -- pi "$@"
+  '';
+  checkrefs =pkgs.writeShellScriptBin "checkrefs" ''exec ${pkgs.python3}/bin/python3 -I ${./pi-orch/checkrefs.py} "$@"'';
 
   writable = name: file: ''
     run mkdir -p "$(dirname "$HOME/${name}")"
@@ -171,6 +177,7 @@ in
     checkrefs
     sandboxRuntime # srt
     piSandbox
+    pis
     # Runs reader workers over a ledger's slices and checks their claims (ORCHESTRATE-PLAN.md v2).
     (pkgs.writeShellScriptBin "pi-orch" ''
       export PI_ORCH_CHECKREFS=${checkrefs}/bin/checkrefs
