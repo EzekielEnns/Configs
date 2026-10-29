@@ -84,7 +84,8 @@
           # but the host may keep them a while (abuse review). Not for work or red-team data.
           cloud-deepseek-pro-retain = {
             model = "openrouter/deepseek/deepseek-v4-pro";
-            extra_body.provider.data_collection = "deny";
+            # US hosts only: V4 Pro is also served from China (Baidu, Alibaba, SiliconFlow, StreamLake).
+            extra_body.provider = { data_collection = "deny"; only = [ "deepinfra" "crusoe" "azure" ]; allow_fallbacks = false; };
           };
           cloud-gpt-retain = {
             model = "openrouter/openai/gpt-6.1-terra";
