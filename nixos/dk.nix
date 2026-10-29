@@ -85,10 +85,18 @@
             model = "openrouter/google/gemini-3.8-flash";
             extra_body.provider.data_collection = "deny";
           };
-          cloud-haiku = "openrouter/anthropic/claude-haiku-5.5";
-          cloud-sonnet = "openrouter/anthropic/claude-sonnet-5.5";
-          cloud-opus = "openrouter/anthropic/claude-opus-5.5";
-        };
+        }
+        # Claude caches only what a request marks with cache_control, and Pi's OpenAI-style
+        # requests carry no marks: without them every turn paid full price for the whole
+        # history (measured 2026-10-29). LiteLLM marks the system prompt and the newest
+        # message, so each turn reads the history before it from cache.
+        // lib.genAttrs [ "haiku" "sonnet" "opus" ] (m: {
+          model = "openrouter/anthropic/claude-${m}-5.5";
+          cache_control_injection_points = [
+            { location = "message"; role = "system"; }
+            { location = "message"; index = -1; }
+          ];
+        });
       planner = "cloud-glm";
     };
 
