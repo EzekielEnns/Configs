@@ -54,20 +54,29 @@ After rebuilding both machines:
 4. Turn on file versioning for `notes` if wanted (Folder → Edit → Versioning, "Staggered").
    The desktop's hourly snapshots already keep history.
 
-Her phone (Android):
+Phones (Android; done for the user's Pixel 2026-10-29). Pairing from the command line skips
+the GUIs: `syncthing cli --home=<config dir> config devices add --device-id ID --name NAME`
+and `config folders notes devices add --device-id ID` on the desktop
+(`~/.config/syncthing`).
 
-1. Tailscale: invite her to the tailnet, or share only the desktop with her. If shared, an
-   ACL can limit her to the desktop's port 22000.
-2. Install Syncthing-Fork (F-Droid or Play Store). In it: Settings → Connections: turn off
-   global discovery, local discovery, relays and NAT traversal.
-3. Add Device: the desktop's ID (Actions → Show ID on the desktop), address
-   `tcp://desktop.<tailnet>.ts.net:22000`. On the desktop, accept her phone and share `notes`
-   with it.
-4. Accept the `notes` folder on the phone into a folder such as `Documents/Notes`. Folder →
-   Ignore patterns: `.git`, `.obsidian/workspace*`, `.trash`.
-5. Obsidian → Open folder as vault → that folder.
-
-The same steps work for the user's phone.
+1. Tailscale on the phone, signed in, with Android's Always-on VPN for Tailscale (Settings →
+   Network & internet → VPN → Tailscale gear). Leave "Block connections without VPN" off, or
+   the phone loses internet whenever Tailscale is down. Her phone: invite her to the tailnet,
+   or share only the desktop with her and limit her to port 22000 with an ACL.
+2. Syncthing-Fork (Play Store or F-Droid). Settings → Connections: global discovery, local
+   discovery, relays and NAT traversal off.
+3. Add Device: the desktop's ID, address `tcp://100.64.96.125:22000`. Use the IP: Syncthing on
+   Android doesn't resolve MagicDNS names ("no such host"). Add the phone on the desktop and
+   share `notes` with it.
+4. Accept `notes` and type the full path, `/storage/emulated/0/Documents/Vault` (an empty,
+   new folder). The accept dialog can leave the path blank and refuse ("folder path must not
+   be empty"), and it refuses a folder that already has files. Allow "manage all files".
+   Folder → Ignore patterns: `.git`, `.obsidian/workspace*`, `.trash`.
+5. Obsidian → Open folder as vault → `Documents/Vault`.
+6. Keep it running: Android Settings → Apps → Syncthing-Fork and Tailscale → Battery →
+   Unrestricted. Syncthing-Fork → Settings → Behaviour: start on boot. Silence its
+   always-on notification: long-press it → turn the channel to Silent (or Settings → Apps →
+   Syncthing-Fork → Notifications).
 
 ## Notes
 
