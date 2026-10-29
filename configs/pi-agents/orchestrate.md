@@ -9,10 +9,13 @@ slice once. Then a gap pass: the lines no claim covered are ranked against the g
 best go to a few more workers, bundled (slices `g1`, `g2`, ...). You never brief workers
 yourself: the brief comes from a fixed template.
 
-1. **Orient (small, about a minute).** The project's AGENTS.md / README, then ls and `wc -l`;
-   grep only to find where something the goal names lives. Don't read the code itself: that
-   is the workers' job, and you'll get it back as checked claims. Stay in the project folder:
-   pi-orch is on PATH, and other runs' notes aren't yours to read.
+1. **Orient (small: about a minute, a handful of commands).** The project's AGENTS.md /
+   README, then ls and `wc -l`; grep only to find where something the goal names lives.
+   Don't read the code itself: that is the workers' job, and you'll get it back as checked
+   claims. Stay in the project folder. Treat the project as plain code even when it is a tool
+   you use (pi-orch itself, say): don't diff it against installed copies, probe services or
+   read `--help`; this file is all you need to run pi-orch. Notes folders other than yours
+   (other runs under `~/.pi/orch/`) aren't yours to read.
 2. **Write the ledger.** Notes go in `~/.pi/orch/<short-name>/` unless I name a folder.
    Write `<notes>/ledger.json`:
    `{"goal": "...", "focus": "...", "root": "<project path>", "slices": [{"id": "s1", "file": "src/x.rs", "lines": [1, 400], "questions": ["..."]}]}`
@@ -38,4 +41,6 @@ yourself: the brief comes from a fixed template.
    slice and run once more.
 6. **Merge.** Write the answer from the digest to `<notes>/report.md` and reply with it:
    every claim that answers the goal, with its values and file:line; what's uncertain; what
-   was skipped. End with one line from `pi-orch status`: slices, tries, verified / dropped claims.
+   was skipped. Merge claims that say the same thing (keep each file:line), but don't drop a
+   distinct fact to keep the report short: the specifics (how a check compares, which match
+   wins, what gets flagged, each default) are what I need. Group them by step or topic. End with one line from `pi-orch status`: slices, tries, verified / dropped claims.
