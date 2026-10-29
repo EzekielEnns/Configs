@@ -54,6 +54,9 @@ let
     export PI_SANDBOX_SRT=${sandboxRuntime}/lib/node_modules/@anthropic-ai/sandbox-runtime/dist/index.js
     # The notes vault: read-only inside, notes_write goes through the launcher (configs/notes).
     export PI_SANDBOX_NOTES_CORE=${notesTools}/lib/notes/core.mjs
+    # The gateway host as Pi's models.json names it: "desktop" on the Mac, the Tailscale IP on
+    # the desktop itself (where "desktop" doesn't resolve), so the sandbox allows that exact host.
+    export PI_SANDBOX_GATEWAY=''${PI_SANDBOX_GATEWAY:-${desktop}}
     # srt on Linux runs bubblewrap (NixOS's setuid wrapper is already on PATH) and needs socat
     # to bridge the network proxy into the sandbox. ripgrep and fd back Pi's grep and find
     # tools (Pi would download its own copies otherwise).
