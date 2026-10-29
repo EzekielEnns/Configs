@@ -23,7 +23,7 @@ let
     # 1M tokens (OpenRouter, 2026-10-29).
     { id = "planner"; name = "planner: GLM-5.3, US hosts $ ~$0.40 ($0.07 in / $1.40 out)"; contextWindow = 131072; maxTokens = 32768; }
     # 1M on OpenRouter; told 400k so Pi compacts there, before long-context quality drops.
-    { id = "cloud-deepseek"; name = "DeepSeek V4.1 Flash, US hosts $ ~$0.16 ($0.05 in / $0.50 out)"; contextWindow = 409600; maxTokens = 32768; }
+    { id = "cloud-deepseek"; name = "DeepSeek V4.1 Flash, US hosts $ ~$0.21-0.53 ($0.14-0.30 in / $0.42-1.20 out)"; contextWindow = 409600; maxTokens = 32768; }
     { id = "cloud-haiku"; name = "Claude Haiku 5.5 $ ~$0.20 ($0.10 in / $0.50 out)"; contextWindow = 409600; maxTokens = 65536; }
     # Frontier candidates for agent work in pis (nixos/dk.nix cloud-*): 1M+ context, told 400k
     # and 64k like DeepSeek, so Pi compacts before a run's history gets long and costly.
