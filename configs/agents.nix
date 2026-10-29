@@ -57,7 +57,29 @@ let
     if [ $# -gt 0 ] && [ "''${1#-}" = "$1" ]; then job=$1; shift; fi
     exec ${piSandbox}/bin/pi-sandbox "$job" -- pi "$@"
   '';
-  checkrefs =pkgs.writeShellScriptBin "checkrefs" ''exec ${pkgs.python3}/bin/python3 -I ${./pi-orch/checkrefs.py} "$@"'';
+  # Decomp toolkit (both machines, also inside pis): REA's CLI with wabt 1.0.42 and Ghidra
+  # wired in, plus binaryen and wasm-tools, and nixpkgs' ps: REA checks its cleanup with ps,
+  # and the macOS sandbox won't run /bin/ps, which is setuid. REA's own skill assumes its MCP
+  # server; Pi has none, so ours says to call the same operations through the CLI. Upgrades:
+  # pin-bump.
+  wabt = pkgs.callPackage ./rea/wabt.nix { };
+  reaPkg = pkgs.callPackage ./rea { };
+  rea = pkgs.writeShellScriptBin "rea" ''
+    export REA_WABT_BIN_DIRECTORY=${wabt}/bin
+    export GHIDRA_INSTALL_DIR=${pkgs.ghidra}/lib/ghidra
+    export PATH=${lib.makeBinPath [ wabt pkgs.binaryen pkgs.wasm-tools pkgs.procps ]}:$PATH
+    exec ${reaPkg}/bin/rea "$@"
+  '';
+  reaSkill = pkgs.runCommand "rea-skill" { } ''
+    src=${reaPkg}/lib/node_modules/rea-agents/skills/reverse-engineer-anything
+    mkdir -p $out
+    cp -r $src/references $out/references
+    # Keep REA's frontmatter (name, description), then our note, then its instructions.
+    awk 'NR==1 || !done { print; if (NR > 1 && /^---$/) done = 1; next } { exit }' $src/SKILL.md > $out/SKILL.md
+    cat ${./rea/pi-note.md} >> $out/SKILL.md
+    awk 'f; /^---$/ && NR > 1 { f = 1 }' $src/SKILL.md >> $out/SKILL.md
+  '';
+  checkrefs = pkgs.writeShellScriptBin "checkrefs" ''exec ${pkgs.python3}/bin/python3 -I ${./pi-orch/checkrefs.py} "$@"'';
 
   writable = name: file: ''
     run mkdir -p "$(dirname "$HOME/${name}")"
@@ -187,6 +209,11 @@ let
 in
 {
   home.packages = [
+    rea
+    wabt
+    pkgs.binaryen
+    pkgs.wasm-tools
+    pkgs.ghidra
     agentPkgs.pi-coding-agent
     checkrefs
     sandboxRuntime # srt
@@ -200,6 +227,7 @@ in
   ];
 
   home.file = subagentFiles // {
+    ".pi/agent/skills/rea".source = reaSkill;
     ".pi/agent/models.json" = {
       force = true;
       source = (pkgs.formats.json { }).generate "pi-models.json" {
