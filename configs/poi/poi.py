@@ -27,7 +27,7 @@ no data) scores each block 0-3 on how much it bears on the question, plus its ye
 the block answers part of it; the rank is the sum, 0-4. Files that look like secrets are never sent.
 Standard library only.
 """
-import argparse, concurrent.futures as cf, html, json, os, queue, re, subprocess, sys, tempfile, threading, time
+import argparse, concurrent.futures as cf, html, json, os, queue, re, shlex, subprocess, sys, tempfile, threading, time
 import urllib.error, urllib.parse, urllib.request
 
 HERE = os.path.dirname(os.path.abspath(__file__))
@@ -330,7 +330,25 @@ def diff_items(ref):
 
 # --- Jev ---------------------------------------------------------------------------------------
 
+CACHE_PATH = os.environ.get("POI_JEV_CACHE")  # tests: reuse Jev's answers for the same question and block
+CACHE = json.load(open(CACHE_PATH)) if CACHE_PATH and os.path.exists(CACHE_PATH) else {}
+CACHE_LOCK = threading.Lock()
+
+
 def ask(question, item, what="this"):
+    if CACHE_PATH:
+        key = __import__("hashlib").sha1(f"{question}\0{what}\0{item['label']}\0{item['text']}".encode()).hexdigest()
+        if key in CACHE:
+            return CACHE[key], 0.0
+        r = ask_jev(question, item, what)
+        with CACHE_LOCK:
+            CACHE[key] = r[0]
+            json.dump(CACHE, open(CACHE_PATH, "w"))
+        return r
+    return ask_jev(question, item, what)
+
+
+def ask_jev(question, item, what="this"):
     if os.environ.get("POI_JEV_STUB"):  # tests without Jev: question words in the text, 0-4
         low = item["text"].lower() + item["label"].lower()
         return min(4.0, 0.6 * sum(w[:5] in low for w in terms(question))), 0.0
@@ -581,6 +599,7 @@ def shutil_which(cmd):
 
 GENERIC = {"open", "close", "read", "send", "init", "self", "test", "data", "text", "name", "file", "path", "args",
            "main", "config", "options", "result", "value", "items", "lines", "default"}
+COMMENT = re.compile(r"\s*(#|//|/?\*|--|;)")
 ENTRY = re.compile(r"(^|_|\b)(main|handler|handle|cli|run|start|default|on[A-Z_]|serve|entry)", re.I)
 
 
@@ -664,12 +683,16 @@ def flow_edges(nodes, use_lsp=True):
                 base = os.path.basename(m["file"])
                 if len(base) > 4 and base not in ("default.nix", "index.ts", "__init__.py"):
                     first = min((x for x in nodes if x["file"] == m["file"]), key=lambda x: x["a"])
-                    if first is m:
-                        pats.append(re.compile(re.escape(base)))
+                    if first is m:  # a mention of the file, or of a command named like it (pi-sandbox)
+                        stem = os.path.splitext(base)[0]
+                        plain = len(stem) < 6 or not re.search(r"[-_.]|[a-z][A-Z]", stem)  # "agents" is a word
+                        pats.append(re.compile(re.escape(base) if plain
+                                               else r"(?<![\w.-])" + re.escape(stem) + r"(?![\w-])"))
             for i in range(n["a"], min(n["b"], len(lines)) + 1):
-                if i == n["jump"]:
+                if i == n["jump"] or COMMENT.match(lines[i - 1]):
                     continue
-                if any(p.search(lines[i - 1]) for p in pats):
+                code = re.split(r"\s(#|//|--)\s", lines[i - 1])[0]  # not in a trailing comment
+                if any(p.search(code) for p in pats):
                     n["edges"].append((i, m))
                     by.add("text")
                     break
@@ -708,7 +731,8 @@ def flow_order(nodes):
 
     for r in roots:
         visit(r)
-    for n in sorted(linked, key=lambda n: -n["rank"]):  # cycles with no entry point
+    out_deg = {id(n): len(n["edges"]) for n in nodes}
+    for n in sorted(linked, key=lambda n: (incoming[id(n)] - out_deg[id(n)], -n["rank"])):  # cycles: most-calling first
         visit(n)
     for n in sorted((n for n in nodes if id(n) not in seen), key=lambda n: -n["rank"]):
         n["flow_unknown"] = True
@@ -1078,13 +1102,15 @@ def open_in_editor(result):
     with os.fdopen(fd, "w") as f:
         json.dump(result, f)
     if os.environ.get("REX_SESSION") and shutil_which("rex"):
-        cmd = ["rex", "split", "--split=right", "-c", os.getcwd()]
+        cmd = ["rex", "split", "--split=right", "--json", "-c", os.getcwd(), "--label", "poi"]
         if os.environ.get("REX_BLOCK"):
             cmd += ["-b", os.environ["REX_BLOCK"]]
-        cmd += ["--", "nvim", "-c", f"PoiLoad {path}"]
+        cmd += ["--"] + shlex.split(os.environ.get("POI_EDITOR", "nvim")) + ["-c", f"PoiLoad {path}"]
         p = subprocess.run(cmd, capture_output=True, text=True)
         if p.returncode == 0:
-            print(f"poi: opened in a Rex pane ({len(stops_of(result))} stops; ]q / [q to walk them)", file=sys.stderr)
+            ids = [b for b in re.findall(r"block:[0-9a-f-]+", p.stdout) if b != os.environ.get("REX_BLOCK")]
+            print(f"poi: opened in a Rex pane{' ' + ids[0] if ids else ''} ({len(stops_of(result))} stops; "
+                  f"]q / [q to walk them)", file=sys.stderr)
             return
         print(f"poi: rex split failed: {p.stderr.strip()}", file=sys.stderr)
     qf = path[:-5] + ".qf"

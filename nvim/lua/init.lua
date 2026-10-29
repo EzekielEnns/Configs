@@ -187,6 +187,9 @@ vim.filetype.add({ extension = { ddl = "sql" } })
 
 require("config.lazy")
 
+-- :Poi / :PoiFlow / :PoiLoad and <leader>i…: Jev's points of interest (lua/poi.lua, configs/poi).
+require("poi").setup()
+
 -- view_toggle: flip the current buffer between raw text and its rendered view,
 -- choosing the renderer from the filetype. csv/tsv start rendered (a raw CSV is
 -- the unreadable one), markdown starts raw, so the first press means different
