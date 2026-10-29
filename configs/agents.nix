@@ -20,6 +20,11 @@ let
     { id = "planner"; name = "planner (GLM-5.3 via OpenRouter, US hosts)"; contextWindow = 131072; maxTokens = 32768; }
     # 1M on OpenRouter; told 400k so Pi compacts there, before long-context quality drops.
     { id = "cloud-deepseek"; name = "DeepSeek V4.1 Flash (OpenRouter, US hosts)"; contextWindow = 409600; maxTokens = 32768; }
+    # Claude via OpenRouter (nixos/dk.nix cloud-*): 1M context and 128k output; told 400k and
+    # 64k like DeepSeek, so Pi compacts before a run's history gets long and costly.
+    { id = "cloud-opus"; name = "Claude Opus 5.5 (OpenRouter)"; contextWindow = 409600; maxTokens = 65536; }
+    { id = "cloud-sonnet"; name = "Claude Sonnet 5.5 (OpenRouter)"; contextWindow = 409600; maxTokens = 65536; }
+    { id = "cloud-haiku"; name = "Claude Haiku 5.5 (OpenRouter)"; contextWindow = 409600; maxTokens = 65536; }
     # Worker candidate for pi-orch (`--model desktop/cloud-gptoss`); hosted only, too big for the GPU.
     { id = "cloud-gptoss"; name = "gpt-oss-120b (OpenRouter, US hosts)"; contextWindow = 131072; maxTokens = 16384; }
     # Research (ai-stack docs/models/sage-a1.5.md): Sage runs its own sub-agents, 2 slots
