@@ -28,16 +28,24 @@
  * - Memory: ~/.pi/memory's shared facts read-only, and the job's own project memory.
  * PI_GUARD=1 turns on guard.ts, the per-command classifier, inside the sandbox.
  * PI_JEV_CHECK=1|0 forces jev-check.ts (a second opinion on each run's changes) on or off.
+ * - Notes (configs/notes): the vault is read-only in here. An approved notes_write reaches this
+ *   launcher as a request signed with a key handed to Pi on an inherited pipe (fd 3); the
+ *   launcher checks the signature and the vault's rules, writes the note, and keeps "always"
+ *   grants. Writes nobody approved go to the outbox when the run ends.
  */
 import { spawn, spawnSync } from "node:child_process";
-import { createHash } from "node:crypto";
-import { appendFileSync, existsSync, mkdirSync, readFileSync, realpathSync, symlinkSync, unlinkSync, writeFileSync } from "node:fs";
+import { createHash, createHmac, randomBytes, timingSafeEqual } from "node:crypto";
+import {
+	appendFileSync, existsSync, mkdirSync, readdirSync, readFileSync, realpathSync, rmSync, statSync, symlinkSync,
+	writeFileSync,
+} from "node:fs";
 import { lookup } from "node:dns/promises";
 import { isIP } from "node:net";
 import { homedir } from "node:os";
 import { basename, dirname, join, resolve } from "node:path";
 
 const { SandboxManager } = await import(process.env.PI_SANDBOX_SRT ?? "@SRT@");
+const notes = process.env.PI_SANDBOX_NOTES_CORE ? await import(process.env.PI_SANDBOX_NOTES_CORE) : null;
 
 const HOME = homedir();
 const GATEWAY = (process.env.PI_SANDBOX_GATEWAY ?? "desktop").split(",");
@@ -107,9 +115,12 @@ const links = {
 };
 for (const [name, target] of Object.entries(links)) {
 	const link = join(agentDir, name);
-	try { unlinkSync(link); } catch {}
+	// rm, not unlink: the agent could have swapped a link for a folder of its own.
+	rmSync(link, { recursive: true, force: true });
 	if (existsSync(join(piHome, target))) symlinkSync(join(piHome, target), link);
 }
+// MCP servers start with Pi, possibly before notes.ts has taken the broker key: none from here.
+rmSync(join(agentDir, "mcp.json"), { force: true });
 // Settings: the global ones, refreshed every run so config changes reach old jobs, plus this
 // job's model: a pick made with /model or Ctrl+P is remembered here. Frontier runs start on
 // the cheapest hosted model (PI_SANDBOX_MODEL to change it) instead of the global Flint.
@@ -168,7 +179,8 @@ const config = {
 		// The checkpoint repo read-only: jev-check.ts diffs the job against it.
 		allowRead: [job, memory, checkpoints],
 		allowWrite: [job, memory],
-		denyWrite: [],
+		// The notes vault and its grants: read-only even for a job folder inside them.
+		denyWrite: notes ? [notes.VAULT, notes.STATE] : [],
 	},
 };
 // Hosts not on the list: allowed and logged (srt has already refused private addresses).
@@ -214,20 +226,110 @@ const env = {
 	PI_SANDBOX_PROFILE: small ? "small" : "frontier",
 	...(process.env.PI_JEV_CHECK ? { PI_JEV_CHECK: process.env.PI_JEV_CHECK } : {}),
 	...(process.env.PI_JEV_CHECK_BIN ? { PI_JEV_CHECK_BIN: process.env.PI_JEV_CHECK_BIN } : {}),
+	// Where the notes vault and its state live, if not ~/Notes (configs/notes/core.mjs).
+	...Object.fromEntries(["NOTES_DIR", "NOTES_STATE", "NOTES_PROTECTED"].filter((k) => process.env[k]).map((k) => [k, process.env[k]])),
 	PI_GUARD: process.env.PI_GUARD ?? "1",
 	...(process.env.PI_GUARD_JEV_URL ? { PI_GUARD_JEV_URL: process.env.PI_GUARD_JEV_URL } : {}),
 };
 
 const quote = (a) => (/^[\w@%+=:,./-]+$/.test(a) ? a : `'${a.replace(/'/g, `'\\''`)}'`);
-const command = (rest.length ? rest : ["pi"]).map(quote).join(" ");
+const argv = rest.length ? rest : ["pi"];
+const command = argv.map(quote).join(" ");
 
+// Notes broker: only for Pi with its extensions on, where notes.ts reads the key at load and
+// closes the pipe before any tool runs. Any other command would hand the key to whatever runs.
+const brokerDir = join(meta, "notes-broker");
+const outboxDir = join(meta, "notes-outbox");
+const brokerKey =
+	notes && basename(argv[0]) === "pi" && !argv.some((a) => /^(-ne|--no-extensions?|-nt|--no-tools)$/.test(a))
+		? randomBytes(32)
+		: null;
+const seen = new Set();
+let hello = false;
+let broken = false;
+function serve() {
+	if (!existsSync(brokerDir)) return;
+	for (const f of readdirSync(brokerDir).filter((n) => /^req-[\w.-]+\.json$/.test(n))) {
+		const file = join(brokerDir, f);
+		let res = { ok: false, error: "bad request" };
+		let nonce = null;
+		try {
+			if (statSync(file).size > 2_000_000) throw new Error("too big");
+			const { body, sig } = JSON.parse(readFileSync(file, "utf8"));
+			const want = createHmac("sha256", brokerKey).update(String(body)).digest();
+			const got = Buffer.from(String(sig), "hex");
+			if (got.length !== want.length || !timingSafeEqual(got, want)) throw new Error("not signed by notes.ts");
+			const req = JSON.parse(body);
+			nonce = String(req.nonce ?? "");
+			if (!/^[\w.-]{1,80}$/.test(nonce) || seen.has(nonce)) throw new Error("replayed");
+			seen.add(nonce);
+			if (req.hello) {
+				// A second hello means someone else had the key: stop trusting it.
+				if (hello) {
+					broken = true;
+					process.stderr.write("pi-sandbox: notes key seen twice; notes writes are off for this run\n");
+				}
+				hello = true;
+				res = { ok: true };
+			} else if (broken || !hello) throw new Error("notes writes are off for this run");
+			else {
+				const plan = notes.plan({ path: req.path, mode: req.mode, text: req.text, old: req.old ?? undefined });
+				// The exact change the user saw: same file contents as when it was shown.
+				if (plan.beforeHash !== req.beforeHash) throw new Error("the note changed since you saw the diff");
+				const written = notes.apply(plan);
+				if (req.always) notes.grant(written, String(req.source ?? `pis ${job}`));
+				appendFileSync(join(meta, "notes.log"), `${new Date().toISOString()} wrote ${written}${req.always ? " (always)" : ""}\n`);
+				res = { ok: true, path: written };
+			}
+		} catch (e) {
+			res = { ok: false, error: e.message };
+		}
+		rmSync(file, { force: true });
+		if (nonce && /^[\w.-]{1,80}$/.test(nonce)) writeFileSync(join(brokerDir, `res-${nonce}.json`), JSON.stringify(res));
+	}
+}
+// Writes nobody approved (no UI): into the real outbox, which the sandbox can't write.
+function drainOutbox() {
+	if (!notes || !existsSync(outboxDir)) return;
+	for (const f of readdirSync(outboxDir).filter((n) => n.endsWith(".json")).slice(0, 50)) {
+		const file = join(outboxDir, f);
+		try {
+			if (statSync(file).size <= 2_000_000) {
+				const r = JSON.parse(readFileSync(file, "utf8"));
+				let diff = "";
+				try { diff = notes.plan({ path: r.path, mode: r.mode, text: r.text, old: r.old ?? undefined }).diff; } catch (e) { diff = `(${e.message})`; }
+				notes.queue({ path: String(r.path), mode: String(r.mode), text: String(r.text), old: r.old ?? null, source: `pis ${job}`, diff });
+			}
+		} catch {}
+		rmSync(file, { force: true });
+	}
+}
+
+rmSync(brokerDir, { recursive: true, force: true });
 await SandboxManager.initialize(config, ask);
 const wrapped = await SandboxManager.wrapWithSandbox(command);
-const child = spawn(wrapped, { shell: true, stdio: "inherit", cwd: job, env });
+const child = spawn(wrapped, {
+	shell: true,
+	stdio: brokerKey ? ["inherit", "inherit", "inherit", "pipe"] : "inherit",
+	cwd: job,
+	// --disable-sigusr1: the agent can't open Node's inspector on Pi (and read the key from it).
+	env: brokerKey ? { ...env, NOTES_KEY_FD: "3", NODE_OPTIONS: "--disable-sigusr1" } : env,
+});
+let timer = null;
+if (brokerKey) {
+	child.stdio[3].on("error", () => {});
+	child.stdio[3].end(brokerKey.toString("hex"));
+	timer = setInterval(serve, 200);
+}
 const stop = (sig) => child.kill(sig);
 process.on("SIGINT", stop);
 process.on("SIGTERM", stop);
 child.on("exit", async (code, signal) => {
+	if (timer) {
+		clearInterval(timer);
+		serve();
+	}
+	drainOutbox();
 	await SandboxManager.reset();
 	process.exit(code ?? (signal ? 1 : 0));
 });
