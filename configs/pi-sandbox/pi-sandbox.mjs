@@ -62,6 +62,9 @@ if (job === HOME || HOME.startsWith(`${job}/`)) {
 const meta = join(job, ".sandbox");
 const tools = join(job, ".tools");
 for (const d of [meta, tools, join(job, ".tmp"), join(tools, "bin")]) mkdirSync(d, { recursive: true });
+// The grep and find tools (ripgrep, fd) skip what an .ignore file lists, so searches don't
+// turn up Pi's own session logs or installed tools.
+for (const d of [meta, tools, join(job, ".tmp")]) writeFileSync(join(d, ".ignore"), "*\n");
 
 // Pi's own agent folder: Pi writes lock files and sessions next to its config.
 const piHome = join(HOME, ".pi/agent");
@@ -92,6 +95,9 @@ if (saved.defaultModel && !(saved.defaultModel === "flint" && !small)) {
 	settings.defaultProvider = "desktop";
 	settings.defaultModel = process.env.PI_SANDBOX_MODEL ?? "cloud-deepseek";
 }
+// Frontier models also get Pi's ripgrep-backed grep and find tools: they skip .gitignore'd
+// files and cap output, so one search can't flood the context. Small models stay lean.
+if (!small) settings.defaultTools = [...(settings.defaultTools ?? []), "+grep", "+find"];
 writeFileSync(settingsFile, `${JSON.stringify(settings, null, 2)}\n`);
 
 // Checkpoint: the job's files, committed to a repo outside the job before every run.

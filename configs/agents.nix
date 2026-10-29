@@ -48,8 +48,9 @@ let
   piSandbox = pkgs.writeShellScriptBin "pi-sandbox" ''
     export PI_SANDBOX_SRT=${sandboxRuntime}/lib/node_modules/@anthropic-ai/sandbox-runtime/dist/index.js
     # srt on Linux runs bubblewrap (NixOS's setuid wrapper is already on PATH) and needs socat
-    # to bridge the network proxy into the sandbox.
-    export PATH=${lib.makeBinPath [ pkgs.socat pkgs.ripgrep ]}:$PATH
+    # to bridge the network proxy into the sandbox. ripgrep and fd back Pi's grep and find
+    # tools (Pi would download its own copies otherwise).
+    export PATH=${lib.makeBinPath [ pkgs.socat pkgs.ripgrep pkgs.fd ]}:$PATH
     exec ${pkgs.nodejs_22}/bin/node ${./pi-sandbox/pi-sandbox.mjs} "$@"
   '';
   # pis [JOB_DIR] [PI_ARGS...]: Pi in the sandbox, job folder defaulting to the current one.
