@@ -53,8 +53,9 @@ const turndown = new TurndownService({ headingStyle: "atx", codeBlockStyle: "fen
 // dig's reader: one chat call per page through the gateway, at most READER_SLOTS at once
 // (Flint's llama.cpp slots).
 const READER_URL = process.env.PI_READER_GATEWAY ?? "http://desktop:4000/v1";
-const READER_MODEL = process.env.PI_READER_MODEL ?? "flint";
-const READER_SLOTS = Number(process.env.PI_READER_SLOTS) || 3;
+// PI_WORKER_MODEL (e.g. desktop/bolt) swaps Flint out here too; other models get 2 slots.
+const READER_MODEL = process.env.PI_READER_MODEL ?? process.env.PI_WORKER_MODEL?.replace(/^desktop\//, "") ?? "flint";
+const READER_SLOTS = Number(process.env.PI_READER_SLOTS) || (READER_MODEL === "flint" ? 3 : 2);
 const READER_TIMEOUT = 150_000;
 // dig ranks search results before fetching: Jev (a decision model on OpenRouter, through the
 // gateway's pass-through, which adds the key) scores each one; a plain rule if it fails.

@@ -311,6 +311,9 @@ def run_worker(ledger, s, claims, log, agent, opts, last):
     """One worker: a single chat call through the gateway, the reply held to the claims schema.
     Returns what it did (stop reason, turns, tokens, seconds, reply)."""
     model = opts.model or agent.get("model") or "desktop/flint"
+    # PI_WORKER_MODEL (e.g. desktop/bolt) stands in for Flint, as in the sub-agent extension.
+    if model == "desktop/flint" and os.environ.get("PI_WORKER_MODEL"):
+        model = os.environ["PI_WORKER_MODEL"]
     # Pi's names are provider/model; the gateway knows the model part (desktop/flint -> flint).
     name = model.split("/", 1)[1] if model.startswith("desktop/") else model
     body = {"model": name, "max_tokens": 16384,

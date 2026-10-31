@@ -43,8 +43,18 @@ let
     # x 32k; the 4B runs 4 slots x 16k for quick lookups.
     { id = "sage"; name = "Sage-A1.5 35B-A3B (research, Q3, 2 slots x 32k)"; contextWindow = 32768; maxTokens = 16384; }
     { id = "agents-a1-4b"; name = "Agents-A1 4B (research, 4 slots x 16k)"; contextWindow = 16384; maxTokens = 8192; }
+    # Chat and roleplay, no coding (`pichat`): Nemotron 3.5 Bolt E4B uncensored, 2 slots x 64k.
+    { id = "bolt"; name = "Nemotron Bolt E4B uncensored (chat/RP, 2 slots x 64k)"; contextWindow = 65536; maxTokens = 8192; }
   ];
   withReasoning = map (m: m // { reasoning = true; }) models;
+  piModels = (pkgs.formats.json { }).generate "pi-models.json" {
+    providers.desktop = {
+      baseUrl = gateway;
+      api = "openai-completions";
+      apiKey = "local";
+      models = withReasoning;
+    };
+  };
 
   # Agents with a free hand: Pi in a job folder under Anthropic's sandbox runtime (writes only
   # there, secrets unreadable, open web, logged), with guard.ts reviewing each command.
@@ -278,6 +288,15 @@ in
     sandboxRuntime # srt
     piSandbox
     pis
+    # pichat [PI_ARGS...]: plain chat and roleplay on Bolt with web search, nothing else. Its
+    # own agent dir (~/.pi/chat): chat system prompt, only the web extension, own sessions.
+    (pkgs.writeShellScriptBin "pichat" ''
+      export PI_CODING_AGENT_DIR=$HOME/.pi/chat
+      exec ${agentPkgs.pi-coding-agent}/bin/pi --model desktop/bolt --thinking off \
+        --no-context-files --no-skills --no-prompt-templates \
+        --no-builtin-tools --tools web_search,fetch_content \
+        --append-system-prompt "Today is $(date +%Y-%m-%d)." "$@"
+    '')
     # Runs reader workers over a ledger's slices and checks their claims (ORCHESTRATE-PLAN.md v2).
     (pkgs.writeShellScriptBin "pi-orch" ''
       export PI_ORCH_CHECKREFS=${checkrefs}/bin/checkrefs
@@ -290,15 +309,15 @@ in
     ".pi/agent/extensions/lsp-pi".source = "${lspPi}/lib/node_modules/lsp-pi";
     ".pi/agent/models.json" = {
       force = true;
-      source = (pkgs.formats.json { }).generate "pi-models.json" {
-        providers.desktop = {
-          baseUrl = gateway;
-          api = "openai-completions";
-          apiKey = "local";
-          models = withReasoning;
-        };
-      };
+      source = piModels;
     };
+    # pichat's agent dir: none of the coding prompts or extensions above.
+    ".pi/chat/SYSTEM.md".source = ./pi-agents/system-chat.md;
+    ".pi/chat/models.json" = {
+      force = true;
+      source = piModels;
+    };
+    ".pi/chat/extensions/searxng".source = "${piSearxng}/lib/node_modules/pi-searxng";
   };
 
   # Pi writes lastChangelogVersion into its settings, so it needs a writable copy.

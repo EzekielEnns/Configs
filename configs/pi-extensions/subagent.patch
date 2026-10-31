@@ -154,7 +154,7 @@ diff -ru a/index.ts b/index.ts
  function isFailedResult(result: SingleResult): boolean {
  	return result.exitCode !== 0 || result.stopReason === "error" || result.stopReason === "aborted";
  }
-@@ -295,15 +396,40 @@
+@@ -295,15 +396,43 @@
  		};
  	}
  
@@ -179,7 +179,11 @@ diff -ru a/index.ts b/index.ts
 +			? ["--mode", "json", "-p", "--no-session"]
 +			: ["--mode", "json", "-p", "--session-dir", SESSIONS_DIR];
  	const inheritsDispatchConfig = !agent.model;
- 	const model = agent.model ?? dispatchDefaults.model;
+-	const model = agent.model ?? dispatchDefaults.model;
++	// PI_WORKER_MODEL (e.g. desktop/bolt) takes the place of desktop/flint in every agent that
++	// names it, to try research workers on another local model; flint-careful agents stay.
++	const named = agent.model === "desktop/flint" && process.env.PI_WORKER_MODEL ? process.env.PI_WORKER_MODEL : agent.model;
++	const model = named ?? dispatchDefaults.model;
  	if (model) args.push("--model", model);
 -	if (inheritsDispatchConfig && dispatchDefaults.thinkingLevel) {
 +	if (agent.thinking) {
@@ -197,7 +201,7 @@ diff -ru a/index.ts b/index.ts
  	let tmpPromptDir: string | null = null;
  	let tmpPromptPath: string | null = null;
  
-@@ -336,8 +462,23 @@
+@@ -336,8 +465,23 @@
  			args.push("--append-system-prompt", tmpPromptPath);
  		}
  
@@ -222,7 +226,7 @@ diff -ru a/index.ts b/index.ts
  
  		const exitCode = await new Promise<number>((resolve) => {
  			const invocation = getPiInvocation(args);
-@@ -345,7 +486,16 @@
+@@ -345,7 +489,16 @@
  				cwd: cwd ?? defaultCwd,
  				shell: false,
  				stdio: ["ignore", "pipe", "pipe"],
@@ -239,7 +243,7 @@ diff -ru a/index.ts b/index.ts
  			let buffer = "";
  
  			const processLine = (line: string) => {
-@@ -418,10 +568,42 @@
+@@ -418,10 +571,42 @@
  			}
  		});
  
@@ -283,7 +287,7 @@ diff -ru a/index.ts b/index.ts
  		if (tmpPromptPath)
  			try {
  				fs.unlinkSync(tmpPromptPath);
-@@ -467,6 +649,12 @@
+@@ -467,6 +652,12 @@
  });
  
  export default function (pi: ExtensionAPI) {
@@ -296,7 +300,7 @@ diff -ru a/index.ts b/index.ts
  	pi.registerTool({
  		name: "subagent",
  		label: "Subagent",
-@@ -475,10 +663,15 @@
+@@ -475,10 +666,15 @@
  			"Modes: single (agent + task), parallel (tasks array), chain (sequential with {previous} placeholder).",
  			`Default agent scope is "user" (from ${path.join(getAgentDir(), "agents")}).`,
  			`To enable project-local agents in ${CONFIG_DIR_NAME}/agents, set agentScope: "both" (or "project").`,
