@@ -17,7 +17,7 @@
 #
 # Snapshots: ~/Notes/.git, a local repo that's never pushed (Syncthing ignores .git), committed
 # hourly when something changed. Undo a bad sync or a bad write with `git -C ~/Notes log -p`.
-{ pkgs, ... }:
+{ lib, pkgs, ... }:
 let
   home = "/home/ezekiel";
   tailscaleIp = "100.64.96.125";
@@ -39,6 +39,69 @@ let
   groceries = pkgs.writeShellScript "notes-groceries" ''
     exec ${pkgs.python3}/bin/python3 -I ${../configs/notes/groceries.py} ${home}/Notes \
       http://${tailscaleIp}:8080/v1 bolt ${pkgs.imagemagick}/bin/magick
+  '';
+  # The vault's Obsidian settings, the same on every device: these files are written from here
+  # and put back whenever a phone changes one (Syncthing brings the change in, the path unit
+  # below fires). Change settings here, not in the app. Plugin data, themes and snippets
+  # aren't managed.
+  json = name: value: (pkgs.formats.json { }).generate name value;
+  obsidianSettings = {
+    "app.json" = json "app.json" {
+      mobileToolbarCommands = [
+        "notebook-navigator:new-note"
+        "app:go-back"
+        "editor:toggle-checklist-status"
+        "editor:undo"
+      ];
+      mobileQuickRibbonItem = "notebook-navigator:new-note";
+      mobilePullAction = "command-palette:open";
+    };
+    "appearance.json" = json "appearance.json" {
+      cssTheme = "Catppuccin";
+      enabledCssSnippets = [ "kitty-above-bar" ];
+    };
+    # grocery-snap: configs/notes/grocery-snap, installed by configs/notes' activation.
+    "community-plugins.json" = json "community-plugins.json" [ "notebook-navigator" "kitty" "grocery-snap" ];
+    "core-plugins.json" = json "core-plugins.json" {
+      file-explorer = true;
+      global-search = true;
+      switcher = true;
+      graph = true;
+      backlink = true;
+      canvas = true;
+      outgoing-link = true;
+      tag-pane = true;
+      footnotes = false;
+      properties = true;
+      page-preview = true;
+      daily-notes = true;
+      templates = true;
+      note-composer = true;
+      command-palette = true;
+      slash-command = false;
+      editor-status = true;
+      bookmarks = true;
+      zk-prefixer = false;
+      random-note = false;
+      outline = true;
+      word-count = true;
+      slides = false;
+      audio-recorder = true;
+      workspaces = false;
+      file-recovery = true;
+      publish = false;
+      sync = true;
+      bases = true;
+    };
+  };
+  obsidianDir = "${home}/Notes/.obsidian";
+  # Only rewrites a file that differs, so its own write doesn't loop through the path unit.
+  obsidianApply = pkgs.writeShellScript "notes-obsidian-settings" ''
+    set -eu
+    [ -d ${obsidianDir} ] || exit 0
+    ${lib.concatStrings (lib.mapAttrsToList (name: file: ''
+      ${pkgs.diffutils}/bin/cmp -s ${file} ${obsidianDir}/${name} || install -m 644 ${file} ${obsidianDir}/${name}
+    '') obsidianSettings)}
   '';
   repoNotes = "${home}/Documents/repos/configs/notes";
   mirror = pkgs.writeShellScript "notes-mirror-configs" ''
@@ -93,6 +156,21 @@ in
       OnCalendar = "hourly";
       Persistent = true;
     };
+  };
+
+  systemd.services.notes-obsidian-settings = {
+    description = "Write the vault's Obsidian settings";
+    wantedBy = [ "multi-user.target" ];
+    restartTriggers = [ obsidianApply ]; # reapplied when the settings change in a rebuild
+    serviceConfig = {
+      Type = "oneshot";
+      User = "ezekiel";
+      ExecStart = obsidianApply;
+    };
+  };
+  systemd.paths.notes-obsidian-settings = {
+    wantedBy = [ "paths.target" ];
+    pathConfig.PathChanged = map (name: "${obsidianDir}/${name}") (lib.attrNames obsidianSettings);
   };
 
   systemd.services.notes-groceries = {

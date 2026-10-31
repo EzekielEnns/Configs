@@ -32,7 +32,8 @@ in
     run install -m 644 ${stignore} "$v/.stignore"
     # Grocery snap (grocery-snap/main.js), the phones' cart button: .obsidian/ syncs, so it
     # reaches both phones. Copied only when changed, so Syncthing doesn't churn; data.json
-    # (its settings) stays the phone's. Enabled once in .obsidian/community-plugins.json.
+    # (its settings) stays the phone's. Enabled in the desktop's managed Obsidian settings
+    # (modules/notes-sync.nix).
     p="$v/.obsidian/plugins/grocery-snap"
     run mkdir -p "$p"
     for f in main.js manifest.json; do
