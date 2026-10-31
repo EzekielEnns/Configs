@@ -5,7 +5,8 @@
 // the note appears when the desktop is back. Plain CommonJS, no build step.
 const { Plugin, Notice, PluginSettingTab, Setting, requestUrl, arrayBufferToBase64, moment } = require("obsidian");
 
-const DEFAULTS = { api: "http://100.64.96.125:8080/v1", model: "bolt" };
+// HTTPS through Tailscale Serve (modules/notes-sync.nix): Android blocks plain http:// from apps.
+const DEFAULTS = { api: "https://desktop.TAILNET.ts.net:8443/v1", model: "bolt" };
 const OUT = "Shared/Groceries";
 const INBOX = "Inbox/Groceries";
 const TIMEOUT = 90_000; // a cold model load included
