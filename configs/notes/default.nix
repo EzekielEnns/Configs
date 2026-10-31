@@ -10,7 +10,7 @@
 { lib, pkgs, ... }:
 let
   notesTools = pkgs.callPackage ./package.nix { };
-  folders = [ "Inbox" "Shared" "Personal" "Wife" "Agents" "Daily" ];
+  folders = [ "Inbox" "Inbox/Groceries" "Shared" "Personal" "Wife" "Agents" "Daily" ];
   # Syncthing's ignore file isn't synced, so every machine writes its own (the phone's is set
   # in the app). .git is the desktop's snapshot history.
   stignore = pkgs.writeText "stignore" ''

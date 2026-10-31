@@ -11,6 +11,10 @@
 # whenever the desktop's checkout changes. The repo is the source: edits made to the copies in
 # Obsidian are overwritten, and agents can't write there (NOTES_PROTECTED).
 #
+# Groceries: a photo of a handwritten list dropped in Inbox/Groceries/ (from a phone) becomes
+# Shared/Groceries/<date>.md with a checkbox per item and the photo embedded below
+# (configs/notes/groceries.py); failures park in Inbox/Groceries-failed/.
+#
 # Snapshots: ~/Notes/.git, a local repo that's never pushed (Syncthing ignores .git), committed
 # hourly when something changed. Undo a bad sync or a bad write with `git -C ~/Notes log -p`.
 { pkgs, ... }:
@@ -28,6 +32,13 @@ let
     $git add -A
     $git diff --cached --quiet && exit 0
     $git -c user.name=notes -c user.email=notes@localhost commit -q -m "snapshot $(date -Is)"
+  '';
+  # Grocery-list photos (configs/notes/groceries.py): a photo in Inbox/Groceries/ becomes a
+  # checklist note in Shared/Groceries/, read by Bolt through llama-swap.
+  groceriesInbox = "${home}/Notes/Inbox/Groceries";
+  groceries = pkgs.writeShellScript "notes-groceries" ''
+    exec ${pkgs.python3}/bin/python3 -I ${../configs/notes/groceries.py} ${home}/Notes \
+      http://${tailscaleIp}:8080/v1 bolt ${pkgs.imagemagick}/bin/magick
   '';
   repoNotes = "${home}/Documents/repos/configs/notes";
   mirror = pkgs.writeShellScript "notes-mirror-configs" ''
@@ -82,6 +93,21 @@ in
       OnCalendar = "hourly";
       Persistent = true;
     };
+  };
+
+  systemd.services.notes-groceries = {
+    description = "Turn grocery-list photos into checklist notes";
+    after = [ "llama-swap.service" ];
+    serviceConfig = {
+      Type = "oneshot";
+      User = "ezekiel";
+      ExecStart = groceries;
+    };
+  };
+  # Syncthing writes a temp file and renames it when the photo is complete; the rename fires this.
+  systemd.paths.notes-groceries = {
+    wantedBy = [ "paths.target" ];
+    pathConfig.PathChanged = groceriesInbox; # created by configs/notes' activation
   };
 
   systemd.services.notes-snapshot = {

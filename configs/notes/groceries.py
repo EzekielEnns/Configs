@@ -1,0 +1,123 @@
+"""Grocery-list photos to checklist notes (desktop; modules/notes-sync.nix runs it).
+
+A photo dropped in the vault's Inbox/Groceries/ (from a phone, through Syncthing) becomes
+Shared/Groceries/<date>.md: one `- [ ]` per item, the photo embedded at the bottom so a
+misread word can be checked. The photo moves to Shared/Groceries/attachments/. Bolt reads the
+handwriting (through llama-swap, which loads it if another model is on the GPU) and answers
+in a fixed JSON schema; this script writes the Markdown, so the format never drifts.
+
+A photo that fails moves to Inbox/Groceries-failed/ (outside the watched folder, so it isn't
+retried in a loop); move it back to try again.
+
+Usage: groceries.py VAULT API_URL MODEL MAGICK
+"""
+import base64
+import datetime
+import json
+import shutil
+import subprocess
+import sys
+import tempfile
+import time
+import urllib.request
+from pathlib import Path
+
+IMAGES = {".jpg", ".jpeg", ".png", ".webp"}
+SETTLE = 3  # seconds a file must be unchanged, in case a writer isn't done
+
+PROMPT = """This is a photo of a handwritten grocery list. List every item on it, in order, as written.
+- Keep quantities and notes that belong to an item with it ("2 milk", "eggs (dozen)").
+- Skip headings, dates and crossed-out items.
+- If you can't read an item with confidence, give your best guess and set unsure to true.
+- If the photo isn't a list, return no items."""
+
+SCHEMA = {
+    "type": "object",
+    "properties": {
+        "items": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "properties": {"text": {"type": "string"}, "unsure": {"type": "boolean"}},
+                "required": ["text", "unsure"],
+            },
+        }
+    },
+    "required": ["items"],
+}
+
+
+def read_list(photo: Path, api: str, model: str, magick: str) -> list[dict]:
+    # Phones store the camera's rotation in EXIF, which the model's image loader ignores:
+    # turn the pixels upright, and shrink it (the vision encoder downsizes anyway).
+    with tempfile.TemporaryDirectory() as tmp:
+        jpg = Path(tmp) / "list.jpg"
+        subprocess.run([magick, str(photo), "-auto-orient", "-resize", "1600x1600>", "-quality", "90", str(jpg)],
+                       check=True, capture_output=True)
+        data = base64.b64encode(jpg.read_bytes()).decode()
+    body = {
+        "model": model,
+        "temperature": 0.2,
+        "max_tokens": 2048,
+        "chat_template_kwargs": {"enable_thinking": False},
+        "response_format": {"type": "json_schema", "json_schema": {"name": "groceries", "schema": SCHEMA}},
+        "messages": [{"role": "user", "content": [
+            {"type": "image_url", "image_url": {"url": f"data:image/jpeg;base64,{data}"}},
+            {"type": "text", "text": PROMPT},
+        ]}],
+    }
+    req = urllib.request.Request(f"{api}/chat/completions", json.dumps(body).encode(),
+                                 {"Content-Type": "application/json"})
+    with urllib.request.urlopen(req, timeout=600) as resp:  # a cold model load takes a while
+        reply = json.load(resp)
+    items = json.loads(reply["choices"][0]["message"]["content"])["items"]
+    return [i for i in items if i["text"].strip()]
+
+
+def free(path: Path) -> Path:
+    """path, or path with -2, -3, ... before the suffix if it's taken."""
+    n, candidate = 1, path
+    while candidate.exists():
+        n += 1
+        candidate = path.with_name(f"{path.stem}-{n}{path.suffix}")
+    return candidate
+
+
+def main() -> None:
+    vault, api, model, magick = Path(sys.argv[1]), sys.argv[2].rstrip("/"), sys.argv[3], sys.argv[4]
+    inbox = vault / "Inbox" / "Groceries"
+    out = vault / "Shared" / "Groceries"
+    failed = vault / "Inbox" / "Groceries-failed"
+    inbox.mkdir(parents=True, exist_ok=True)
+
+    photos = sorted((p for p in inbox.iterdir()
+                     if p.is_file() and p.suffix.lower() in IMAGES and not p.name.startswith(".")),
+                    key=lambda p: p.stat().st_mtime)
+    for photo in photos:
+        if time.time() - photo.stat().st_mtime < SETTLE:
+            time.sleep(SETTLE)
+        taken = datetime.datetime.fromtimestamp(photo.stat().st_mtime)
+        try:
+            items = read_list(photo, api, model, magick)
+        except Exception as e:  # noqa: BLE001 - any failure parks the photo, the rest go on
+            failed.mkdir(parents=True, exist_ok=True)
+            shutil.move(photo, free(failed / photo.name))
+            print(f"{photo.name}: failed ({e}); moved to {failed}", file=sys.stderr)
+            continue
+
+        (out / "attachments").mkdir(parents=True, exist_ok=True)
+        attachment = free(out / "attachments" / f"{taken:%Y-%m-%d-%H%M%S}{photo.suffix.lower()}")
+        note = free(out / f"{taken:%Y-%m-%d}.md")
+        lines = ["---", "tags:", "  - groceries", f"created: {taken:%Y-%m-%dT%H:%M}",
+                 f"photo: \"[[{attachment.name}]]\"", "---", ""]
+        lines += [f"- [ ] {i['text'].strip()}" + (" (?)" if i["unsure"] else "") for i in items]
+        if not items:
+            lines.append("_No items read from the photo; check it below._")
+        lines += ["", f"![[{attachment.name}]]", ""]
+        shutil.move(photo, attachment)
+        note.write_text("\n".join(lines))
+        print(f"{photo.name}: {len(items)} items -> {note.relative_to(vault)}")
+
+
+if __name__ == "__main__":
+    main()
