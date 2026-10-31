@@ -26,10 +26,16 @@ IMAGES = {".jpg", ".jpeg", ".png", ".webp"}
 SETTLE = 3  # seconds a file must be unchanged, in case a writer isn't done
 
 PROMPT = """This is a photo of a handwritten grocery list. List every item on it, in order, as written.
+- One entry per item: when a line names several things separated by commas, give each its own entry.
 - Keep quantities and notes that belong to an item with it ("2 milk", "eggs (dozen)").
+- Include every column, and small additions squeezed between or above lines.
 - Skip headings, dates and crossed-out items.
 - If you can't read an item with confidence, give your best guess and set unsure to true.
 - If the photo isn't a list, return no items."""
+# Bolt sometimes slips into Gemma 4's thinking channel even with thinking off and loops there
+# until the token limit, leaving no answer (a 25-line list did). So: answer directly first,
+# and if that comes back empty or broken, once more with thinking allowed, which ends cleanly.
+SYSTEM = "Answer directly with the JSON. Do not think out loud."
 
 SCHEMA = {
     "type": "object",
@@ -55,23 +61,31 @@ def read_list(photo: Path, api: str, model: str, magick: str) -> list[dict]:
         subprocess.run([magick, str(photo), "-auto-orient", "-resize", "1600x1600>", "-quality", "90", str(jpg)],
                        check=True, capture_output=True)
         data = base64.b64encode(jpg.read_bytes()).decode()
-    body = {
-        "model": model,
-        "temperature": 0.2,
-        "max_tokens": 2048,
-        "chat_template_kwargs": {"enable_thinking": False},
-        "response_format": {"type": "json_schema", "json_schema": {"name": "groceries", "schema": SCHEMA}},
-        "messages": [{"role": "user", "content": [
-            {"type": "image_url", "image_url": {"url": f"data:image/jpeg;base64,{data}"}},
-            {"type": "text", "text": PROMPT},
-        ]}],
-    }
-    req = urllib.request.Request(f"{api}/chat/completions", json.dumps(body).encode(),
-                                 {"Content-Type": "application/json"})
-    with urllib.request.urlopen(req, timeout=600) as resp:  # a cold model load takes a while
-        reply = json.load(resp)
-    items = json.loads(reply["choices"][0]["message"]["content"])["items"]
-    return [i for i in items if i["text"].strip()]
+    user = {"role": "user", "content": [
+        {"type": "image_url", "image_url": {"url": f"data:image/jpeg;base64,{data}"}},
+        {"type": "text", "text": PROMPT},
+    ]}
+    for think in (False, True):
+        body = {
+            "model": model,
+            "temperature": 0.2,
+            "max_tokens": 6144,
+            "chat_template_kwargs": {"enable_thinking": think},
+            "response_format": {"type": "json_schema", "json_schema": {"name": "groceries", "schema": SCHEMA}},
+            "messages": [user] if think else [{"role": "system", "content": SYSTEM}, user],
+        }
+        req = urllib.request.Request(f"{api}/chat/completions", json.dumps(body).encode(),
+                                     {"Content-Type": "application/json"})
+        with urllib.request.urlopen(req, timeout=600) as resp:  # a cold model load takes a while
+            reply = json.load(resp)
+        try:
+            items = json.loads(reply["choices"][0]["message"]["content"])["items"]
+            return [i for i in items if i["text"].strip()]
+        except (ValueError, KeyError, TypeError):
+            if think:
+                raise
+            print("no answer without thinking; retrying with it", file=sys.stderr)
+    raise AssertionError("unreachable")
 
 
 def free(path: Path) -> Path:

@@ -12,10 +12,15 @@ const TIMEOUT = 90_000; // a cold model load included
 const MAX_SIDE = 1600;
 
 const PROMPT = `This is a photo of a handwritten grocery list. List every item on it, in order, as written.
+- One entry per item: when a line names several things separated by commas, give each its own entry.
 - Keep quantities and notes that belong to an item with it ("2 milk", "eggs (dozen)").
+- Include every column, and small additions squeezed between or above lines.
 - Skip headings, dates and crossed-out items.
 - If you can't read an item with confidence, give your best guess and set unsure to true.
 - If the photo isn't a list, return no items.`;
+// Bolt sometimes slips into its thinking channel even with thinking off and loops until the
+// token limit, leaving no answer: answer directly first, then once more with thinking allowed.
+const SYSTEM = "Answer directly with the JSON. Do not think out loud.";
 
 const SCHEMA = {
   type: "object",
@@ -90,24 +95,31 @@ module.exports = class GrocerySnap extends Plugin {
   }
 
   async read(jpeg) {
-    const res = await requestUrl({
-      url: `${this.settings.api.replace(/\/$/, "")}/chat/completions`,
-      method: "POST",
-      contentType: "application/json",
-      body: JSON.stringify({
-        model: this.settings.model,
-        temperature: 0.2,
-        max_tokens: 2048,
-        chat_template_kwargs: { enable_thinking: false },
-        response_format: { type: "json_schema", json_schema: { name: "groceries", schema: SCHEMA } },
-        messages: [{ role: "user", content: [
-          { type: "image_url", image_url: { url: `data:image/jpeg;base64,${arrayBufferToBase64(jpeg)}` } },
-          { type: "text", text: PROMPT },
-        ] }],
-      }),
-    });
-    const items = JSON.parse(res.json.choices[0].message.content).items;
-    return items.filter((i) => i.text.trim());
+    const user = { role: "user", content: [
+      { type: "image_url", image_url: { url: `data:image/jpeg;base64,${arrayBufferToBase64(jpeg)}` } },
+      { type: "text", text: PROMPT },
+    ] };
+    for (const think of [false, true]) {
+      const res = await requestUrl({
+        url: `${this.settings.api.replace(/\/$/, "")}/chat/completions`,
+        method: "POST",
+        contentType: "application/json",
+        body: JSON.stringify({
+          model: this.settings.model,
+          temperature: 0.2,
+          max_tokens: 6144,
+          chat_template_kwargs: { enable_thinking: think },
+          response_format: { type: "json_schema", json_schema: { name: "groceries", schema: SCHEMA } },
+          messages: think ? [user] : [{ role: "system", content: SYSTEM }, user],
+        }),
+      });
+      try {
+        const items = JSON.parse(res.json.choices[0].message.content).items;
+        return items.filter((i) => i.text.trim());
+      } catch (e) {
+        if (think) throw e;
+      }
+    }
   }
 
   async ensureFolder(path) {
