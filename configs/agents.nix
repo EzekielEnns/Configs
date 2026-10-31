@@ -44,7 +44,18 @@ let
     { id = "sage"; name = "Sage-A1.5 35B-A3B (research, Q3, 2 slots x 32k)"; contextWindow = 32768; maxTokens = 16384; }
     { id = "agents-a1-4b"; name = "Agents-A1 4B (research, 4 slots x 16k)"; contextWindow = 16384; maxTokens = 8192; }
     # Chat and roleplay, no coding (`pichat`): Nemotron 3.5 Bolt E4B uncensored, 2 slots x 64k.
-    { id = "bolt"; name = "Nemotron Bolt E4B uncensored (chat/RP, 2 slots x 64k)"; contextWindow = 65536; maxTokens = 8192; }
+    # Its chat template thinks unless told not to, so Pi's thinking level goes through as
+    # enable_thinking (off = no thinking at all).
+    {
+      id = "bolt";
+      name = "Nemotron Bolt E4B uncensored (chat/RP, 2 slots x 64k)";
+      contextWindow = 65536;
+      maxTokens = 8192;
+      compat = {
+        thinkingFormat = "chat-template";
+        chatTemplateKwargs.enable_thinking."$var" = "thinking.enabled";
+      };
+    }
   ];
   withReasoning = map (m: m // { reasoning = true; }) models;
   piModels = (pkgs.formats.json { }).generate "pi-models.json" {
@@ -271,6 +282,15 @@ let
     showHardwareCursor = true; # Pi's drawn cursor looked squished
     editorPaddingX = 1;
   };
+  # pichat's own settings: Bolt only, thinking hidden like the coding setup's.
+  piChatSettings = (pkgs.formats.json { }).generate "pi-chat-settings.json" {
+    defaultProvider = "desktop";
+    defaultModel = "bolt";
+    enabledModels = [ "desktop/bolt" ];
+    hideThinkingBlock = true; # Ctrl+T shows it
+    showHardwareCursor = true;
+    editorPaddingX = 1;
+  };
 in
 {
   imports = [ ./notes ]; # the shared notes vault's tools, for Pi and the shell
@@ -322,5 +342,5 @@ in
 
   # Pi writes lastChangelogVersion into its settings, so it needs a writable copy.
   home.activation.piSettings = lib.hm.dag.entryAfter [ "writeBoundary" ]
-    (writable ".pi/agent/settings.json" piSettings);
+    (writable ".pi/agent/settings.json" piSettings + writable ".pi/chat/settings.json" piChatSettings);
 }
