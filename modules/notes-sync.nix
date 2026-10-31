@@ -17,10 +17,11 @@
 #
 # Snapshots: ~/Notes/.git, a local repo that's never pushed (Syncthing ignores .git), committed
 # hourly when something changed. Undo a bad sync or a bad write with `git -C ~/Notes log -p`.
-{ lib, pkgs, ... }:
+{ config, lib, pkgs, ... }:
 let
   home = "/home/ezekiel";
   tailscaleIp = "100.64.96.125";
+  tailscale = "${config.services.tailscale.package}/bin/tailscale"; # the CLI matching tailscaled
   snapshot = pkgs.writeShellScript "notes-snapshot" ''
     set -eu
     cd ${home}/Notes
@@ -175,16 +176,26 @@ in
 
   # HTTPS in front of llama-swap for the phones' Grocery snap button: Android blocks plain
   # http:// from apps, so its requests never left the phone. Tailnet only, like :8080 itself.
+  # Tailscale Serve only proxies to localhost and llama-swap listens on the Tailscale address,
+  # so 127.0.0.1:8081 forwards to it.
+  systemd.sockets.notes-model-local = {
+    wantedBy = [ "sockets.target" ];
+    listenStreams = [ "127.0.0.1:8081" ];
+  };
+  systemd.services.notes-model-local = {
+    description = "Forward 127.0.0.1:8081 to llama-swap";
+    serviceConfig.ExecStart = "${config.systemd.package}/lib/systemd/systemd-socket-proxyd ${tailscaleIp}:8080";
+  };
   systemd.services.notes-model-https = {
     description = "Tailscale Serve HTTPS :8443 to llama-swap";
-    after = [ "tailscaled.service" "llama-swap.service" ];
+    after = [ "tailscaled.service" ];
     wants = [ "tailscaled.service" ];
     wantedBy = [ "multi-user.target" ];
     serviceConfig = {
       Type = "oneshot";
       RemainAfterExit = true;
-      ExecStart = "${pkgs.tailscale}/bin/tailscale serve --bg --https=8443 http://${tailscaleIp}:8080";
-      ExecStop = "${pkgs.tailscale}/bin/tailscale serve --https=8443 off";
+      ExecStart = "${tailscale} serve --bg --https=8443 http://127.0.0.1:8081";
+      ExecStop = "${tailscale} serve --https=8443 off";
     };
   };
 
