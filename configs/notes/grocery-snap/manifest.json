@@ -1,0 +1,9 @@
+{
+  "id": "grocery-snap",
+  "name": "Grocery snap",
+  "version": "1.0.0",
+  "minAppVersion": "1.5.7",
+  "description": "Photo of a handwritten grocery list to a checklist note, read by the desktop's local model.",
+  "author": "Zeke",
+  "isDesktopOnly": false
+}

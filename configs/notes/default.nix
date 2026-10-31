@@ -30,6 +30,14 @@ in
     run mkdir -p ${lib.concatMapStringsSep " " (f: ''"$v/${f}"'') folders} "$HOME/.local/state/notes"
     [ -e "$v/AGENTS.md" ] || run install -m 644 ${notesTools}/lib/notes/AGENTS.md "$v/AGENTS.md"
     run install -m 644 ${stignore} "$v/.stignore"
+    # Grocery snap (grocery-snap/main.js), the phones' cart button: .obsidian/ syncs, so it
+    # reaches both phones. Copied only when changed, so Syncthing doesn't churn; data.json
+    # (its settings) stays the phone's. Enabled once in .obsidian/community-plugins.json.
+    p="$v/.obsidian/plugins/grocery-snap"
+    run mkdir -p "$p"
+    for f in main.js manifest.json; do
+      cmp -s ${./grocery-snap}/$f "$p/$f" || run install -m 644 ${./grocery-snap}/$f "$p/$f"
+    done
   '';
 
   services.syncthing = lib.mkIf pkgs.stdenv.isDarwin {
