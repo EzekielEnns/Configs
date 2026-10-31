@@ -1,13 +1,14 @@
 """Grocery-list photos to checklist notes (desktop; modules/notes-sync.nix runs it).
 
-A photo dropped in the vault's Inbox/Groceries/ (from a phone, through Syncthing) becomes
+A photo in the vault's Shared/Groceries/.inbox/ (the cart button's fallback, through Syncthing) becomes
 Shared/Groceries/<date>.md: one `- [ ]` per item; the photo is deleted once the note is
 written (the phone's camera roll still has it). Bolt reads the
 handwriting (through llama-swap, which loads it if another model is on the GPU) and answers
 in a fixed JSON schema; this script writes the Markdown, so the format never drifts.
 
-A photo that fails moves to Inbox/Groceries-failed/ (outside the watched folder, so it isn't
-retried in a loop); move it back to try again.
+A photo that fails moves to Shared/Groceries/.failed/ (outside the watched folder, so it isn't
+retried in a loop); move it back to try again. Both are dot folders, hidden in Obsidian, so
+the vault shows only the Groceries folder.
 
 Usage: groceries.py VAULT API_URL MODEL MAGICK
 """
@@ -99,9 +100,9 @@ def free(path: Path) -> Path:
 
 def main() -> None:
     vault, api, model, magick = Path(sys.argv[1]), sys.argv[2].rstrip("/"), sys.argv[3], sys.argv[4]
-    inbox = vault / "Inbox" / "Groceries"
     out = vault / "Shared" / "Groceries"
-    failed = vault / "Inbox" / "Groceries-failed"
+    inbox = out / ".inbox"
+    failed = out / ".failed"
     inbox.mkdir(parents=True, exist_ok=True)
 
     photos = sorted((p for p in inbox.iterdir()

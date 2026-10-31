@@ -2,14 +2,14 @@
 // (llama-swap over Tailscale) and opens Shared/Groceries/<date>.md with a checkbox per item;
 // the photo itself isn't kept.
 // Same prompt, schema and note format as configs/notes/groceries.py, the desktop watcher. If
-// the desktop can't be reached, the photo goes to the watcher's Inbox/Groceries/ instead and
-// the note appears when the desktop is back. Plain CommonJS, no build step.
+// the desktop can't be reached, the photo goes to the watcher's Shared/Groceries/.inbox/ (hidden
+// in Obsidian) instead and the note appears when the desktop is back. Plain CommonJS, no build step.
 const { Plugin, Notice, PluginSettingTab, Setting, requestUrl, arrayBufferToBase64, moment } = require("obsidian");
 
 // HTTPS through Tailscale Serve (modules/notes-sync.nix): Android blocks plain http:// from apps.
 const DEFAULTS = { api: "https://desktop.TAILNET.ts.net:8443/v1", model: "bolt" };
 const OUT = "Shared/Groceries";
-const INBOX = "Inbox/Groceries";
+const INBOX = `${OUT}/.inbox`; // a dot folder: Obsidian hides it, so only through the adapter
 const TIMEOUT = 90_000; // a cold model load included
 const MAX_SIDE = 1600;
 
@@ -74,8 +74,8 @@ module.exports = class GrocerySnap extends Plugin {
       items = await withTimeout(this.read(jpeg), TIMEOUT);
     } catch (e) {
       // Desktop off, asleep or unreachable: let the watcher do it when it's back.
-      await this.ensureFolder(INBOX);
-      await this.app.vault.createBinary(await this.free(`${INBOX}/${taken.format("YYYY-MM-DD-HHmmss")}.jpg`), jpeg);
+      await this.app.vault.adapter.mkdir(INBOX);
+      await this.app.vault.adapter.writeBinary(await this.free(`${INBOX}/${taken.format("YYYY-MM-DD-HHmmss")}.jpg`), jpeg);
       notice.hide();
       new Notice("The desktop didn't answer. Your list will show up in Shared/Groceries when it's back.", 8000);
       console.warn("grocery-snap:", e);
@@ -129,7 +129,7 @@ module.exports = class GrocerySnap extends Plugin {
   async free(path) {
     const dot = path.lastIndexOf(".");
     let n = 1, candidate = path;
-    while (this.app.vault.getAbstractFileByPath(candidate)) {
+    while (await this.app.vault.adapter.exists(candidate)) {
       n += 1;
       candidate = `${path.slice(0, dot)}-${n}${path.slice(dot)}`;
     }

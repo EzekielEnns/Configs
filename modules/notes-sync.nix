@@ -11,9 +11,9 @@
 # whenever the desktop's checkout changes. The repo is the source: edits made to the copies in
 # Obsidian are overwritten, and agents can't write there (NOTES_PROTECTED).
 #
-# Groceries: a photo of a handwritten list dropped in Inbox/Groceries/ (from a phone) becomes
+# Groceries: a photo of a handwritten list in Shared/Groceries/.inbox/ (from a phone) becomes
 # Shared/Groceries/<date>.md with a checkbox per item (the photo is then deleted)
-# (configs/notes/groceries.py); failures park in Inbox/Groceries-failed/.
+# (configs/notes/groceries.py); failures park in Shared/Groceries/.failed/.
 #
 # Snapshots: ~/Notes/.git, a local repo that's never pushed (Syncthing ignores .git), committed
 # hourly when something changed. Undo a bad sync or a bad write with `git -C ~/Notes log -p`.
@@ -34,9 +34,9 @@ let
     $git diff --cached --quiet && exit 0
     $git -c user.name=notes -c user.email=notes@localhost commit -q -m "snapshot $(date -Is)"
   '';
-  # Grocery-list photos (configs/notes/groceries.py): a photo in Inbox/Groceries/ becomes a
+  # Grocery-list photos (configs/notes/groceries.py): a photo in Shared/Groceries/.inbox/ becomes a
   # checklist note in Shared/Groceries/, read by Bolt through llama-swap.
-  groceriesInbox = "${home}/Notes/Inbox/Groceries";
+  groceriesInbox = "${home}/Notes/Shared/Groceries/.inbox";
   groceries = pkgs.writeShellScript "notes-groceries" ''
     exec ${pkgs.python3}/bin/python3 -I ${../configs/notes/groceries.py} ${home}/Notes \
       http://${tailscaleIp}:8080/v1 bolt ${pkgs.imagemagick}/bin/magick
