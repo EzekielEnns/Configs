@@ -1,5 +1,6 @@
 // Grocery snap: a cart button that opens the camera, sends the photo to Bolt on the desktop
-// (llama-swap over Tailscale) and opens Shared/Groceries/<date>.md with a checkbox per item.
+// (llama-swap over Tailscale) and opens Shared/Groceries/<date>.md with a checkbox per item;
+// the photo itself isn't kept.
 // Same prompt, schema and note format as configs/notes/groceries.py, the desktop watcher. If
 // the desktop can't be reached, the photo goes to the watcher's Inbox/Groceries/ instead and
 // the note appears when the desktop is back. Plain CommonJS, no build step.
@@ -81,15 +82,12 @@ module.exports = class GrocerySnap extends Plugin {
       return;
     }
 
-    await this.ensureFolder(`${OUT}/attachments`);
-    const attachment = await this.free(`${OUT}/attachments/${taken.format("YYYY-MM-DD-HHmmss")}.jpg`);
-    await this.app.vault.createBinary(attachment, jpeg);
-    const name = attachment.split("/").pop();
-    const lines = ["---", "tags:", "  - groceries", `created: ${taken.format("YYYY-MM-DDTHH:mm")}`,
-      `photo: "[[${name}]]"`, "---", ""];
+    // The photo isn't kept: the list is the point, and the phone's camera roll has it anyway.
+    await this.ensureFolder(OUT);
+    const lines = ["---", "tags:", "  - groceries", `created: ${taken.format("YYYY-MM-DDTHH:mm")}`, "---", ""];
     for (const i of items) lines.push(`- [ ] ${i.text.trim()}${i.unsure ? " (?)" : ""}`);
-    if (items.length === 0) lines.push("_No items read from the photo; check it below._");
-    lines.push("", `![[${name}]]`, "");
+    if (items.length === 0) lines.push("_No items read from the photo._");
+    lines.push("");
     const note = await this.app.vault.create(await this.free(`${OUT}/${taken.format("YYYY-MM-DD")}.md`), lines.join("\n"));
     notice.hide();
     await this.app.workspace.getLeaf(false).openFile(note);

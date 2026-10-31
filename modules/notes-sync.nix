@@ -12,7 +12,7 @@
 # Obsidian are overwritten, and agents can't write there (NOTES_PROTECTED).
 #
 # Groceries: a photo of a handwritten list dropped in Inbox/Groceries/ (from a phone) becomes
-# Shared/Groceries/<date>.md with a checkbox per item and the photo embedded below
+# Shared/Groceries/<date>.md with a checkbox per item (the photo is then deleted)
 # (configs/notes/groceries.py); failures park in Inbox/Groceries-failed/.
 #
 # Snapshots: ~/Notes/.git, a local repo that's never pushed (Syncthing ignores .git), committed

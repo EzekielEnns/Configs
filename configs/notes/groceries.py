@@ -1,8 +1,8 @@
 """Grocery-list photos to checklist notes (desktop; modules/notes-sync.nix runs it).
 
 A photo dropped in the vault's Inbox/Groceries/ (from a phone, through Syncthing) becomes
-Shared/Groceries/<date>.md: one `- [ ]` per item, the photo embedded at the bottom so a
-misread word can be checked. The photo moves to Shared/Groceries/attachments/. Bolt reads the
+Shared/Groceries/<date>.md: one `- [ ]` per item; the photo is deleted once the note is
+written (the phone's camera roll still has it). Bolt reads the
 handwriting (through llama-swap, which loads it if another model is on the GPU) and answers
 in a fixed JSON schema; this script writes the Markdown, so the format never drifts.
 
@@ -119,17 +119,15 @@ def main() -> None:
             print(f"{photo.name}: failed ({e}); moved to {failed}", file=sys.stderr)
             continue
 
-        (out / "attachments").mkdir(parents=True, exist_ok=True)
-        attachment = free(out / "attachments" / f"{taken:%Y-%m-%d-%H%M%S}{photo.suffix.lower()}")
+        out.mkdir(parents=True, exist_ok=True)
         note = free(out / f"{taken:%Y-%m-%d}.md")
-        lines = ["---", "tags:", "  - groceries", f"created: {taken:%Y-%m-%dT%H:%M}",
-                 f"photo: \"[[{attachment.name}]]\"", "---", ""]
+        lines = ["---", "tags:", "  - groceries", f"created: {taken:%Y-%m-%dT%H:%M}", "---", ""]
         lines += [f"- [ ] {i['text'].strip()}" + (" (?)" if i["unsure"] else "") for i in items]
         if not items:
-            lines.append("_No items read from the photo; check it below._")
-        lines += ["", f"![[{attachment.name}]]", ""]
-        shutil.move(photo, attachment)
+            lines.append("_No items read from the photo._")
+        lines.append("")
         note.write_text("\n".join(lines))
+        photo.unlink()
         print(f"{photo.name}: {len(items)} items -> {note.relative_to(vault)}")
 
 
