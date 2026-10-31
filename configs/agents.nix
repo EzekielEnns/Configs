@@ -51,6 +51,7 @@ let
       name = "Nemotron Bolt E4B uncensored (chat/RP, 2 slots x 64k)";
       contextWindow = 65536;
       maxTokens = 8192;
+      input = [ "text" "image" ]; # Gemma 4 E4B's vision projector (ai-stack nix/module.nix)
       compat = {
         thinkingFormat = "chat-template";
         chatTemplateKwargs.enable_thinking."$var" = "thinking.enabled";
@@ -314,7 +315,7 @@ in
       export PI_CODING_AGENT_DIR=$HOME/.pi/chat
       exec ${agentPkgs.pi-coding-agent}/bin/pi --model desktop/bolt --thinking off \
         --no-context-files --no-skills --no-prompt-templates \
-        --no-builtin-tools --tools web_search,fetch_content \
+        --no-builtin-tools --tools web_search,fetch_content,notes_search,notes_read,notes_recent,notes_write \
         --append-system-prompt "Today is $(date +%Y-%m-%d)." "$@"
     '')
     # Runs reader workers over a ledger's slices and checks their claims (ORCHESTRATE-PLAN.md v2).
@@ -338,6 +339,7 @@ in
       source = piModels;
     };
     ".pi/chat/extensions/searxng".source = "${piSearxng}/lib/node_modules/pi-searxng";
+    ".pi/chat/extensions/notes".source = "${notesTools}/lib/notes"; # images -> notes, with approval
   };
 
   # Pi writes lastChangelogVersion into its settings, so it needs a writable copy.
