@@ -85,7 +85,14 @@ export default function (pi: ExtensionAPI) {
 		if (!force && Date.now() - lastFetch < REFRESH_MS) return;
 		lastFetch = Date.now();
 		const k = await keyInfo();
-		if (k) ctx.ui.setStatus("cost", keyLine(k));
+		if (!k) return;
+		// The fetch can outlive the session (`pi -p` exits right after its run), and a stale
+		// ctx throws on .ui; with `void refresh(...)` that was an unhandled rejection.
+		try {
+			ctx.ui.setStatus("cost", keyLine(k));
+		} catch {
+			// session gone: nothing to show the status in
+		}
 	};
 	pi.on("session_start", (_e, ctx) => void refresh(ctx, true));
 	pi.on("agent_end", (_e, ctx) => void refresh(ctx));
