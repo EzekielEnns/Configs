@@ -6,7 +6,45 @@
 , ...
 }:
 {
+  # Local AI stack (llama-swap + LiteLLM on the dGPU). Lives in a private repo that's
+  # cloned on the desktop, so it's loaded from there (needs --impure, which the rebuild
+  # already uses) instead of being a flake input the Mac would also have to fetch.
+  imports = [
+    (builtins.getFlake "git+file:///home/ezekiel/Documents/repos/ai-stack").nixosModules.default
+  ];
+
   config = {
+    services.ai-stack = {
+      enable = true;
+      listenAddress = "100.64.96.125"; # Tailscale only
+      # Cloud models via OpenRouter (prepaid credit). The key is OPENROUTER_API_KEY in
+      # /var/lib/ai-stack/secrets.env on the desktop, never in this repo.
+      cloudModels =
+        let
+          # Open-weight models from PRC labs: only established US hosts, never the lab's
+          # own API, and no provider that keeps or trains on prompts.
+          usHosts = {
+            only = [ "deepinfra" "together" "fireworks" "baseten" ];
+            allow_fallbacks = false;
+            data_collection = "deny";
+          };
+        in
+        {
+          cloud-glm = {
+            model = "openrouter/z-ai/glm-5.3";
+            extra_body.provider = usHosts;
+          };
+          cloud-deepseek = {
+            model = "openrouter/deepseek/deepseek-v4.1-flash";
+            extra_body.provider = usHosts;
+          };
+          cloud-haiku = "openrouter/anthropic/claude-haiku-5.5";
+          cloud-sonnet = "openrouter/anthropic/claude-sonnet-5.5";
+          cloud-opus = "openrouter/anthropic/claude-opus-5.5";
+        };
+      planner = "cloud-glm";
+    };
+
     # Claude Code overlay — auto-updating Bun-built binaries direct from
     # Anthropic releases, refreshed hourly. Skips the nixpkgs review lag.
     nixpkgs.overlays = [ inputs.nix-claude-code.overlays.default ];
@@ -250,6 +288,10 @@
       enable = true;
     };
     networking.networkmanager.enable = true;
+    # modules/networking.nix turns the firewall off for every host; this one serves the
+    # LAN (dns, pxe, nginx *.lan) and the ports below are what it means to expose.
+    # Tailscale is trusted below; Steam adds its own ports; Docker bypasses it anyway.
+    networking.firewall.enable = lib.mkForce true;
     networking.firewall.allowedUDPPorts = [
       53
       6881
