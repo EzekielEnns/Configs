@@ -71,6 +71,17 @@
             model = "openrouter/openai/gpt-oss-120b";
             extra_body.provider = usHosts;
           };
+          # teardown's pick bake-off (VY-1718, 2026-11-03): the cheapest ZDR host with
+          # json_schema (PrimeIntellect, fp4), DeepInfra (bf16) when it's down.
+          # require_parameters keeps calls off hosts that would ignore the schema.
+          cloud-gptoss-20b = {
+            model = "openrouter/openai/gpt-oss-20b";
+            extra_body.provider = zdr // {
+              only = [ "primeintellect" "deepinfra" ];
+              require_parameters = true;
+              allow_fallbacks = true;
+            };
+          };
           # Cheaper frontier candidates for agent work in pis (2026-10-29), ZDR hosts only.
           # V4 Pro's ZDR hosts don't include usHosts' four: DeepInfra, Azure US and Crusoe.
           cloud-deepseek-pro = {
@@ -122,6 +133,19 @@
       planner = "cloud-glm";
     };
 
+    # OpenRouter's images API for configs/imagegen (POST /api/v1/images: every image model,
+    # reference images, aspect, resolution, seed). LiteLLM has no route for it, so it's passed
+    # straight through with the key added here. Merges with ai-stack's own pass-throughs
+    # (/openrouter/decisions, /openrouter/key). Image models only, and Tailscale-only.
+    services.litellm.settings.general_settings.pass_through_endpoints = [
+      {
+        path = "/openrouter/images";
+        target = "https://openrouter.ai/api/v1/images";
+        methods = [ "POST" ];
+        headers.Authorization = "bearer os.environ/OPENROUTER_API_KEY";
+      }
+    ];
+
     # Claude Code overlay — auto-updating Bun-built binaries direct from
     # Anthropic releases, refreshed hourly. Skips the nixpkgs review lag.
     nixpkgs.overlays = [ inputs.nix-claude-code.overlays.default ];
@@ -130,6 +154,15 @@
     # (https://harry.id/blog/emudhra-ca-compromise-macos-curl). Browsers block
     # them, but curl/python/git read this bundle. Drop once nixpkgs cacert is patched.
     security.pki.caCertificateBlacklist = [ "emSign ECC Root CA - G3" ];
+
+    # Logitech G502 X PLUS (Lightspeed). Solaar sets DPI, report rate and the
+    # onboard profile; buttons live in those profiles (`solaar profiles`, YAML).
+    # Piper/libratbag can't drive this mouse yet: its profile format (0x0a)
+    # isn't supported upstream (libratbag/libratbag#1655).
+    hardware.logitech.wireless = {
+      enable = true; # udev rules for the receiver and mouse
+      enableGraphical = true; # the Solaar app
+    };
 
     environment.systemPackages = [
       pkgs.lm_sensors
