@@ -174,7 +174,8 @@ in
           linear=https://mcp.linear.app/mcp \
           notion=https://mcp.notion.com/mcp \
           granola=https://mcp.granola.ai/mcp \
-          figma=https://mcp.figma.com/mcp; do
+          figma=https://mcp.figma.com/mcp \
+          icepanel=https://mcp.icepanel.io/mcp; do
           name="''${server%%=*}"
           if ! "$claude" mcp get "$name" >/dev/null 2>&1; then
             run "$claude" mcp add -s user --transport http "$name" "''${server#*=}" || true
