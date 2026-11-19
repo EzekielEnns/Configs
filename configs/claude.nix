@@ -69,7 +69,17 @@ in
         permissions.defaultMode = "auto";
         # The notes vault (configs/notes): its tools only. notes_write asks with its own
         # dialog (MCP elicitation), so no permission prompt on top; direct edits are denied.
-        permissions.allow = [ "mcp__notes__notes_search" "mcp__notes__notes_read" "mcp__notes__notes_recent" "mcp__notes__notes_write" ];
+        # The read-only graph-* Spanner servers from anti-evil's .mcp.json: local and dev
+        # without asking, every prod call asks.
+        permissions.allow = [
+          "mcp__notes__notes_search"
+          "mcp__notes__notes_read"
+          "mcp__notes__notes_recent"
+          "mcp__notes__notes_write"
+          "mcp__graph-local"
+          "mcp__graph-dev"
+        ];
+        permissions.ask = [ "mcp__graph-prod" ];
         permissions.deny = [ "Edit(~/Notes/**)" "Write(~/Notes/**)" ];
 
         # Compact at ~400K tokens instead of the ~967K default on a 1M window.
@@ -136,18 +146,40 @@ in
         voiceEnabled = false;
         agentPushNotifEnabled = true;
 
+        # Replaces the "Generated with Claude Code" footer (and its link back to the
+        # session) on PRs and comments, and the Co-Authored-By trailer on commits.
+        attribution = {
+          pr = "— Claudy McClaudin helped";
+          commit = "Claudy McClaudin helped";
+        };
+
         # "I have seen this dialog" flags — pinned so they stay dismissed.
         skipAutoPermissionPrompt = true;
         skipWorkflowUsageWarning = true;
       };
     };
 
-    # The notes MCP server (configs/notes), for every project. User-scope servers live in
-    # ~/.claude.json, which Claude Code rewrites, so it's added there once rather than owned.
-    home.activation.claudeNotesMcp = ''
+    # User-scope MCP servers, for every project. They live in ~/.claude.json, which Claude
+    # Code rewrites, so each is added there once rather than owned.
+    # The remote ones are the providers' own servers, signed in once with /mcp (OAuth), so
+    # they keep working when the claude.ai connector proxy doesn't. Slack isn't here: its
+    # server only takes pre-registered apps, so it stays a claude.ai connector.
+    home.activation.claudeMcp = ''
       claude="$HOME/.local/bin/claude"
-      if [ -x "$claude" ] && ! "$claude" mcp get notes >/dev/null 2>&1; then
-        run "$claude" mcp add -s user notes -- /etc/profiles/per-user/$USER/bin/notes-mcp || true
+      if [ -x "$claude" ]; then
+        if ! "$claude" mcp get notes >/dev/null 2>&1; then
+          run "$claude" mcp add -s user notes -- /etc/profiles/per-user/$USER/bin/notes-mcp || true
+        fi
+        for server in \
+          linear=https://mcp.linear.app/mcp \
+          notion=https://mcp.notion.com/mcp \
+          granola=https://mcp.granola.ai/mcp \
+          figma=https://mcp.figma.com/mcp; do
+          name="''${server%%=*}"
+          if ! "$claude" mcp get "$name" >/dev/null 2>&1; then
+            run "$claude" mcp add -s user --transport http "$name" "''${server#*=}" || true
+          fi
+        done
       fi
     '';
 
@@ -170,6 +202,174 @@ in
 
       If the command fails, the installed Rex version predates the guide. Start with
       `rex whoami --json`, then use `rex --help` and `rex COMMAND --help`.
+    '';
+
+    # Rebuild this flake from an agent: runs in a Rex pane below so the user approves sudo
+    # (Touch ID) themselves, then the agent reads the result.
+    home.file.".claude/skills/configs-rebuild/SKILL.md".text = ''
+      ---
+      name: configs-rebuild
+      description: Rebuild and switch Zeek's MacBook Nix config (~/Documents/repos/Configs, nix-darwin) in a Rex pane below the agent, where Zeek approves sudo with Touch ID, then report the result. Use after changing anything in the Configs repo, or when asked to "rebuild", "apply the config", "darwin-rebuild" or "switch".
+      ---
+
+      # Configs rebuild
+
+      The rebuild needs sudo, and that approval is Zeek's: always run it in a visible Rex
+      pane, never in the agent's own shell, and never try to get around the prompt.
+
+      1. Check first. In ~/Documents/repos/Configs, run `git status --short` and tell Zeek
+         in one line what will be applied, including uncommitted changes that aren't
+         yours (the switch applies the whole working tree).
+      2. Start it in a pane below:
+
+         ```sh
+         rex split -s "$REX_SESSION" -b "$REX_BLOCK" --split=below --ratio 40 --keep-open \
+           -c ~/Documents/repos/Configs -- sudo darwin-rebuild switch --flake .#macbook
+         ```
+
+         It prints the new block's ID. Tell Zeek: "rebuild running below; touch the
+         sensor when sudo asks."
+      3. Wait for it: `rex wait -s "$REX_SESSION" BLOCK --for 20m` returns the rebuild's exit
+         status (it can take minutes, so run it in the background or with a long timeout). Then read the end with
+         `rex capture -s "$REX_SESSION" -b BLOCK | tail -40`.
+      4. Report: success or the actual error lines. On an evaluation error, fix it and go
+         back to step 2. Don't retry a failure blindly.
+      5. Say what needs a restart, based on what changed: `/mcp` and reconnect for MCP
+         servers (e.g. the notes tools), a new shell for zsh or Starship, and restarting
+         Claude Code for settings or skills.
+      6. Close the pane with `rex block close -s "$REX_SESSION" BLOCK` once Zeek has seen
+         the result, unless they want it kept.
+
+      For the NixOS desktop, use the desktop-rebuild skill instead.
+    '';
+
+    # Same idea for the NixOS desktop, through its Rex server (modules/rex-server.nix) so there's
+    # no Tailscale SSH login check; SSH is only the fallback.
+    home.file.".claude/skills/desktop-rebuild/SKILL.md".text = ''
+      ---
+      name: desktop-rebuild
+      description: Rebuild and switch Zeek's NixOS desktop (host "desktop" on Tailscale, flake .#desktop) from the MacBook, through the desktop's Rex server (no SSH login), in a "rebuild" Rex session where Zeek types the sudo password, then report the result. Use when asked to rebuild/apply/switch the desktop, or after a Configs change that touches nixos/ or anything the desktop host imports.
+      ---
+
+      # Desktop rebuild
+
+      The desktop has its own checkout, `~/Documents/repos/configs` (lowercase), which is
+      separate from the MacBook's `~/Documents/repos/Configs`. It rebuilds from its own
+      working tree, so changes made on the MacBook aren't there until they're pushed and pulled.
+      Its weekly auto-upgrade (Sun 20:00, nixos/dk.nix) builds from that same path.
+
+      Reach it through its Rex login server, which runs as ezekiel and needs no SSH login.
+      The CLI needs the full tailnet name and port:
+
+      ```sh
+      D="$(tailscale status --json | python3 -c 'import json,sys;print([p["DNSName"] for p in json.load(sys.stdin)["Peer"].values() if p["HostName"]=="nixos"][0].rstrip("."))'):7297"
+      rex -S "$D" ls    # should list sessions
+      ```
+
+      Plain `rex -S desktop` fails, because the TLS certificate is for the full name.
+      Run every desktop command as `rex -S "$D" run -s rebuild ...` in a session named
+      `rebuild`. Create it once with `rex -S "$D" new rebuild` if `ls` doesn't show it.
+
+      1. Compare the two checkouts:
+
+         ```sh
+         rex -S "$D" run -s rebuild --keep-open --wait -c /home/ezekiel/Documents/repos/configs -- \
+           sh -c 'git fetch -q; git status -sb; git log --oneline -1'
+         ```
+
+         It prints the block ID. Read that block with `rex -S "$D" capture -s rebuild -b BLOCK`,
+         then close it. Do the same `git status -sb` and `git log --oneline -1` locally in
+         ~/Documents/repos/Configs.
+         Tell Zeek in a line or two: which commit each side is on, uncommitted changes on
+         either side, and whether the change they want is actually on the desktop yet.
+      2. If it isn't, ask Zeek how to get it there. Never commit, push, pull, stash or
+         reset on either machine without being asked. The usual way: commit and push on the
+         MacBook, then `git pull --ff-only` on the desktop. Uncommitted edits on the desktop
+         (often nixos/dk.nix) are Zeek's; leave them alone.
+      3. Start the rebuild on the desktop. There's no Touch ID there, so Zeek types the
+         desktop's sudo password into this terminal:
+
+         ```sh
+         rex -S "$D" run -s rebuild --keep-open -c /home/ezekiel/Documents/repos/configs -- \
+           sudo nixos-rebuild --flake .#desktop switch --impure
+         ```
+
+         Tell Zeek: "desktop rebuild is waiting for your sudo password. Open the `rebuild`
+         session on the desktop in Rex."
+      4. Wait: `rex -S "$D" wait -s rebuild BLOCK --for 30m` (in the background). It returns
+         the exit status. Then read `rex -S "$D" capture -s rebuild -b BLOCK | tail -40`.
+      5. Report success or the actual error lines. Name what needs restarting on the desktop:
+         services the change touched (check with `systemctl status NAME` through the same
+         `rex -S "$D" run --wait` pattern), or a re-login for home-manager shell changes.
+         Don't reboot unless Zeek asks.
+      6. Close the block with `rex -S "$D" block close -s rebuild BLOCK` once Zeek has seen the result.
+
+      Fallback if the Rex server doesn't answer: SSH in a local pane below. Tailscale SSH
+      may ask Zeek for a browser check first.
+
+      ```sh
+      rex split -s "$REX_SESSION" -b "$REX_BLOCK" --split=below --ratio 40 --keep-open -- \
+        ssh -t desktop 'cd ~/Documents/repos/configs && sudo nixos-rebuild --flake .#desktop switch --impure'
+      ```
+
+      If nothing reaches the desktop, check `tailscale status` first. If it's expired, Zeek
+      runs `tailscale up` on the MacBook.
+    '';
+
+    # Phased builds reviewed in Neovim: one phase at a time, uncommitted, in a rex
+    # pane below the agent.
+    home.file.".claude/skills/phase-review/SKILL.md".text = ''
+      ---
+      name: phase-review
+      description: Build a planned change in phases and stop after each one for the user to review the uncommitted diff in Neovim, in a Rex pane below the agent. Use when the user asks to work in phases, to review each phase or step before it is committed, to "bring up the diff", or for "the review setup with rex".
+      ---
+
+      # Phase review
+
+      The user reads every phase in Neovim before it is committed. Nothing is committed,
+      pushed or started early.
+
+      ## Before the first phase
+
+      - Agree the phases with the user: a short table of what each one holds and what ends
+        it. Put the same table on the ticket if there is one.
+      - Work in the primary checkout on the ticket's branch. No worktrees.
+      - Keep a phase small enough to read in one sitting, and never mix two purposes in one.
+
+      ## Each phase
+
+      1. Build the phase. Leave every change uncommitted.
+      2. Run the repo's full check (`make check`, `pnpm check`, ...) and fix what it finds.
+         Say plainly what passed and what was not run.
+      3. Open the diff in a pane below your own, from the repo's root:
+
+         ```sh
+         rex split -s "$REX_SESSION" -b "$REX_BLOCK" --split=below --ratio 65 \
+           -c "$PWD" -- nvim -c "DiffviewOpen"
+         ```
+
+         `DiffviewOpen` with no argument shows the working tree against HEAD, untracked
+         files included, which is exactly the phase. To show a whole branch after its
+         phases are committed, use `nvim -c "DiffviewOpen main...HEAD"`.
+         Confirm it opened with `rex capture -s "$REX_SESSION" -b BLOCK --trim | head`.
+      4. Stop and tell the user, in this order:
+         - that the phase is uncommitted and where the diff is open;
+         - the files to read, in reading order, one line each on what changed;
+         - anything that differs from the agreed plan, and why;
+         - what to look at closely (behaviour changes, risks, things left out).
+      5. Wait. On changes, edit, rerun the check, and say what moved; the open Neovim
+         reloads the files. On "commit", commit that phase alone, then start the next one.
+
+      ## Rules
+
+      - One commit per phase, made only after the user says so. Never amend an earlier
+        phase's commit; a fix found later is its own commit.
+      - Never push, open a pull request or deploy as part of a phase. Ask first.
+      - A migration is generated by the repo's own command and is not applied to a shared
+        or local database just to test the phase, unless the user asks.
+      - Leave panes the user opened alone. Open one new pane per review; the user closes it.
+      - If a phase turns up something the plan missed, say so at the stop, with a
+        recommendation, and do not build it into the phase unasked.
     '';
 
     # poi (configs/poi): Jev-ranked points of interest in a code base or a diff.
