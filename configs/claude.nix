@@ -286,34 +286,38 @@ in
          reset on either machine without being asked. The usual way: commit and push on the
          MacBook, then `git pull --ff-only` on the desktop. Uncommitted edits on the desktop
          (often nixos/dk.nix) are Zeek's; leave them alone.
-      3. Start the rebuild on the desktop. There's no Touch ID there, so Zeek types the
-         desktop's sudo password into this terminal:
+      3. Start the rebuild with `scripts/desktop-rebuild.sh` from the desktop's checkout, in a
+         local pane below so Zeek sees it. The pane connects by SSH because a desktop session
+         can't be shown inside a local pane. It asks for the desktop's sudo password (there's
+         no Touch ID there), then runs nixos-rebuild as its own systemd job and follows that
+         job's log.
+         - Why a separate job: a rebuild that updates Rex restarts the Rex server, which would
+           kill a rebuild running inside a Rex session halfway through the switch.
+         - Why it sets a throwaway git config: root builds ezekiel-owned repos (configs, and
+           ai-stack and evidence through getFlake). git refuses another user's repo, and Nix
+           ignores GIT_CONFIG_* variables. nixos/dk.nix also allows these repos for good.
 
          ```sh
-         rex -S "$D" run -s rebuild --keep-open -c /home/ezekiel/Documents/repos/configs -- \
-           sudo nixos-rebuild --flake .#desktop switch --impure
+         rex split -s "$REX_SESSION" -b "$REX_BLOCK" --split=below --ratio 45 --keep-open -- \
+           ssh -t desktop 'sh ~/Documents/repos/configs/scripts/desktop-rebuild.sh'
          ```
 
-         Tell Zeek: "desktop rebuild is waiting for your sudo password. Open the `rebuild`
-         session on the desktop in Rex."
-      4. Wait: `rex -S "$D" wait -s rebuild BLOCK --for 30m` (in the background). It returns
-         the exit status. Then read `rex -S "$D" capture -s rebuild -b BLOCK | tail -40`.
-      5. Report success or the actual error lines. Name what needs restarting on the desktop:
-         services the change touched (check with `systemctl status NAME` through the same
-         `rex -S "$D" run --wait` pattern), or a re-login for home-manager shell changes.
-         Don't reboot unless Zeek asks.
-      6. Close the block with `rex -S "$D" block close -s rebuild BLOCK` once Zeek has seen the result.
-
-      Fallback if the Rex server doesn't answer: SSH in a local pane below. Tailscale SSH
-      may ask Zeek for a browser check first.
-
-      ```sh
-      rex split -s "$REX_SESSION" -b "$REX_BLOCK" --split=below --ratio 40 --keep-open -- \
-        ssh -t desktop 'cd ~/Documents/repos/configs && sudo nixos-rebuild --flake .#desktop switch --impure'
-      ```
+         Tell Zeek: "desktop rebuild below is waiting for your desktop sudo password."
+      4. Wait: `rex wait -s "$REX_SESSION" BLOCK --for 60m` (in the background), then read
+         `rex capture -s "$REX_SESSION" -b BLOCK | tail -20`. The script ends with
+         `== RESULT: success ==` or the failure.
+      5. On failure, find the cause before trying again:
+         - `journalctl -u nixos-rebuild-switch-to-configuration` shows what the switch did.
+         - `systemctl --failed` shows which services failed.
+         - Exit 4 means the system switched but a service failed.
+         - home-manager-ezekiel failing with 127 means an activation script ran a command
+           that isn't on its small PATH.
+         Read these through the `rex -S "$D" run --wait` pattern. Report the actual error
+         lines. Name what needs restarting. Don't reboot unless Zeek asks.
+      6. Close the pane with `rex block close -s "$REX_SESSION" BLOCK` once Zeek has seen the result.
 
       If nothing reaches the desktop, check `tailscale status` first. If it's expired, Zeek
-      runs `tailscale up` on the MacBook.
+      runs `tailscale up` on the MacBook. Tailscale SSH may also ask Zeek for a browser check.
     '';
 
     # Phased builds reviewed in Neovim: one phase at a time, uncommitted, in a rex
