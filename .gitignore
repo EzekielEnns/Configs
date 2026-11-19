@@ -1,3 +1,6 @@
 tmp
 node_modules
 .aider*
+result
+__pycache__/
+.sandbox/
