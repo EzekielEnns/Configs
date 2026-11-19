@@ -5,7 +5,7 @@
 R=/home/ezekiel/Documents/repos/configs
 U=configs-rebuild-$(date +%s)
 cd "$R" || exit 1
-echo "== desktop rebuild ($U): type your desktop sudo password =="
+echo "== desktop rebuild ($U): touch the sensor on the Mac (or type the desktop password) =="
 sudo sh -c "install -d -m 700 /run/$U && printf '[safe]\n\tdirectory = %s\n\tdirectory = %s\n\tdirectory = %s\n' '$R' /home/ezekiel/Documents/repos/ai-stack /home/ezekiel/Documents/repos/evidence > /run/$U/.gitconfig" || exit 1
 sudo systemd-run --unit="$U" -p WorkingDirectory="$R" \
   -p Environment=PATH=/run/wrappers/bin:/run/current-system/sw/bin -p Environment=HOME=/run/$U \

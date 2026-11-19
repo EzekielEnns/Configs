@@ -302,7 +302,7 @@ in
            ssh -t desktop 'sh ~/Documents/repos/configs/scripts/desktop-rebuild.sh'
          ```
 
-         Tell Zeek: "desktop rebuild below is waiting for your desktop sudo password."
+         Tell Zeek: "desktop rebuild below: touch the sensor on the Mac (Secretive), or type the desktop password."
       4. Wait: `rex wait -s "$REX_SESSION" BLOCK --for 60m` (in the background), then read
          `rex capture -s "$REX_SESSION" -b BLOCK | tail -20`. The script ends with
          `== RESULT: success ==` or the failure.
