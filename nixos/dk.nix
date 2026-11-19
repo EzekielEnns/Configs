@@ -479,6 +479,12 @@
     # the newest nixos-unstable (the lock file isn't touched), then garbage-collect down to the
     # new generation (nix.gc in modules/general.nix). Skipped while the repo has uncommitted
     # changes, so a half-done edit never goes live unattended. Runs at next boot if missed.
+    # Root builds this ezekiel-owned checkout (the upgrade, and rebuilds run as systemd jobs so
+    # a Rex server restart can't cut them off); git refuses another user's repo without this.
+    programs.git = {
+      enable = true;
+      config.safe.directory = [ "/home/ezekiel/Documents/repos/configs" ];
+    };
     system.autoUpgrade = {
       enable = true;
       flake = "git+file:///home/ezekiel/Documents/repos/configs#desktop";
