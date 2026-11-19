@@ -40,8 +40,17 @@ in
     run mkdir -p "$p"
     cmp -s ${./grocery-snap}/manifest.json "$p/manifest.json" \
       || run install -m 644 ${./grocery-snap}/manifest.json "$p/manifest.json"
-    ts="$(command -v tailscale || echo /Applications/Tailscale.app/Contents/MacOS/Tailscale)"
-    tailnet="$("$ts" status --json 2>/dev/null | sed -n 's/.*"MagicDNSSuffix": *"\([^"]*\)".*/\1/p' | head -n 1)"
+    # Activation runs with a small PATH and set -eo pipefail, so look in the known places and
+    # never let a missing tailscale fail the whole activation.
+    ts=""
+    for c in "$(command -v tailscale || true)" /run/current-system/sw/bin/tailscale \
+             /etc/profiles/per-user/$USER/bin/tailscale /Applications/Tailscale.app/Contents/MacOS/Tailscale; do
+      if [ -n "$c" ] && [ -x "$c" ]; then ts="$c"; break; fi
+    done
+    tailnet=""
+    if [ -n "$ts" ]; then
+      tailnet="$({ "$ts" status --json 2>/dev/null || true; } | sed -n 's/.*"MagicDNSSuffix": *"\([^"]*\)".*/\1/p' | head -n 1)"
+    fi
     if [ -n "$tailnet" ]; then
       rendered="$(mktemp)"
       sed "s/@TAILNET@/$tailnet/g" ${./grocery-snap}/main.js > "$rendered"
