@@ -183,6 +183,23 @@
     users.users.ezekiel.openssh.authorizedKeys.keys = [
       "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIAhiPOtQxrU8YphLKSi9prqAKrpDJcLzRGVdnM03qT8K ezekiel.enns@protonmail.com"
     ];
+    # sudo by Touch ID on the MacBook: when the MacBook's Secretive agent is forwarded
+    # (ForwardAgent for this host in ~/.ssh/config there), sudo checks for this one Secure
+    # Enclave key, and the Mac asks for a fingerprint on every use. Only this key counts,
+    # not the login keys above, so nothing gets root without a touch. The password still
+    # works when no agent is forwarded (e.g. in Rex sessions, which can't forward one yet).
+    security.pam.sshAgentAuth = {
+      enable = true;
+      authorizedKeysFiles = [ "/etc/ssh/sudo_authorized_keys" ];
+    };
+    security.pam.services.sudo.sshAgentAuth = true;
+    environment.etc."ssh/sudo_authorized_keys" = {
+      mode = "0444"; # a real root-owned file: pam_ssh_agent_auth refuses writable ones
+      text = ''
+        ecdsa-sha2-nistp256 AAAAE2VjZHNhLXNoYTItbmlzdHAyNTYAAAAIbmlzdHAyNTYAAABBBMfxQDyqyMgvGduz2mVgGTDsRUGRfbIqpot6j440HBQdEU2iNrtswr6HuKyQFDSTxiz3XwKe6zbDl84lEwPgEP4= desktop-sudo (Secretive, MacBook)
+      '';
+    };
+
     #TODO move to harddrive
     systemd.tmpfiles.rules = [
       # top-level media dir + common subdirs (world-writable, setgid)

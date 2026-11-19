@@ -109,6 +109,9 @@
       "slack"
       "ghostty"
       "tailscale-app"
+      # SSH keys in the Secure Enclave, Touch ID per use; forwarded to the desktop so its sudo
+      # takes a fingerprint on the Mac (security.pam.sshAgentAuth in nixos/dk.nix).
+      "secretive"
     ];
     brews = [
       "zellij"
