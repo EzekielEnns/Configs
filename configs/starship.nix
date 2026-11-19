@@ -10,6 +10,9 @@
             settings = {
                 add_newline = false;
                 command_timeout = 10000;
+                # Default 30ms is too short for big workspace dirs (e.g. a work checkout with
+                # every repo cloned inside it): the scan times out and prints a WARN on exit.
+                scan_timeout = 200;
                 format ="$all$time$line_break[>>](bold blue) ";
                 time = {
                     disabled = false;

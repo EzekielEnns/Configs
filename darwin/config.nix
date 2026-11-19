@@ -30,6 +30,13 @@
   # Same as nixos/dk.nix: compromised eMudhra intermediates
   # (https://harry.id/blog/emudhra-ca-compromise-macos-curl). Drop once nixpkgs cacert is patched.
   security.pki.caCertificateBlacklist = [ "emSign ECC Root CA - G3" ];
+
+  # sudo takes Touch ID instead of the password (so a rebuild is one touch). reattach
+  # (pam_reattach) makes that work inside Rex panes and other multiplexers too.
+  security.pam.services.sudo_local = {
+    touchIdAuth = true;
+    reattach = true;
+  };
   environment.systemPackages = with pkgs; [
     zsh
     #needed for bash script

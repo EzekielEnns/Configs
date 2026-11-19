@@ -49,7 +49,14 @@
     programs.home-manager.enable = true;
     programs.zsh = {
       enable = true;
+      # Vite+ (vp) manages Node per repo from .node-version. Its installer can't
+      # edit these Nix-owned files, so it runs with VP_SELF_SETUP_NO_MODIFY_PATH=1
+      # and they load its env here; zshenv covers non-interactive shells too.
+      envExtra = ''
+        [ -f "$HOME/.config/vite-plus/env" ] && . "$HOME/.config/vite-plus/env"
+      '';
       initContent = ''
+        [ -f "$HOME/.config/vite-plus/env" ] && . "$HOME/.config/vite-plus/env"
         bindkey -v
         # re-bind fzf widgets after vi-mode reset (bindkey -v wipes them)
         if typeset -f fzf-history-widget >/dev/null; then
