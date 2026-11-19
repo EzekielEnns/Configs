@@ -66,7 +66,7 @@ and `config folders notes devices add --device-id ID` on the desktop
 2. Syncthing-Fork (Play Store or F-Droid). Settings → Connections: global discovery, local
    discovery, relays and NAT traversal off.
 3. Add Device: the desktop's ID, addresses
-   `tcp://desktop.TAILNET.ts.net:22000, tcp://100.64.96.125:22000` (Syncthing tries each).
+   `tcp://desktop.<tailnet>.ts.net:22000, tcp://100.64.96.125:22000` (`<tailnet>`: the MagicDNS suffix in `tailscale status`) (Syncthing tries each).
    The name alone failed on the Pixel ("no such host": Syncthing on Android may not use
    Tailscale's DNS), so the IP stays as the fallback. The IP is fixed while the desktop stays
    in the tailnet, and it's also baked into the desktop's listen address (modules/notes-sync.nix).

@@ -7,7 +7,9 @@
 const { Plugin, Notice, PluginSettingTab, Setting, requestUrl, arrayBufferToBase64, moment } = require("obsidian");
 
 // HTTPS through Tailscale Serve (modules/notes-sync.nix): Android blocks plain http:// from apps.
-const DEFAULTS = { api: "https://desktop.TAILNET.ts.net:8443/v1", model: "bolt" };
+// The TAILNET placeholder below is the tailnet's MagicDNS suffix, filled in by configs/notes'
+// activation so the tailnet name stays out of this public repo.
+const DEFAULTS = { api: "https://desktop.@TAILNET@:8443/v1", model: "bolt" };
 const OUT = "Shared/Groceries";
 const INBOX = `${OUT}/.inbox`; // a dot folder: Obsidian hides it, so only through the adapter
 const TIMEOUT = 90_000; // a cold model load included

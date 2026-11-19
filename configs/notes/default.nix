@@ -34,11 +34,22 @@ in
     # reaches both phones. Copied only when changed, so Syncthing doesn't churn; data.json
     # (its settings) stays the phone's. Enabled in the desktop's managed Obsidian settings
     # (modules/notes-sync.nix).
+    # main.js gets the tailnet's MagicDNS suffix for @TAILNET@ here (kept out of the repo);
+    # without a running tailscale the installed copy is left as it is.
     p="$v/.obsidian/plugins/grocery-snap"
     run mkdir -p "$p"
-    for f in main.js manifest.json; do
-      cmp -s ${./grocery-snap}/$f "$p/$f" || run install -m 644 ${./grocery-snap}/$f "$p/$f"
-    done
+    cmp -s ${./grocery-snap}/manifest.json "$p/manifest.json" \
+      || run install -m 644 ${./grocery-snap}/manifest.json "$p/manifest.json"
+    ts="$(command -v tailscale || echo /Applications/Tailscale.app/Contents/MacOS/Tailscale)"
+    tailnet="$("$ts" status --json 2>/dev/null | sed -n 's/.*"MagicDNSSuffix": *"\([^"]*\)".*/\1/p' | head -n 1)"
+    if [ -n "$tailnet" ]; then
+      rendered="$(mktemp)"
+      sed "s/@TAILNET@/$tailnet/g" ${./grocery-snap}/main.js > "$rendered"
+      cmp -s "$rendered" "$p/main.js" || run install -m 644 "$rendered" "$p/main.js"
+      rm -f "$rendered"
+    else
+      echo "notesVault: no tailscale status, leaving grocery-snap/main.js as it is" >&2
+    fi
   '';
 
   services.syncthing = lib.mkIf pkgs.stdenv.isDarwin {
