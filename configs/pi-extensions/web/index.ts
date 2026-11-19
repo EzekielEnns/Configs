@@ -56,6 +56,9 @@ const READER_URL = process.env.PI_READER_GATEWAY ?? "http://desktop:4000/v1";
 // PI_WORKER_MODEL (e.g. desktop/bolt) swaps Flint out here too; other models get 2 slots.
 const READER_MODEL = process.env.PI_READER_MODEL ?? process.env.PI_WORKER_MODEL?.replace(/^desktop\//, "") ?? "flint";
 const READER_SLOTS = Number(process.env.PI_READER_SLOTS) || (READER_MODEL === "flint" ? 3 : 2);
+// PI_READER_THINKING=0: readers answer without thinking (chat_template_kwargs). Bolt read one
+// page's passages in 3.6 s instead of 13.1 s this way, with the same claims (2026-11-01).
+const READER_NO_THINK = process.env.PI_READER_THINKING === "0";
 const READER_TIMEOUT = 150_000;
 // dig ranks search results before fetching: Jev (a decision model on OpenRouter, through the
 // gateway's pass-through, which adds the key) scores each one; a plain rule if it fails.
@@ -296,6 +299,7 @@ async function readPage(
 				},
 			],
 			...(schema ? { response_format: { type: "json_schema", json_schema: { name: "claims", schema: CLAIMS_SCHEMA } } } : {}),
+			...(READER_NO_THINK ? { chat_template_kwargs: { enable_thinking: false } } : {}),
 		};
 		const res = await fetch(`${READER_URL}/chat/completions`, {
 			method: "POST",

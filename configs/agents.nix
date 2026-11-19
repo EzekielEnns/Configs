@@ -43,13 +43,13 @@ let
     # x 32k; the 4B runs 4 slots x 16k for quick lookups.
     { id = "sage"; name = "Sage-A1.5 35B-A3B (research, Q3, 2 slots x 32k)"; contextWindow = 32768; maxTokens = 16384; }
     { id = "agents-a1-4b"; name = "Agents-A1 4B (research, 4 slots x 16k)"; contextWindow = 16384; maxTokens = 8192; }
-    # Chat and roleplay, no coding (`pichat`): Nemotron 3.5 Bolt E4B uncensored, 2 slots x 64k.
+    # Chat and roleplay, no coding (`pichat`): Nemotron 3.5 Bolt E4B uncensored, 4 slots x 32k.
     # Its chat template thinks unless told not to, so Pi's thinking level goes through as
     # enable_thinking (off = no thinking at all).
     {
       id = "bolt";
-      name = "Nemotron Bolt E4B uncensored (chat/RP, 2 slots x 64k)";
-      contextWindow = 65536;
+      name = "Nemotron Bolt E4B uncensored (chat/RP, 4 slots x 32k)";
+      contextWindow = 32768;
       maxTokens = 8192;
       input = [ "text" "image" ]; # Gemma 4 E4B's vision projector (ai-stack nix/module.nix)
       compat = {
@@ -57,6 +57,22 @@ let
         chatTemplateKwargs.enable_thinking."$var" = "thinking.enabled";
       };
     }
+  ] ++ map (p: {
+    # pichat planners (ai-stack docs/MODEL-WATCH.md "Plan"): they plan lookups beside Bolt in
+    # llama-swap's pichat group, 2 slots x 32k with a 2k thinking budget. All four templates
+    # take enable_thinking, so Pi's thinking level reaches them like Bolt's.
+    inherit (p) id name;
+    contextWindow = 32768;
+    maxTokens = 8192;
+    compat = {
+      thinkingFormat = "chat-template";
+      chatTemplateKwargs.enable_thinking."$var" = "thinking.enabled";
+    };
+  }) [
+    { id = "planner-a1"; name = "Planner: Agents-A1 4B (Qwen3.5, 2 x 32k)"; }
+    { id = "planner-qwen9b"; name = "Planner: Qwen3.5 9B (2 x 32k)"; }
+    { id = "planner-granite"; name = "Planner: Granite 4.2 8B (2 x 32k)"; }
+    { id = "planner-nano"; name = "Planner: Nemotron 3 Nano 4B (2 x 32k)"; }
   ];
   withReasoning = map (m: m // { reasoning = true; }) models;
   piModels = (pkgs.formats.json { }).generate "pi-models.json" {
@@ -116,6 +132,8 @@ let
     awk 'f; /^---$/ && NR > 1 { f = 1 }' $src/SKILL.md >> $out/SKILL.md
   '';
   checkrefs = pkgs.writeShellScriptBin "checkrefs" ''exec ${pkgs.python3}/bin/python3 -I ${./pi-orch/checkrefs.py} "$@"'';
+  # Speed, tokens and cost per model, steps and lookups per message (ai-stack docs/SPEED-COST-PLAN.md A).
+  piStats = pkgs.writeShellScriptBin "pi-stats" ''exec ${pkgs.python3}/bin/python3 -I ${./pi-stats/pi_stats.py} "$@"'';
   # Points of interest: Jev ranks code, diff hunks or web passages against a question (configs/poi).
   # Code is cut with tree-sitter in a headless Neovim; Neovim and the parsers come from the same
   # nixpkgs so their ABI matches (the editor's own parsers are built at runtime, and the desktop
@@ -133,6 +151,12 @@ let
   '';
   # Second opinion on an agent's change: test gaming, scope, risk (configs/jev-check). git for the
   # checkpoint diff; jev-check.ts runs it after each pis run.
+  # Game-asset / 3D reference images via OpenRouter (configs/imagegen): style + sheet presets,
+  # reference images for style matching. Goes through the gateway's /openrouter/images pass-through.
+  imagegen = pkgs.writeShellScriptBin "imagegen" ''
+    export IMAGEGEN_URL=''${IMAGEGEN_URL:-http://${desktop}:4000/openrouter/images}
+    exec ${pkgs.python3}/bin/python3 -I ${./imagegen/imagegen.py} "$@"
+  '';
   jevCheck = pkgs.writeShellScriptBin "jev-check" ''
     export PATH=$PATH:${lib.makeBinPath [ pkgs.git ]}
     exec ${pkgs.python3}/bin/python3 -I ${./jev-check/jev_check.py} "$@"
@@ -284,10 +308,11 @@ let
     editorPaddingX = 1;
   };
   # pichat's own settings: Bolt only, thinking hidden like the coding setup's.
+  chatNotesTools = "notes_search,notes_read,notes_recent,notes_write";
   piChatSettings = (pkgs.formats.json { }).generate "pi-chat-settings.json" {
     defaultProvider = "desktop";
-    defaultModel = "bolt";
-    enabledModels = [ "desktop/bolt" ];
+    defaultModel = "pichat";
+    enabledModels = [ "desktop/pichat" "desktop/bolt" ];
     hideThinkingBlock = true; # Ctrl+T shows it
     showHardwareCursor = true;
     editorPaddingX = 1;
@@ -304,18 +329,22 @@ in
     pkgs.ghidra
     agentPkgs.pi-coding-agent
     checkrefs
+    piStats
     poi
+    imagegen
     jevCheck
     sandboxRuntime # srt
     piSandbox
     pis
-    # pichat [PI_ARGS...]: plain chat and roleplay on Bolt with web search, nothing else. Its
-    # own agent dir (~/.pi/chat): chat system prompt, only the web extension, own sessions.
+    # pichat [PI_ARGS...]: chat, roleplay and lookups in one. Its own agent dir (~/.pi/chat):
+    # chat system prompt, the web and notes extensions, own sessions. desktop/pichat is a
+    # virtual model (pi-extensions/chat-router.ts): Bolt chats; messages that need facts go to
+    # Qwen3.5 9B with lookup and dig, and Bolt reads those pages with thinking off.
     (pkgs.writeShellScriptBin "pichat" ''
-      export PI_CODING_AGENT_DIR=$HOME/.pi/chat
-      exec ${agentPkgs.pi-coding-agent}/bin/pi --model desktop/bolt --thinking off \
+      export PI_CODING_AGENT_DIR=$HOME/.pi/chat PI_READER_MODEL=bolt PI_READER_THINKING=0
+      exec ${agentPkgs.pi-coding-agent}/bin/pi --model desktop/pichat \
         --no-context-files --no-skills --no-prompt-templates \
-        --no-builtin-tools --tools web_search,fetch_content,notes_search,notes_read,notes_recent,notes_write \
+        --no-builtin-tools --tools lookup,dig,${chatNotesTools} \
         --append-system-prompt "Today is $(date +%Y-%m-%d)." "$@"
     '')
     # Runs reader workers over a ledger's slices and checks their claims (ORCHESTRATE-PLAN.md v2).
@@ -339,6 +368,7 @@ in
       source = piModels;
     };
     ".pi/chat/extensions/searxng".source = "${piSearxng}/lib/node_modules/pi-searxng";
+    ".pi/chat/extensions/router.ts".source = ./pi-extensions/chat-router.ts;
     ".pi/chat/extensions/notes".source = "${notesTools}/lib/notes"; # images -> notes, with approval
   };
 

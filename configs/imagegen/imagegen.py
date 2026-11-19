@@ -11,8 +11,9 @@ model is told to match their style, so a picture you like becomes the style for 
 
 Where requests go:
   - OPENROUTER_API_KEY set: straight to OpenRouter.
-  - otherwise: the desktop gateway's /openrouter/chat pass-through (ai-stack), which adds the
-    key there, so the Mac never holds it. IMAGEGEN_URL overrides the address.
+  - otherwise: the desktop gateway's /openrouter/images pass-through (nixos/dk.nix), which
+    adds the key there, so the Mac never holds it. IMAGEGEN_URL overrides the address.
+Both are OpenRouter's images API (POST /api/v1/images), which every image model supports.
 
 Each image is saved as PNG next to a .json with the full prompt, model, refs and cost, so a
 good result can be reproduced or used as the next reference.
@@ -33,16 +34,20 @@ import urllib.request
 from pathlib import Path
 
 # Short names for the models worth using. Any full OpenRouter id also works with -m.
-# modalities: image-only models reject "text" in the output list.
 MODELS = {
-    "grok": ("x-ai/grok-imagine-image-2.0", ["image"]),
-    "gpt": ("openai/gpt-image-2", ["image"]),
-    "nano": ("google/gemini-nano-banana-2.1", ["image", "text"]),
-    "gemini-pro": ("google/gemini-3-pro-image", ["image", "text"]),
-    "seedream": ("bytedance-seed/seedream-5-0-pro", ["image"]),
-    "flux": ("black-forest-labs/flux-3-image", ["image"]),
+    "grok": "x-ai/grok-imagine-image-2.0",
+    "gpt": "openai/gpt-image-2",
+    "nano": "google/gemini-nano-banana-2.1",
+    "gemini-pro": "google/gemini-3-pro-image",
+    "flux": "black-forest-labs/flux-3-image",
+    # Cheaper candidates (bake-off 2026-11-14).
+    "lite": "google/gemini-3.1-flash-lite-image",
+    "klein": "black-forest-labs/flux-3-image-klein",
+    "krea": "krea/krea-2-medium-turbo",
+    "mini": "openai/gpt-image-1-mini",
 }
-DEFAULT_MODEL = os.environ.get("IMAGEGEN_MODEL", "grok")
+# klein: same quality as grok on the turnaround bake-off at about 1/8 the cost ($0.009 vs $0.07).
+DEFAULT_MODEL = os.environ.get("IMAGEGEN_MODEL", "klein")
 
 # Rendering style. Edit freely; these are the whole "house style".
 STYLES = {
@@ -130,10 +135,10 @@ def data_url(path: Path) -> str:
 def endpoint() -> tuple[str, dict]:
     key = os.environ.get("OPENROUTER_API_KEY")
     if key:
-        url = "https://openrouter.ai/api/v1/chat/completions"
+        url = "https://openrouter.ai/api/v1/images"
         auth = key
     else:
-        url = os.environ.get("IMAGEGEN_URL", "http://desktop:4000/openrouter/chat")
+        url = os.environ.get("IMAGEGEN_URL", "http://desktop:4000/openrouter/images")
         auth = os.environ.get("IMAGEGEN_GATEWAY_KEY", "local")
     headers = {
         "Authorization": f"Bearer {auth}",
@@ -143,17 +148,12 @@ def endpoint() -> tuple[str, dict]:
     return url, headers
 
 
-def request(model: str, modalities: list, prompt: str, refs: list[Path], aspect: str | None) -> dict:
-    content = [{"type": "text", "text": prompt}]
-    content += [{"type": "image_url", "image_url": {"url": data_url(r)}} for r in refs]
-    body = {
-        "model": model,
-        "messages": [{"role": "user", "content": content}],
-        "modalities": modalities,
-        "usage": {"include": True},
-    }
-    if aspect:
-        body["image_config"] = {"aspect_ratio": aspect}
+def request(model: str, prompt: str, refs: list[Path], opts: dict) -> dict:
+    body = {"model": model, "prompt": prompt, "output_format": "png", **opts}
+    if refs:
+        body["input_references"] = [
+            {"type": "image_url", "image_url": {"url": data_url(r)}} for r in refs
+        ]
     url, headers = endpoint()
     req = urllib.request.Request(url, json.dumps(body).encode(), headers, method="POST")
     try:
@@ -161,24 +161,21 @@ def request(model: str, modalities: list, prompt: str, refs: list[Path], aspect:
             return json.load(r)
     except urllib.error.HTTPError as e:
         detail = e.read().decode(errors="replace")[:800]
+        if e.code == 404 and "openrouter.ai" not in url and "Not Found" in detail:
+            detail += "\n(the gateway has no /openrouter/images pass-through; deploy it or set OPENROUTER_API_KEY)"
         raise SystemExit(f"imagegen: HTTP {e.code} from {url}\n{detail}") from None
     except urllib.error.URLError as e:
-        hint = "" if "openrouter.ai" in url else (
-            "\n(is the gateway's /openrouter/chat pass-through deployed? or set OPENROUTER_API_KEY)"
-        )
-        raise SystemExit(f"imagegen: can't reach {url}: {e.reason}{hint}") from None
+        raise SystemExit(f"imagegen: can't reach {url}: {e.reason}") from None
 
 
 def images_from(resp: dict) -> list[bytes]:
     out = []
-    for choice in resp.get("choices", []):
-        for img in (choice.get("message") or {}).get("images") or []:
-            url = (img.get("image_url") or {}).get("url", "")
-            if url.startswith("data:"):
-                out.append(base64.b64decode(url.split(",", 1)[1]))
-            elif url.startswith("http"):
-                with urllib.request.urlopen(url, timeout=120) as r:
-                    out.append(r.read())
+    for item in resp.get("data") or []:
+        if item.get("b64_json"):
+            out.append(base64.b64decode(item["b64_json"]))
+        elif item.get("url"):
+            with urllib.request.urlopen(item["url"], timeout=120) as r:
+                out.append(r.read())
     return out
 
 
@@ -192,7 +189,7 @@ def main() -> None:
         description="Game-asset / 3D reference images via OpenRouter.",
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="styles: " + ", ".join(STYLES) + "\nsheets: " + ", ".join(SHEETS)
-        + "\nmodels: " + ", ".join(f"{k} ({v[0]})" for k, v in MODELS.items()),
+        + "\nmodels: " + ", ".join(f"{k} ({v})" for k, v in MODELS.items()),
     )
     ap.add_argument("subject", nargs="*", help="what to draw")
     ap.add_argument("-f", "--file", type=Path, help="read the subject from a file (long lists)")
@@ -201,6 +198,9 @@ def main() -> None:
     ap.add_argument("-m", "--model", default=DEFAULT_MODEL, help="alias or full OpenRouter id")
     ap.add_argument("-r", "--ref", type=Path, action="append", default=[], help="style reference image (repeatable)")
     ap.add_argument("-a", "--aspect", help="aspect ratio, e.g. 16:9, 1:1, 3:4 (if the model supports it)")
+    ap.add_argument("--res", choices=["512", "768", "1K", "1.5K", "2K", "4K"], help="resolution tier (cost scales with it)")
+    ap.add_argument("--quality", choices=["low", "medium", "high"], help="rendering quality, where the model has one")
+    ap.add_argument("--seed", type=int, help="repeatable result, where the model supports it")
     ap.add_argument("-n", type=int, default=1, help="number of variations (run in parallel)")
     ap.add_argument("-x", "--extra", default="", help="extra instructions appended to the prompt")
     ap.add_argument("-o", "--out", type=Path, default=Path(os.environ.get("IMAGEGEN_OUT", "art-refs")))
@@ -218,11 +218,13 @@ def main() -> None:
         if not r.is_file():
             ap.error(f"reference not found: {r}")
 
-    model, modalities = MODELS.get(a.model, (a.model, ["image", "text"]))
+    model = MODELS.get(a.model, a.model)
+    opts = {k: v for k, v in {"aspect_ratio": a.aspect, "resolution": a.res,
+                              "quality": a.quality, "seed": a.seed}.items() if v is not None}
     prompt = subject if a.raw else compose(a.style, a.sheet, subject, bool(a.ref), a.extra)
 
     if a.dry_run:
-        print(f"model: {model}  modalities: {modalities}  refs: {[str(r) for r in a.ref]}\n")
+        print(f"model: {model}  options: {opts}  refs: {[str(r) for r in a.ref]}\n")
         print(prompt)
         return
 
@@ -232,7 +234,7 @@ def main() -> None:
     print(f"imagegen: {a.n} x {model} ({a.style}/{a.sheet}) -> {a.out}/", file=sys.stderr)
 
     with cf.ThreadPoolExecutor(max_workers=min(a.n, 6)) as pool:
-        futures = [pool.submit(request, model, modalities, prompt, a.ref, a.aspect) for _ in range(a.n)]
+        futures = [pool.submit(request, model, prompt, a.ref, opts) for _ in range(a.n)]
         results = [f.result() for f in futures]
 
     saved, total_cost = [], 0.0
@@ -241,8 +243,7 @@ def main() -> None:
         cost = (resp.get("usage") or {}).get("cost") or 0
         total_cost += cost
         if not imgs:
-            msg = (resp.get("choices") or [{}])[0].get("message", {}).get("content")
-            print(f"imagegen: request {i} returned no image. {msg or json.dumps(resp)[:500]}", file=sys.stderr)
+            print(f"imagegen: request {i} returned no image. {json.dumps(resp)[:500]}", file=sys.stderr)
             continue
         for j, png in enumerate(imgs, 1):
             name = f"{base}-{i}" + (f"-{j}" if len(imgs) > 1 else "")
@@ -250,7 +251,7 @@ def main() -> None:
             path.write_bytes(png)
             (a.out / f"{name}.json").write_text(json.dumps({
                 "model": model, "style": a.style, "sheet": a.sheet, "subject": subject,
-                "extra": a.extra, "aspect": a.aspect, "refs": [str(r) for r in a.ref],
+                "extra": a.extra, "options": opts, "refs": [str(r) for r in a.ref],
                 "prompt": prompt, "cost_usd": cost, "created": stamp,
             }, indent=2))
             saved.append(path)
