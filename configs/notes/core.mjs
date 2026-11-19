@@ -6,6 +6,8 @@
  *   phones. Reads: anything in it but sync/app internals. Writes: anywhere with the user's
  *   approval, but never AGENTS.md, dot-folders, non-.md/.txt files, or the folders listed in
  *   NOTES_PROTECTED (default: Configs, the copy of the repo's notes/), whatever a grant says.
+ * - The top-level folders in NOTES_OPEN (default: Agents, where agents keep their own notes)
+ *   are writable without asking, like a standing folder grant. NOTES_OPEN="" turns that off.
  * - A write is a plan (path, mode, the file before and after, a diff), applied only if the file
  *   still matches what the plan was made from, so it never clobbers an edit synced meanwhile.
  * - State lives outside the vault, in ~/.local/state/notes: grants.json (files approved with
@@ -26,6 +28,7 @@ export const STATE = resolve(process.env.NOTES_STATE || join(homedir(), ".local"
 export const GRANTS = join(STATE, "grants.json");
 export const OUTBOX = join(STATE, "outbox");
 export const PROTECTED = (process.env.NOTES_PROTECTED ?? "Configs").split(",").map((s) => s.trim()).filter(Boolean);
+export const OPEN = (process.env.NOTES_OPEN ?? "Agents").split(",").map((s) => s.trim().replace(/\/+$/, "")).filter(Boolean);
 const HIDDEN = /(^|\/)(\.git|\.obsidian|\.stfolder|\.stversions|\.trash)(\/|$)|(^|\/)\.st(ignore|globalignore)$/;
 const MAX_NOTE = 1_000_000; // bytes: a note, not a dataset
 
@@ -181,10 +184,18 @@ export function grants() {
 	}
 }
 
-export const granted = (rel) => grants().files.some((f) => f.path === rel);
+// A grant ending in "/" is a folder: every note under it, at any depth. writeBlock still applies per file.
+export const granted = (rel) =>
+	OPEN.includes(rel.split("/")[0]) ||
+	grants().files.some((f) => f.path === rel || (f.path.endsWith("/") && rel.startsWith(f.path)));
 
 export function grant(rel, source) {
-	if (writeBlock(rel)) return;
+	if (rel.endsWith("/")) {
+		const dir = rel.replace(/^\/+/, "");
+		if (!dir || dir === "/" || PROTECTED.includes(dir.split("/")[0]) || HIDDEN.test(dir) || dir.split("/").some((s) => s.startsWith(".") || s === ".."))
+			throw new Error(`can't grant the folder ${rel}`);
+		rel = dir;
+	} else if (writeBlock(rel)) return;
 	const g = grants();
 	if (!g.files.some((f) => f.path === rel)) g.files.push({ path: rel, since: new Date().toISOString().slice(0, 10), source });
 	mkdirSync(STATE, { recursive: true });

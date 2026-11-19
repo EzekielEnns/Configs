@@ -7,7 +7,9 @@
  *   notes outbox [--json]        list queued writes (with fresh diffs in --json)
  *   notes apply ID [--always]    apply one queued write (Neovim's :Notes review uses these)
  *   notes reject ID
- *   notes grants [--json]        files agents may write without asking
+ *   notes grant PATH             let agents write PATH without asking; a PATH ending in / is a
+ *                                whole folder (e.g. Agents/), every note under it
+ *   notes grants [--json]        files and folders agents may write without asking
  *   notes revoke PATH            take one back
  *   notes path                   print the vault's folder
  */
@@ -58,6 +60,10 @@ try {
 		if (json) console.log(JSON.stringify(g));
 		else if (!g.length) console.log("No files are approved for agents to write without asking.");
 		else for (const f of g) console.log(`${f.path}  (since ${f.since}, ${f.source ?? "?"})`);
+	} else if (cmd === "grant") {
+		if (!args[0]) throw new Error("usage: notes grant PATH (a folder ends in /)");
+		notes.grant(args[0], "notes grant");
+		console.log(notes.granted(args[0].endsWith("/") ? `${args[0].replace(/^\/+/, "")}x.md` : args[0]) ? `granted ${args[0]}` : `${args[0]} can't be granted`);
 	} else if (cmd === "revoke") console.log(notes.revoke(args[0]) ? `revoked ${args[0]}` : `${args[0]} wasn't approved`);
 	else if (cmd === "review") {
 		const queued = notes.outbox();
@@ -81,7 +87,7 @@ try {
 		rl.close();
 	} else {
 		console.log(
-			"usage: notes review | outbox [--json] | apply ID [--always] | reject ID | grants [--json] | revoke PATH | path",
+			"usage: notes review | outbox [--json] | apply ID [--always] | reject ID | grant PATH | grants [--json] | revoke PATH | path",
 		);
 		process.exit(cmd ? 2 : 0);
 	}
