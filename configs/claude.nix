@@ -163,8 +163,7 @@ in
     # Code rewrites, so each is added there once rather than owned.
     # The remote ones are the providers' own servers, signed in once with /mcp (OAuth), so
     # they keep working when the claude.ai connector proxy doesn't. Slack isn't here: its
-    # server only takes pre-registered apps, so it stays a claude.ai connector. likec4 is the
-    # desktop's (modules/likec4.nix), on its Tailscale address.
+    # server only takes pre-registered apps, so it stays a claude.ai connector.
     home.activation.claudeMcp = ''
       claude="$HOME/.local/bin/claude"
       if [ -x "$claude" ]; then
@@ -176,8 +175,7 @@ in
           notion=https://mcp.notion.com/mcp \
           granola=https://mcp.granola.ai/mcp \
           figma=https://mcp.figma.com/mcp \
-          icepanel=https://mcp.icepanel.io/mcp \
-          likec4=http://100.64.96.125:33335/mcp; do
+          icepanel=https://mcp.icepanel.io/mcp; do
           name="''${server%%=*}"
           if ! "$claude" mcp get "$name" >/dev/null 2>&1; then
             run "$claude" mcp add -s user --transport http "$name" "''${server#*=}" || true
