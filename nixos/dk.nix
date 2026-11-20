@@ -16,11 +16,11 @@
   ];
 
   config = {
-    # Architecture diagrams (modules/likec4.nix), every project under ~/Documents/repos/arch,
-    # at http://desktop.<tailnet>:5180 from the Mac.
+    # Architecture diagrams (modules/likec4.nix): ~/Diagrams, synced with the Mac like ~/Notes,
+    # viewed at http://desktop.<tailnet>:5180, the MCP on :33335.
     services.likec4 = {
       enable = true;
-      workspace = "/home/ezekiel/Documents/repos/arch";
+      workspace = "/home/ezekiel/Diagrams";
       user = "ezekiel";
       listenAddress = "100.64.96.125"; # Tailscale only
     };
