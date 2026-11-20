@@ -25,6 +25,9 @@
       enable = true;
       user = "ezekiel";
       designsDir = "/home/ezekiel/Atlas";
+      # Tailscale logins that may also connect designs to git repos and set up the GitHub
+      # App (everyone else on the tailnet edits).
+      admins = [ "EzekielEnns@github" ];
     };
 
     services.ai-stack = {
