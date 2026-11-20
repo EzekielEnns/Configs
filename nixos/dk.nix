@@ -12,9 +12,19 @@
   imports = [
     (builtins.getFlake "git+file:///home/ezekiel/Documents/repos/ai-stack").nixosModules.default
     ../modules/notes-sync.nix # the shared notes vault: Syncthing over Tailscale, hourly snapshots
+    ../modules/likec4.nix
   ];
 
   config = {
+    # Architecture diagrams (modules/likec4.nix), every project under ~/Documents/repos/arch,
+    # at http://desktop.<tailnet>:5180 from the Mac.
+    services.likec4 = {
+      enable = true;
+      workspace = "/home/ezekiel/Documents/repos/arch";
+      user = "ezekiel";
+      listenAddress = "100.64.96.125"; # Tailscale only
+    };
+
     services.ai-stack = {
       enable = true;
       listenAddress = "100.64.96.125"; # Tailscale only
