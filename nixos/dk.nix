@@ -11,10 +11,22 @@
   # already uses) instead of being a flake input the Mac would also have to fetch.
   imports = [
     (builtins.getFlake "git+file:///home/ezekiel/Documents/repos/ai-stack").nixosModules.default
+    # atlas (live architecture diagrams), from its private repo cloned next to this one.
+    (builtins.getFlake "git+file:///home/ezekiel/Documents/repos/atlas").nixosModules.default
     ../modules/notes-sync.nix # the shared notes vault: Syncthing over Tailscale, hourly snapshots
   ];
 
   config = {
+    # atlas: on loopback, put on the tailnet by `tailscale serve` at https://desktop.<tailnet>:5190,
+    # which tells it who each person is. Runs as ezekiel so the design files in ~/Atlas are
+    # yours (one folder per design); the live database is /var/lib/atlas. Agents here use
+    # http://127.0.0.1:5190/mcp, everything else the tailnet address.
+    services.atlas = {
+      enable = true;
+      user = "ezekiel";
+      designsDir = "/home/ezekiel/Atlas";
+    };
+
     services.ai-stack = {
       enable = true;
       listenAddress = "100.64.96.125"; # Tailscale only
@@ -496,12 +508,12 @@
     # the newest nixos-unstable (the lock file isn't touched), then garbage-collect down to the
     # new generation (nix.gc in modules/general.nix). Skipped while the repo has uncommitted
     # changes, so a half-done edit never goes live unattended. Runs at next boot if missed.
-    # Root builds these ezekiel-owned checkouts: configs, plus ai-stack and evidence through
+    # Root builds these ezekiel-owned checkouts: configs, plus ai-stack, evidence and atlas through
     # getFlake above (the weekly upgrade, and rebuilds run as systemd jobs so a Rex server
     # restart can't cut them off). git refuses another user's repo without this.
     programs.git = {
       enable = true;
-      config.safe.directory = map (r: "/home/ezekiel/Documents/repos/${r}") [ "configs" "ai-stack" "evidence" ];
+      config.safe.directory = map (r: "/home/ezekiel/Documents/repos/${r}") [ "configs" "ai-stack" "evidence" "atlas" ];
     };
     system.autoUpgrade = {
       enable = true;
