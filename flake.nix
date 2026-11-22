@@ -170,6 +170,7 @@
             hmImports = [
               ./configs/users.nix
               ./configs/agents.nix
+              ./configs/board-desktop.nix
             ];
             # Rex Linux server: on once the `rex` input above is uncommented.
             extraModules = nixpkgs.lib.optionals (inputs ? rex) [

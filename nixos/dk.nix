@@ -511,12 +511,16 @@
     # the newest nixos-unstable (the lock file isn't touched), then garbage-collect down to the
     # new generation (nix.gc in modules/general.nix). Skipped while the repo has uncommitted
     # changes, so a half-done edit never goes live unattended. Runs at next boot if missed.
-    # Root builds these ezekiel-owned checkouts: configs, plus ai-stack, evidence and atlas through
+    # Root builds these ezekiel-owned checkouts: configs, plus ai-stack, evidence, atlas and s-chan through
     # getFlake above (the weekly upgrade, and rebuilds run as systemd jobs so a Rex server
     # restart can't cut them off). git refuses another user's repo without this.
     programs.git = {
       enable = true;
-      config.safe.directory = map (r: "/home/ezekiel/Documents/repos/${r}") [ "configs" "ai-stack" "evidence" "atlas" ];
+      config.safe.directory = map (r: "/home/ezekiel/Documents/repos/${r}") [ "configs" "ai-stack" "evidence" "atlas" "s-chan" ];
+
+    # The board's primary node is a systemd user service (configs/board-desktop.nix):
+    # keep the user manager running without a login, so it's up after a reboot.
+    users.users.ezekiel.linger = true;
     };
     system.autoUpgrade = {
       enable = true;
