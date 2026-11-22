@@ -1,13 +1,12 @@
 { config, ... }:
-# s-chan's agent board, on trial. Uses the binary built in the s-chan checkout
-# (cargo build --release there), so a rebuild of s-chan applies without a switch;
-# restart the two agents after rebuilding it:
-#   launchctl kickstart -k gui/$UID/org.nix-community.home.board-serve (and board-wake)
+# s-chan's agent board, on trial. The binary is ~/.local/bin/board, installed by
+# s-chan's scripts/install.sh (which also restarts both agents), so updating s-chan
+# needs no switch. It lives outside ~/Documents: macOS asks for Documents access
+# again for every new build run from there.
 # To stop the trial, drop this file's import from darwin/home.nix and switch.
 let
   repo = "${config.home.homeDirectory}/Documents/repos/s-chan";
-  bin = "${repo}/target/release";
-  board = "${bin}/board";
+  board = "${config.home.homeDirectory}/.local/bin/board";
   log = "${config.home.homeDirectory}/Library/Logs/board.log";
   hook = event: [
     {
@@ -23,8 +22,7 @@ let
 in
 {
   config = {
-    # Agents run `board ...` from Bash.
-    home.sessionPath = [ bin ];
+    # Agents run `board ...` from Bash; ~/.local/bin is already on PATH (darwin/home.nix).
 
     programs.claude-code.settings = {
       # The wake agent writes one line into an idle session's inbox. Without this,
