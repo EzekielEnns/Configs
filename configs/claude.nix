@@ -225,10 +225,11 @@ in
 
          ```sh
          rex split -s "$REX_SESSION" -b "$REX_BLOCK" --split=below --ratio 40 --keep-open \
-           -c ~/Documents/repos/Configs -- sudo darwin-rebuild switch --flake .#macbook
+           -c ~/Documents/repos/Configs -- sudo darwin-rebuild switch --flake .#macbook --impure
          ```
 
-         It prints the new block's ID. Tell Zeek: "rebuild running below; touch the
+         `--impure` lets it load private repos cloned next to Configs (s-chan),
+         as the desktop rebuild does. It prints the new block's ID. Tell Zeek: "rebuild running below; touch the
          sensor when sudo asks."
       3. Wait for it: `rex wait -s "$REX_SESSION" BLOCK --for 20m` returns the rebuild's exit
          status (it can take minutes, so run it in the background or with a long timeout). Then read the end with
