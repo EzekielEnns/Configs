@@ -8,6 +8,7 @@
     ../configs/claude.nix
     ../configs/rex.nix
     ../configs/agents.nix
+    ../configs/board.nix
   ];
   options = { };
   config = {
