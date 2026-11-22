@@ -517,11 +517,11 @@
     programs.git = {
       enable = true;
       config.safe.directory = map (r: "/home/ezekiel/Documents/repos/${r}") [ "configs" "ai-stack" "evidence" "atlas" "s-chan" ];
+    };
 
     # The board's primary node is a systemd user service (configs/board-desktop.nix):
     # keep the user manager running without a login, so it's up after a reboot.
     users.users.ezekiel.linger = true;
-    };
     system.autoUpgrade = {
       enable = true;
       flake = "git+file:///home/ezekiel/Documents/repos/configs#desktop";
