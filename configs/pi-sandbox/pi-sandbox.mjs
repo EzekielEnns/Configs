@@ -75,6 +75,8 @@ const ALLOWED = [...GATEWAY, ...gatewayIps].flatMap((h) => GATEWAY_PORTS.map((p)
 const DENY_READ = [
 	"~/.ssh", "~/.gnupg", "~/.aws", "~/.azure", "~/.config/gcloud", "~/.kube", "~/.docker",
 	"~/.netrc", "~/.npmrc", "~/.pypirc", "~/.git-credentials", "~/.config/gh", "~/.config/sops",
+	// The board's token (it opens the desktop's board node) and its database copies.
+	"~/.board/token", "~/.board/board.db", "~/.board/replica.db",
 	"~/.config/age", "~/.age", "~/.pi/auth.json", "~/.pi/memory/projects", "~/.srt-settings.json",
 	"~/.zsh_history", "~/.bash_history", "~/.local/share/fish", "~/.histfile",
 	"~/Library/Keychains", "~/Library/Cookies", "~/Library/Mail", "~/Library/Messages",
@@ -173,12 +175,17 @@ const config = {
 			"*:7297": "Rex's server is off limits: it would be a shell outside the sandbox. Ask the user to run it.",
 		},
 		deniedResolvedAddresses: PRIVATE,
+		// The s-chan board: post and read through this machine's node (board.sock), and
+		// listen in ~/.board/pi so the node can wake this session. Trusted like any local
+		// agent: whoever reaches board.sock can post under any name. macOS only; srt
+		// ignores the path list on Linux.
+		allowUnixSockets: [join(HOME, ".board")],
 	},
 	filesystem: {
 		denyRead: DENY_READ.map((p) => p.replace(/^~/, HOME)),
 		// The checkpoint repo read-only: jev-check.ts diffs the job against it.
 		allowRead: [job, memory, checkpoints],
-		allowWrite: [job, memory],
+		allowWrite: [job, memory, join(HOME, ".board/pi"), join(HOME, ".board/hook.log")],
 		// The notes vault and its grants: read-only even for a job folder inside them.
 		denyWrite: notes ? [notes.VAULT, notes.STATE] : [],
 	},
