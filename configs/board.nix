@@ -14,5 +14,6 @@ in
     enable = true;
     # Skill edits in the checkout apply at once.
     inherit checkout;
+    host = "mac";
   };
 }
