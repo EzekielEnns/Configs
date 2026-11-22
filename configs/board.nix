@@ -17,5 +17,6 @@ in
     host = "mac";
     # The desktop's node owns the board (configs/board-desktop.nix); this one forwards.
     upstream = "desktop:7300";
+    pi = true;
   };
 }
