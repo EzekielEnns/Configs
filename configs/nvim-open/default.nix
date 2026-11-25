@@ -3,7 +3,7 @@
 # (nvim-open.sh). Tools print the links with `nvim-link`; Claude Code and Pi write them
 # as markdown links when they run in Rex.
 let
-  rexBin = "/Applications/Rex Beta.app/Contents/Helpers/Rex Server.rex/Contents/MacOS";
+  rexBin = "/Applications/Rex.app/Contents/Helpers/Rex Server.rex/Contents/MacOS";
   # Launch Services starts the handler with a bare PATH. ssh is the system one so it
   # reads ~/.ssh/config like an interactive one; nixos is the desktop's hostname.
   handler = pkgs.writeShellScriptBin "nvim-open" ''

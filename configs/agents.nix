@@ -39,9 +39,7 @@ let
     { id = "cloud-opus"; name = "Claude Opus 5.5 $$$$ ~$8.00 ($4 in / $20 out)"; contextWindow = 409600; maxTokens = 65536; }
     # Worker candidate for pi-orch (`--model desktop/cloud-gptoss`); hosted only, too big for the GPU.
     { id = "cloud-gptoss"; name = "gpt-oss-120b, US hosts $ ~$0.26 ($0.15 in / $0.60 out)"; contextWindow = 131072; maxTokens = 16384; }
-    # Research (ai-stack docs/models/sage-a1.5.md): Sage runs its own sub-agents, 2 slots
-    # x 32k; the 4B runs 4 slots x 16k for quick lookups.
-    { id = "sage"; name = "Sage-A1.5 35B-A3B (research, Q3, 2 slots x 32k)"; contextWindow = 32768; maxTokens = 16384; }
+    # Research: the 4B runs 4 slots x 16k for quick lookups.
     { id = "agents-a1-4b"; name = "Agents-A1 4B (research, 4 slots x 16k)"; contextWindow = 16384; maxTokens = 8192; }
     # Chat and roleplay, no coding (`pichat`): Nemotron 3.5 Bolt E4B uncensored, 4 slots x 32k.
     # Its chat template thinks unless told not to, so Pi's thinking level goes through as
@@ -59,7 +57,7 @@ let
     }
   ] ++ map (p: {
     # pichat planners (ai-stack docs/MODEL-WATCH.md "Plan"): they plan lookups beside Bolt in
-    # llama-swap's pichat group, 2 slots x 32k with a 2k thinking budget. All four templates
+    # llama-swap's pichat group, 2 slots x 32k with a 2k thinking budget. Both templates
     # take enable_thinking, so Pi's thinking level reaches them like Bolt's.
     inherit (p) id name;
     contextWindow = 32768;
@@ -71,8 +69,6 @@ let
   }) [
     { id = "planner-a1"; name = "Planner: Agents-A1 4B (Qwen3.5, 2 x 32k)"; }
     { id = "planner-qwen9b"; name = "Planner: Qwen3.5 9B (2 x 32k)"; }
-    { id = "planner-granite"; name = "Planner: Granite 4.2 8B (2 x 32k)"; }
-    { id = "planner-nano"; name = "Planner: Nemotron 3 Nano 4B (2 x 32k)"; }
   ];
   withReasoning = map (m: m // { reasoning = true; }) models;
   piModels = (pkgs.formats.json { }).generate "pi-models.json" {

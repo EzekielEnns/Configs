@@ -56,6 +56,9 @@
       # and they load its env here; zshenv covers non-interactive shells too.
       envExtra = ''
         [ -f "$HOME/.config/vite-plus/env" ] && . "$HOME/.config/vite-plus/env"
+        # Agent shells (Claude's snapshot) copy zoxide's cd=z functions but not its chpwd
+        # hook, so zoxide's doctor warns on every cd unless this is set in every zsh.
+        export _ZO_DOCTOR=0
       '';
       initContent = ''
         [ -f "$HOME/.config/vite-plus/env" ] && . "$HOME/.config/vite-plus/env"
@@ -81,7 +84,6 @@
           PROMPT="$PROMPT"$'%{\e]133;B\a%}'
         fi
         eval "$(direnv hook zsh)"
-        export _ZO_DOCTOR=0
         eval "$(zoxide init zsh)"
         alias cd=z
       '';

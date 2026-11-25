@@ -2,7 +2,7 @@
 let
   # The rex CLI ships inside the app bundle. Rex adds this dir to PATH itself,
   # but nix-darwin's /etc/zshenv resets PATH and drops it.
-  rexBin = "/Applications/Rex Beta.app/Contents/Helpers/Rex Server.rex/Contents/MacOS";
+  rexBin = "/Applications/Rex.app/Contents/Helpers/Rex Server.rex/Contents/MacOS";
 
   # Exact bytes Rex wrote after "Migrate theme from Ghostty config" (Gruvbox
   # Dark). The id must match the theme IDs below.

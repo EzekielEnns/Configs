@@ -194,6 +194,10 @@ in
     serviceConfig = {
       Type = "oneshot";
       RemainAfterExit = true;
+      # tailscaled being up isn't Tailscale being logged in: at boot `serve` failed with
+      # "unexpected state: NoState". Wait until it answers (2026-11-25).
+      ExecStartPre = "${pkgs.bash}/bin/sh -c 'until ${tailscale} status >/dev/null 2>&1; do sleep 2; done'";
+      TimeoutStartSec = 300;
       ExecStart = "${tailscale} serve --bg --https=8443 http://127.0.0.1:8081";
       ExecStop = "${tailscale} serve --https=8443 off";
     };

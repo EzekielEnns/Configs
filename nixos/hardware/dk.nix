@@ -20,6 +20,24 @@
     "sd_mod"
   ];
   boot.initrd.kernelModules = [ "amdgpu" ];
+
+  # The TCL 32S357CA TV on the iGPU's HDMI: always "connected", with its own EDID.
+  # A TV that's off (or comes on after a power cut) reports nothing, so GNOME started
+  # headless and froze when the screen appeared later (mutter 49, 2026-11-25).
+  # The EDID was read from /sys/class/drm/card0-HDMI-A-1/edid; it has no serial number.
+  # amdgpu loads in the initrd, so the file goes there too.
+  hardware.display = {
+    edid.packages = [
+      (pkgs.runCommand "edid-tcl-32s357ca" { } ''
+        install -Dm444 ${./tcl-32s357ca.edid.bin} $out/lib/firmware/edid/tcl-32s357ca.bin
+      '')
+    ];
+    outputs."HDMI-A-1" = {
+      edid = "tcl-32s357ca.bin";
+      mode = "e";
+    };
+  };
+  boot.initrd.extraFirmwarePaths = [ "edid/tcl-32s357ca.bin" ];
   boot.kernelModules = [ "kvm-amd" ];
   boot.kernelParams = [
     "amd_iommu=on"
