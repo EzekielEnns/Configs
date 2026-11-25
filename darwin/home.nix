@@ -9,6 +9,7 @@
     ../configs/rex.nix
     ../configs/agents.nix
     ../configs/board.nix
+    ../configs/code-index.nix
   ];
   options = { };
   config = {
