@@ -11,17 +11,19 @@
   # already uses) instead of being a flake input the Mac would also have to fetch.
   imports = [
     (builtins.getFlake "git+file:///home/ezekiel/Documents/repos/ai-stack").nixosModules.default
-    # atlas (live architecture diagrams), from its private repo cloned next to this one.
-    (builtins.getFlake "git+file:///home/ezekiel/Documents/repos/atlas").nixosModules.default
+    # Archnemesis (live architecture diagrams; atlas before the rename), from its public repo.
+    # Not pinned: each rebuild (the weekly auto-upgrade too) takes the newest main.
+    (builtins.getFlake "github:EzekielEnns/archnemesis").nixosModules.default
     ../modules/notes-sync.nix # the shared notes vault: Syncthing over Tailscale, hourly snapshots
   ];
 
   config = {
-    # atlas: on loopback, put on the tailnet by `tailscale serve` at https://desktop.<tailnet>:5190,
-    # which tells it who each person is. Runs as ezekiel so the design files in ~/Atlas are
-    # yours (one folder per design); the live database is /var/lib/atlas. Agents here use
+    # Archnemesis: on loopback, put on the tailnet by `tailscale serve` at
+    # https://desktop.<tailnet>:5190, which tells it who each person is. Runs as ezekiel so the
+    # design files in ~/Atlas are yours (one folder per design); the live database is
+    # /var/lib/archnm (moved there once from /var/lib/atlas by the module). Agents here use
     # http://127.0.0.1:5190/mcp, everything else the tailnet address.
-    services.atlas = {
+    services.archnm = {
       enable = true;
       user = "ezekiel";
       designsDir = "/home/ezekiel/Atlas";
