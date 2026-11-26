@@ -181,7 +181,9 @@
 
   programs.steam = {
     enable = true;
-    package = pkgs-unstable.steam;
+    # Stable, like the graphics drivers the module adds to Steam's FHS env.
+    # pkgs-unstable.steam put glibc 2.42 beside the drivers' 2.40 there, and
+    # pressure-vessel (Steam Linux Runtime) segfaulted on every Proton launch.
     gamescopeSession.enable = true;
     remotePlay.openFirewall = true;
     dedicatedServer.openFirewall = true;
