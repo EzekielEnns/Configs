@@ -9,6 +9,9 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - **Secrets** of any kind — private keys, API tokens, passwords, auth cookies/session tokens, TLS/SSH *private* keys. (Public keys are fine; e.g. the macbook SSH *public* key in `nixos/dk.nix` is intentionally committed.)
 - **Credentials / connection strings** — DB URLs with passwords, `.env` contents, cloud creds.
 - **Personal or identifying data** — emails/phone numbers/addresses beyond what is already deliberately public, and especially *other people's* data.
+- **Anything about work** — no employer-internal repo or service names, no MCP servers or tools that only exist in a work repo, no work hostnames, cloud projects, databases or vendors in the work stack, no ticket numbers, and no comments that explain what a work tool does. This includes comments, skill files and Claude settings, not just code. Don't list examples here either: this file is public too.
+
+**Work-specific Claude settings live in the work repo, never here.** If a permission, MCP server or hook only matters inside a work project, put it in that project's `.claude/settings.local.json` (git-ignored globally), not in `configs/claude.nix`. The global settings here apply on every machine and get published. If something here genuinely needs to mention work, write it generically ("a work project", "work data") and say so in the commit.
 
 Keep secrets out of git **and** out of the Nix store (the store is world-readable, so an inlined secret in a `.nix` file leaks even if the file isn't): use `sops-nix` / `agenix`, or an untracked, git-ignored path. When a value must be referenced in a committed file, use a placeholder and note where the real value comes from.
 
