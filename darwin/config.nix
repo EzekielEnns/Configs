@@ -112,6 +112,8 @@
       # SSH keys in the Secure Enclave, Touch ID per use; forwarded to the desktop so its sudo
       # takes a fingerprint on the Mac (security.pam.sshAgentAuth in nixos/dk.nix).
       "secretive"
+      # Local IMAP/SMTP for Proton Mail, so scripts and agents can sort the inbox.
+      "proton-mail-bridge"
     ];
     brews = [
       "zellij"
