@@ -166,9 +166,12 @@
   # Wraps a command so it runs on the dGPU (NVIDIA). Usage: `nvidia-offload steam`
   # or set Steam per-game launch options to: nvidia-offload %command%
   environment.systemPackages = (with pkgs-unstable; [
-    mangohud
     protonup-qt # GUI for managing Proton-GE versions
   ]) ++ [
+    # Stable: its Vulkan layer is loaded into every Proton game's container,
+    # and an unstable build brings a newer glibc in there (see programs.steam).
+    pkgs.mangohud
+  ] ++ [
     (pkgs.writeShellScriptBin "nvidia-offload" ''
       export __NV_PRIME_RENDER_OFFLOAD=1
       export __NV_PRIME_RENDER_OFFLOAD_PROVIDER=NVIDIA-G0
