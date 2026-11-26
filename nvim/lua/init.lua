@@ -182,7 +182,7 @@ vim.keymap.set("n", "<C-j>", "<C-w>j", { desc = "Move to bottom window" })
 vim.keymap.set("n", "<C-k>", "<C-w>k", { desc = "Move to top window" })
 vim.keymap.set("n", "<C-l>", "<C-w>l", { desc = "Move to right window" })
 
--- Spanner DDL files are just SQL as far as highlighting goes.
+-- .ddl files are just SQL as far as highlighting goes.
 vim.filetype.add({ extension = { ddl = "sql" } })
 
 require("config.lazy")

@@ -69,7 +69,7 @@ in
         permissions.defaultMode = "auto";
         # The notes vault (configs/notes): its tools only. notes_write asks with its own
         # dialog (MCP elicitation), so no permission prompt on top; direct edits are denied.
-        # The read-only graph-* Spanner servers from anti-evil's .mcp.json: local and dev
+        # Read-only graph query servers from a work project: local and dev
         # without asking, every prod call asks.
         permissions.allow = [
           "mcp__notes__notes_search"

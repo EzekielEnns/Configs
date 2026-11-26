@@ -31,7 +31,7 @@ The design behind the roles is in `ai-stack/docs/HELPERS.md`.
 - **Don't edit the registry or Nix config without asking.** Propose the changes in the
   report.
 - **Don't recommend hosts or vendors the user has ruled out.** That includes PRC-hosted
-  APIs for VerifyYou or game data. Open weights from any org are fine to run locally.
+  APIs for work or game data. Open weights from any org are fine to run locally.
 
 ## Steps
 
