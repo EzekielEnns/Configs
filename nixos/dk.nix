@@ -30,6 +30,12 @@
       # Tailscale logins that may also connect designs to git repos and set up the GitHub
       # App (everyone else on the tailnet edits).
       admins = [ "EzekielEnns@github" ];
+      # An experiment (2026-11-26): writes push agents toward existing tools and libraries.
+      # Library stats send package names to deps.dev and GitHub. Delete this block to go back.
+      settings = {
+        ARCHNM_EXPERIMENTS = "offshelf";
+        ARCHNM_LIBSTATS = "yes";
+      };
     };
 
     services.ai-stack = {
