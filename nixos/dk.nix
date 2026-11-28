@@ -11,6 +11,8 @@
   # already uses) instead of being a flake input the Mac would also have to fetch.
   imports = [
     (builtins.getFlake "git+file:///home/ezekiel/Documents/repos/ai-stack").nixosModules.default
+    # ml-chan (a crawler and its stats page), from its own private repo cloned next to ai-stack.
+    (builtins.getFlake "git+file:///home/ezekiel/Documents/repos/ml-chan").nixosModules.default
     # Archnemesis (live architecture diagrams; atlas before the rename), from its public repo.
     # Not pinned: each rebuild (the weekly auto-upgrade too) takes the newest main.
     (builtins.getFlake "github:EzekielEnns/archnemesis").nixosModules.default
@@ -37,6 +39,10 @@
         ARCHNM_LIBSTATS = "yes";
       };
     };
+
+    # ml-chan: data in /var/lib/ml-chan, stats page on :8787 (firewall closed; reached over
+    # tailscale0, which is trusted). Logs: journalctl -u ml-chan.
+    services.ml-chan.enable = true;
 
     services.ai-stack = {
       enable = true;
@@ -519,12 +525,12 @@
     # the newest nixos-unstable (the lock file isn't touched), then garbage-collect down to the
     # new generation (nix.gc in modules/general.nix). Skipped while the repo has uncommitted
     # changes, so a half-done edit never goes live unattended. Runs at next boot if missed.
-    # Root builds these ezekiel-owned checkouts: configs, plus ai-stack, evidence, atlas and s-chan through
+    # Root builds these ezekiel-owned checkouts: configs, plus ai-stack, evidence, atlas, s-chan and ml-chan through
     # getFlake above (the weekly upgrade, and rebuilds run as systemd jobs so a Rex server
     # restart can't cut them off). git refuses another user's repo without this.
     programs.git = {
       enable = true;
-      config.safe.directory = map (r: "/home/ezekiel/Documents/repos/${r}") [ "configs" "ai-stack" "evidence" "atlas" "s-chan" ];
+      config.safe.directory = map (r: "/home/ezekiel/Documents/repos/${r}") [ "configs" "ai-stack" "evidence" "atlas" "s-chan" "ml-chan" ];
     };
 
     # The board's primary node is a systemd user service (configs/board-desktop.nix):
